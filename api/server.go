@@ -1,26 +1,23 @@
-package main
+package api
 
 import (
-	"crashtested-backend/api/requests"
-	"net/http"
+	"crashtested-backend/api/handlers"
+	"os"
 
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 )
 
-func filterProducts(context echo.Context) error {
-	request := new(requests.FilterProductsRequest)
-	if err := context.Bind(request); err != nil {
-		return err
-	}
-	return context.JSON(http.StatusOK, request)
-}
-
 func main() {
 	e := echo.New()
 	e.Use(middleware.Logger())
 
-	e.POST("/api/v1/products/filter", filterProducts)
+	healthCheckHandler := &handlers.HealthCheckHandler{BuildNumber: os.Getenv("BUILD_NUMBER")}
+	productsHandler := &handlers.ProductsHandler{}
 
-	e.Logger.Fatal(e.Start(":5000"))
+	e.GET("/", healthCheckHandler.Healthcheck)
+	e.POST("/api/v1/products/filter", productsHandler.FilterProducts)
+
+	err := e.Start(":5000")
+	e.Logger.Fatal(err)
 }

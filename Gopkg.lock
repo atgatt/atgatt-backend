@@ -32,6 +32,12 @@
   version = "v0.0.3"
 
 [[projects]]
+  name = "github.com/onsi/gomega"
+  packages = [".","format","internal/assertion","internal/asyncassertion","internal/oraclematcher","internal/testingtsupport","matchers","matchers/support/goraph/bipartitegraph","matchers/support/goraph/edge","matchers/support/goraph/node","matchers/support/goraph/util","types"]
+  revision = "c893efa28eb45626cdaa76c9f653b62488858837"
+  version = "v1.2.0"
+
+[[projects]]
   branch = "master"
   name = "github.com/valyala/bytebufferpool"
   packages = ["."]
@@ -51,13 +57,31 @@
 
 [[projects]]
   branch = "master"
+  name = "golang.org/x/net"
+  packages = ["html","html/atom","html/charset"]
+  revision = "dc871a5d77e227f5bbf6545176ef3eeebf87e76e"
+
+[[projects]]
+  branch = "master"
   name = "golang.org/x/sys"
   packages = ["unix"]
   revision = "8b4580aae2a0dd0c231a45d3ccb8434ff533b840"
 
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/text"
+  packages = ["encoding","encoding/charmap","encoding/htmlindex","encoding/internal","encoding/internal/identifier","encoding/japanese","encoding/korean","encoding/simplifiedchinese","encoding/traditionalchinese","encoding/unicode","internal/gen","internal/tag","internal/utf8internal","language","runes","transform","unicode/cldr"]
+  revision = "3b24cac7bc3a458991ab409aa2a339ac9e0d60d6"
+
+[[projects]]
+  branch = "v2"
+  name = "gopkg.in/yaml.v2"
+  packages = ["."]
+  revision = "287cf08546ab5e7e37d55a84f7ed3fd1db036de5"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "254090cd2026e2879b69a6291faf43be413c44b98c6143f2e249a17852508079"
+  inputs-digest = "5208219161acfbc1e073c2c4fc85f467d88c15b8603381709f984b099dd71445"
   solver-name = "gps-cdcl"
   solver-version = 1
