@@ -1,4 +1,4 @@
-package api
+package server
 
 import (
 	"crashtested-backend/api/handlers"
@@ -8,7 +8,11 @@ import (
 	"github.com/labstack/echo/middleware"
 )
 
-func main() {
+type Server struct {
+	Port string
+}
+
+func (self *Server) Build() *echo.Echo {
 	e := echo.New()
 	e.Use(middleware.Logger())
 
@@ -18,6 +22,11 @@ func main() {
 	e.GET("/", healthCheckHandler.Healthcheck)
 	e.POST("/api/v1/products/filter", productsHandler.FilterProducts)
 
-	err := e.Start(":5000")
+	return e
+}
+
+func (self *Server) StartAndBlock() {
+	e := self.Build()
+	err := e.Start(self.Port)
 	e.Logger.Fatal(err)
 }

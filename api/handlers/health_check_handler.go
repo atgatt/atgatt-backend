@@ -12,7 +12,7 @@ type HealthCheckHandler struct {
 }
 
 func (self *HealthCheckHandler) Healthcheck(context echo.Context) (err error) {
-	healthCheckResponse := &responses.HealthCheckResponse{Name: "api", Version: "1.0.0"}
+	healthCheckResponse := &responses.HealthCheckResponse{Name: "crashtested-api", Version: "1.0.0"}
 
 	if len(self.BuildNumber) > 0 {
 		healthCheckResponse.BuildNumber = self.BuildNumber
