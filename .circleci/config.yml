@@ -3,7 +3,7 @@ jobs:
   deploy_staging:
     docker:
       - image: circleci/golang:1.9
-    working_directory: /go/src/github.com/crashtested-backend
+    working_directory: /go/src/crashtested-backend
     steps:
       - checkout
       - restore_cache:
