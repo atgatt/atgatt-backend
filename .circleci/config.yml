@@ -19,7 +19,7 @@ jobs:
           paths:
             - vendor
           key: v1-dependencies-{{ checksum "Gopkg.toml" }}
-      - run: go build ./api
+      - run: go build -o crashtested-backend-api ./api
       - run: go test -v ./...
   promote_staging_to_prod:
     docker:
