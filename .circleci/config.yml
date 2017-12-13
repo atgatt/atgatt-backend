@@ -1,0 +1,39 @@
+version: 2
+jobs:
+  deploy_staging:
+    docker:
+      - image: circleci/golang:1.9
+    working_directory: /go/src/github.com/crashtested-backend
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "Gopkg.toml" }}
+          # fallback to using the latest cache if no exact match is found
+          - v1-dependencies-
+      - run: sudo apt-get -y -qq install awscli
+      - run: curl -o /go/bin/dep https://github.com/golang/dep/releases/download/v0.3.2/dep-linux-amd64
+      - run: dep ensure
+      - save_cache:
+          paths:
+            - vendor
+          key: v1-dependencies-{{ checksum "Gopkg.toml" }}
+      - run: go test -v ./...
+      - run: go build ./api
+  promote_staging_to_prod:
+    docker:
+      - image: circleci/golang:1.9
+    steps:
+      - run: sudo apt-get -y -qq install awscli
+workflows:
+  version: 2
+  promote_to_prod:
+    jobs:
+      - deploy_staging
+      - hold:
+          type: approval
+          requires:
+            - deploy_staging
+      - promote_staging_to_prod:
+          requires:
+            - hold
