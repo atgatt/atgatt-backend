@@ -19,8 +19,8 @@ jobs:
           paths:
             - vendor
           key: v1-dependencies-{{ checksum "Gopkg.toml" }}
-      - run: go test -v ./...
       - run: go build ./api
+      - run: go test -v ./...
   promote_staging_to_prod:
     docker:
       - image: circleci/golang:1.9
