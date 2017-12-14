@@ -11,7 +11,7 @@ jobs:
           - v1-dependencies-{{ checksum "Gopkg.toml" }}
           # fallback to using the latest cache if no exact match is found
           - v1-dependencies-
-      - run: sudo apt-get -y -qq install awscli
+      - run: sudo apt-get -y -qq install awscli pip
       - run: pip install awsebcli --upgrade --user
       - run: curl -L -o /go/bin/dep https://github.com/golang/dep/releases/download/v0.3.2/dep-linux-amd64
       - run: chmod +x /go/bin/dep
