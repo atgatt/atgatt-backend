@@ -20,7 +20,7 @@ func Test_Healthcheck_should_always_return_the_version_of_the_app(t *testing.T) 
 	context := e.NewContext(request, recorder)
 	context.SetPath("/")
 
-	handler := &HealthCheckHandler{BuildNumber: "2"}
+	handler := &HealthCheckHandler{BuildNumber: "2", Name: "crashtested-api", Version: "1.0.0"}
 	handler.Healthcheck(context)
 
 	responseBytes := recorder.Body.Bytes()

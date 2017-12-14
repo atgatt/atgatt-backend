@@ -16,7 +16,7 @@ func (self *Server) Build() *echo.Echo {
 	e := echo.New()
 	e.Use(middleware.Logger())
 
-	healthCheckHandler := &handlers.HealthCheckHandler{BuildNumber: os.Getenv("BUILD_NUMBER")}
+	healthCheckHandler := &handlers.HealthCheckHandler{BuildNumber: os.Getenv("BUILD_NUMBER"), Name: "crashtested-api", Version: "1.0.0"}
 	productsHandler := &handlers.ProductsHandler{}
 
 	e.GET("/", healthCheckHandler.Healthcheck)
