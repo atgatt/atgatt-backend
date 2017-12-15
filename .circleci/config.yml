@@ -25,7 +25,7 @@ jobs:
       - run: go build -o crashtested-api ./api
       - run: go test -v ./...
       - run: zip artifacts.zip crashtested-api Procfile
-      - run: eb deploy --profile default --verbose --process
+      - run: ./deploy/deploy_staging.sh
   promote_staging_to_prod:
     docker:
       - image: circleci/golang:1.9
