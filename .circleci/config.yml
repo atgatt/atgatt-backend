@@ -24,12 +24,17 @@ jobs:
           key: v1-dependencies-{{ checksum "Gopkg.toml" }}
       - run: go build -o crashtested-api ./api
       - run: go test -v ./...
-      - run: eb --version
+      - run: zip artifacts.zip crashtested-api Procfile
+      - run: eb deploy --process
   promote_staging_to_prod:
     docker:
       - image: circleci/golang:1.9
     steps:
-      - run: sudo apt-get -y -qq install awscli
+      - run: sudo apt-get -y -qq install awscli python-pip
+      - run: pip install awsebcli --upgrade --user
+      - run: echo 'export PATH=$PATH:~/.local/bin' >> $BASH_ENV
+      - run: source ~/.bashrc
+      - run: eb swap api-staging --destination_name api-prod
 workflows:
   version: 2
   promote_to_prod:
