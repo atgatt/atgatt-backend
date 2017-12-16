@@ -26,7 +26,7 @@ jobs:
       - run: go build -o crashtested-api ./api
       - run: go test -v ./...
       - run: zip artifacts.zip crashtested-api Procfile
-      - run: eb deploy --process --verbose
+      - run: eb deploy --label api-build-${CIRCLE_BUILD_NUM} --process --verbose
   promote_staging_to_prod:
     docker:
       - image: circleci/golang:1.9
@@ -35,6 +35,7 @@ jobs:
       - run: pip install awsebcli --upgrade --user
       - run: echo 'export PATH=$PATH:~/.local/bin' >> $BASH_ENV
       - run: source ~/.bashrc
+      - run: chmod +x ./deploy/setup_aws_credentials.sh && ./deploy/setup_aws_credentials.sh
       - run: eb swap api-staging --destination_name api-prod
 workflows:
   version: 2
