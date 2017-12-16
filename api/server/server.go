@@ -15,6 +15,7 @@ type Server struct {
 func (self *Server) Build() *echo.Echo {
 	e := echo.New()
 	e.Use(middleware.Logger())
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{AllowOrigins: []string{"https://staging.crashtested.co", "https://www.staging.crashtested.co", "https://crashtested.co", "https://www.crashtested.co"}}))
 
 	healthCheckHandler := &handlers.HealthCheckHandler{BuildNumber: os.Getenv("BUILD_NUMBER"), Name: "crashtested-api", Version: "1.0.1"}
 	productsHandler := &handlers.ProductsHandler{}
