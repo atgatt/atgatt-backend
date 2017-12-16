@@ -20,7 +20,7 @@ func (self *Server) Build() *echo.Echo {
 	productsHandler := &handlers.ProductsHandler{}
 
 	e.GET("/", healthCheckHandler.Healthcheck)
-	e.POST("/api/v1/products/filter", productsHandler.FilterProducts)
+	e.POST("/v1/products/filter", productsHandler.FilterProducts)
 
 	return e
 }
