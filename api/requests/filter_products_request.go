@@ -1,8 +1,8 @@
 package requests
 
 type FilterProductsRequest struct {
-	Manufacturer   interface{} `json:"manufacturer"`
-	Model          interface{} `json:"model"`
+	Manufacturer   string `json:"manufacturer"`
+	Model          string `json:"model"`
 	Certifications struct {
 		SHARP bool `json:"SHARP"`
 		SNELL bool `json:"SNELL"`
@@ -20,4 +20,6 @@ type FilterProductsRequest struct {
 		Rear int `json:"rear"`
 	} `json:"impactZoneMinimums"`
 	UsdPriceRange [2]int `json:"usdPriceRange"`
+	Start         int    `json:"start"`
+	Limit         int    `json:"limit"`
 }
