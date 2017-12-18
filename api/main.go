@@ -1,10 +1,10 @@
 package main
 
 import (
-	"crashtested-backend/api/server"
+	"crashtested-backend/api/handlers"
 )
 
 func main() {
-	s := &server.Server{Port: ":5000"}
+	s := &handlers.Server{Port: ":5000"}
 	s.StartAndBlock()
 }

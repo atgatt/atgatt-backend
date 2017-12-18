@@ -11,8 +11,7 @@ type ProductsHandler struct {
 }
 
 func (self *ProductsHandler) FilterProducts(context echo.Context) (err error) {
-	request := &requests.FilterProductsRequest{}
-	context.Bind(request)
+	request := new(requests.FilterProductsRequest)
 	if err := context.Bind(request); err != nil {
 		return err
 	}

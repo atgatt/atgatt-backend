@@ -1,20 +1,18 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
-	"net/http/httptest"
 	"strings"
 	"testing"
 
-	"github.com/labstack/echo"
 	. "github.com/onsi/gomega"
 )
 
 func Test_FilterProducts_should_always_return_the_mock_data(t *testing.T) {
 	RegisterTestingT(t)
 
-	e := echo.New()
-	request := httptest.NewRequest(echo.POST, "/api/v1/products/filter", strings.NewReader(`{
+	resp, _ := http.Post(fmt.Sprintf("%s/v1/products/filter", ApiBaseUrl), "application/json", strings.NewReader(`{
 		"manufacturer": "Shoei",
 		"model": "Hey bay",
 		"certifications": {
@@ -37,12 +35,6 @@ func Test_FilterProducts_should_always_return_the_mock_data(t *testing.T) {
 		"start": 0,
 		"limit": 25
 	}`))
-	recorder := httptest.NewRecorder()
-	context := e.NewContext(request, recorder)
-	context.SetPath("/api/v1/products/filter")
 
-	handler := &ProductsHandler{}
-	handler.FilterProducts(context)
-
-	Expect(recorder.Code).To(Equal(http.StatusOK))
+	Expect(resp.StatusCode).To(Equal(http.StatusOK))
 }
