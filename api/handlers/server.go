@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"fmt"
+
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 	"github.com/labstack/gommon/color"
@@ -33,7 +35,7 @@ func (self *Server) Build() {
 func (self *Server) StartAndBlock() {
 	self.Build()
 	coloredConsole := color.New()
-	coloredConsole.Printf("⇨ http server started on http://localhost%s\n", color.Green(self.Port))
+	coloredConsole.Printf("⇨ http server started on %s\n", color.Green(fmt.Sprintf("%s%s", "http://localhost", self.Port)))
 	err := self.Echo.Start(self.Port)
 	self.Echo.Logger.Fatal(err)
 }
