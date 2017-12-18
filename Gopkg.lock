@@ -15,7 +15,7 @@
 
 [[projects]]
   name = "github.com/labstack/gommon"
-  packages = ["bytes","color","log","random"]
+  packages = [".","bytes","color","log","random"]
   revision = "57409ada9da0f2afad6664c49502f8c50fbd8476"
   version = "0.2.3"
 
@@ -82,6 +82,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "5208219161acfbc1e073c2c4fc85f467d88c15b8603381709f984b099dd71445"
+  inputs-digest = "83d5df2beacd2645cfc51718c2413ba16cd89392e14d2abf53e2e67d7a7cc933"
   solver-name = "gps-cdcl"
   solver-version = 1
