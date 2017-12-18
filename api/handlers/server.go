@@ -1,8 +1,11 @@
 package handlers
 
 import (
+	"crashtested-backend/api/configuration"
 	"fmt"
+	"os"
 
+	"github.com/go-ozzo/ozzo-validation"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 	"github.com/labstack/gommon/color"
@@ -22,6 +25,15 @@ func (self *Server) Build() {
 	e.HideBanner = true
 	e.Use(middleware.Logger())
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{AllowOrigins: []string{"https://staging.crashtested.co", "https://www.staging.crashtested.co", "https://crashtested.co", "https://www.crashtested.co"}}))
+
+	config := &configuration.Configuration{DatabaseConnectionString: os.Getenv("DATABASE_CONNECTION_STRING")}
+	err := validation.ValidateStruct(config,
+		validation.Field(&config.DatabaseConnectionString, validation.Required),
+	)
+	if err != nil {
+		fmt.Printf("Failed to start the API because the app configuration could not be validated: %s", err.Error())
+		os.Exit(-1)
+	}
 
 	healthCheckHandler := &HealthCheckHandler{Name: self.Name, Version: self.Version, BuildNumber: self.BuildNumber}
 	productsHandler := &ProductsHandler{}

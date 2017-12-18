@@ -85,30 +85,37 @@ func RunDockerCommand(label string, arg ...string) string {
 
 func StartDatabase() string {
 	exec.Command("/bin/sh", "../../cleanup-docker.sh").Run()
-	return RunDockerCommand("starting database container", "run", "-d", "-p", "5444:5432", "-e", "POSTGRES_PASSWORD=password", "-e", "POSTGRES_DB=crashtested", DatabaseDockerImage)
+	return RunDockerCommand("starting database container", "run", "--name", "automatedtestingdb", "-d", "-p", "5444:5432", "-e", "POSTGRES_PASSWORD=password", "-e", "POSTGRES_DB=crashtested", DatabaseDockerImage)
 }
 
 func StopDatabase(dockerContainerId string) {
-	RunDockerCommand("stopping database container", "stop", dockerContainerId)
+	RunDockerCommand("stopping database container", "stop", "automatedtestingdb")
 }
 
 func TestMain(m *testing.M) {
+	statusCode := 0
 	dockerContainerId := StartDatabase()
-	WaitForMigrations()
+	defer StopDatabase(dockerContainerId)
+	migrationsRan := WaitForMigrations()
+	if !migrationsRan {
+		statusCode = -1
+		return
+	}
 
 	fmt.Println("Starting server in the background...")
 	server := Server{Port: ":5001", Name: "crashtested-api", Version: "integrationtests", BuildNumber: "1337"}
 	go server.StartAndBlock()
+	defer server.Stop()
 
-	WaitForApi()
+	apiStarted := WaitForApi()
+	if !apiStarted {
+		statusCode = -1
+		return
+	}
+
 	fmt.Println("Server is running! Starting tests.")
-	statusCode := m.Run()
+	statusCode = m.Run()
 
-	fmt.Println("Tests finished. Stopping database...")
-	StopDatabase(dockerContainerId)
-	fmt.Println("Stopping server...")
-	server.Stop()
-	fmt.Println("Stopped server.")
-
-	os.Exit(statusCode)
+	fmt.Println("Tests finished. Stopping everything...")
+	defer os.Exit(statusCode)
 }

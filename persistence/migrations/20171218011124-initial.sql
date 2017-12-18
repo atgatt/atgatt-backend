@@ -1,5 +1,11 @@
 
 -- +migrate Up
-select 1;
+create table products (
+    id serial primary key,
+    uuid uuid,
+    document jsonb,
+    created_at date,
+    updated_at date
+);
 -- +migrate Down
-select 1;
+drop table products;

@@ -8,6 +8,12 @@
   version = "v3.1.0"
 
 [[projects]]
+  name = "github.com/go-ozzo/ozzo-validation"
+  packages = ["."]
+  revision = "85dcd8368eba387e65a03488b003e233994e87e9"
+  version = "v3.3"
+
+[[projects]]
   name = "github.com/labstack/echo"
   packages = [".","middleware"]
   revision = "0473c51f1dbd83487effce00702571d19033a6e5"
@@ -100,6 +106,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "ebbf596f49a268e1cbf0300f0ec9026c369565e2050f24f5a40b8da95dfb4816"
+  inputs-digest = "812aadaa16e45a3a8cd1e7df7b983bf24e60c213540b33d2c3cbd4cac045125b"
   solver-name = "gps-cdcl"
   solver-version = 1
