@@ -15,9 +15,15 @@
 
 [[projects]]
   name = "github.com/labstack/gommon"
-  packages = [".","bytes","color","log","random"]
+  packages = ["bytes","color","log","random"]
   revision = "57409ada9da0f2afad6664c49502f8c50fbd8476"
   version = "0.2.3"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/lib/pq"
+  packages = [".","oid"]
+  revision = "83612a56d3dd153a94a629cd64925371c9adad78"
 
 [[projects]]
   name = "github.com/mattn/go-colorable"
@@ -36,6 +42,12 @@
   packages = [".","format","internal/assertion","internal/asyncassertion","internal/oraclematcher","internal/testingtsupport","matchers","matchers/support/goraph/bipartitegraph","matchers/support/goraph/edge","matchers/support/goraph/node","matchers/support/goraph/util","types"]
   revision = "c893efa28eb45626cdaa76c9f653b62488858837"
   version = "v1.2.0"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/rubenv/sql-migrate"
+  packages = [".","sqlparse"]
+  revision = "6edbfbd6a369ee82463312ec67b2c92f97a1d4dc"
 
 [[projects]]
   branch = "master"
@@ -74,6 +86,12 @@
   revision = "3b24cac7bc3a458991ab409aa2a339ac9e0d60d6"
 
 [[projects]]
+  name = "gopkg.in/gorp.v1"
+  packages = ["."]
+  revision = "c87af80f3cc5036b55b83d77171e156791085e2e"
+  version = "v1.7.1"
+
+[[projects]]
   branch = "v2"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
@@ -82,6 +100,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "83d5df2beacd2645cfc51718c2413ba16cd89392e14d2abf53e2e67d7a7cc933"
+  inputs-digest = "ebbf596f49a268e1cbf0300f0ec9026c369565e2050f24f5a40b8da95dfb4816"
   solver-name = "gps-cdcl"
   solver-version = 1

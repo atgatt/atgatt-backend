@@ -31,7 +31,7 @@ func Test_FilterProducts_should_always_return_the_mock_data(t *testing.T) {
 		  },
 		  "rear": 6
 		},
-		"usdPriceRange": [0, 10000],
+		"usdPriceRange": [0, 10001],
 		"start": 0,
 		"limit": 25
 	}`))

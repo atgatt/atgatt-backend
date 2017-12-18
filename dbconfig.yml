@@ -1,0 +1,4 @@
+development:
+    dialect: postgres
+    dir: persistence/migrations
+    datasource: notneeded
