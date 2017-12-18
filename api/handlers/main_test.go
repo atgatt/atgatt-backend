@@ -74,7 +74,6 @@ func RunDockerCommand(label string, arg ...string) string {
 		output, err := startPostgresCommand.Output()
 		if err != nil {
 			fmt.Println("Docker command failed to run!")
-			os.Exit(-1)
 		}
 		return strings.TrimSpace(string(output))
 	} else {
@@ -83,39 +82,33 @@ func RunDockerCommand(label string, arg ...string) string {
 	}
 }
 
-func StartDatabase() string {
+func StartDatabase() {
 	exec.Command("/bin/sh", "../../cleanup-docker.sh").Run()
-	return RunDockerCommand("starting database container", "run", "--name", "automatedtestingdb", "-d", "-p", "5432:5432", "-e", "POSTGRES_PASSWORD=password", "-e", "POSTGRES_DB=crashtested", DatabaseDockerImage)
+	RunDockerCommand("starting database container", "run", "--name", "automatedtestingdb", "-d", "-p", "5432:5432", "-e", "POSTGRES_PASSWORD=password", "-e", "POSTGRES_DB=crashtested", DatabaseDockerImage)
 }
 
-func StopDatabase(dockerContainerId string) {
+func StopDatabase() {
 	RunDockerCommand("stopping database container", "stop", "automatedtestingdb")
 }
 
 func TestMain(m *testing.M) {
-	statusCode := 0
-	dockerContainerId := StartDatabase()
-	defer StopDatabase(dockerContainerId)
+	fmt.Println("Starting server and database in the background...")
+	StartDatabase()
 	migrationsRan := WaitForMigrations()
-	if !migrationsRan {
-		statusCode = -1
-		return
-	}
-
-	fmt.Println("Starting server in the background...")
 	server := Server{Port: ":5001", Name: "crashtested-api", Version: "integrationtests", BuildNumber: "1337"}
 	go server.StartAndBlock()
-	defer server.Stop()
 
 	apiStarted := WaitForApi()
-	if !apiStarted {
-		statusCode = -1
-		return
+
+	statusCode := -1
+	if apiStarted && migrationsRan {
+		fmt.Println("Server is running! Starting tests.")
+		statusCode = m.Run()
 	}
 
-	fmt.Println("Server is running! Starting tests.")
-	statusCode = m.Run()
-
-	fmt.Println("Tests finished. Stopping everything...")
-	defer os.Exit(statusCode)
+	fmt.Println("Tests finished. Closing resources...")
+	StopDatabase()
+	server.Stop()
+	fmt.Println("Done. Exiting...")
+	os.Exit(statusCode)
 }
