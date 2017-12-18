@@ -15,7 +15,7 @@ import (
 )
 
 const ApiBaseUrl string = "http://localhost:5001"
-const DockerDatabaseConnectionString string = "postgres://postgres:password@localhost:5444/crashtested?sslmode=disable"
+const DockerDatabaseConnectionString string = "postgres://postgres:password@localhost:5432/crashtested?sslmode=disable"
 const DatabaseDockerImage string = "postgres:9.6-alpine"
 
 func WaitFor(label string, isRunningFunc func() (bool, error)) bool {
@@ -85,7 +85,7 @@ func RunDockerCommand(label string, arg ...string) string {
 
 func StartDatabase() string {
 	exec.Command("/bin/sh", "../../cleanup-docker.sh").Run()
-	return RunDockerCommand("starting database container", "run", "--name", "automatedtestingdb", "-d", "-p", "5444:5432", "-e", "POSTGRES_PASSWORD=password", "-e", "POSTGRES_DB=crashtested", DatabaseDockerImage)
+	return RunDockerCommand("starting database container", "run", "--name", "automatedtestingdb", "-d", "-p", "5432:5432", "-e", "POSTGRES_PASSWORD=password", "-e", "POSTGRES_DB=crashtested", DatabaseDockerImage)
 }
 
 func StopDatabase(dockerContainerId string) {
