@@ -1,6 +1,6 @@
-package requests
+package queries
 
-type FilterProductsRequest struct {
+type FilterProductsQuery struct {
 	Manufacturer   string `json:"manufacturer"`
 	Model          string `json:"model"`
 	Certifications struct {

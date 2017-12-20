@@ -11,8 +11,7 @@ type ProductDocument struct {
 	PriceInUsd      string
 	Certifications  struct {
 		SHARP struct {
-			RatingType        string
-			RatingValue       string
+			Stars             int
 			ImpactZoneRatings struct {
 				Left  int
 				Right int

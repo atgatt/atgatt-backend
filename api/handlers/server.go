@@ -36,7 +36,7 @@ func (self *Server) Build() {
 	}
 
 	healthCheckHandler := &HealthCheckHandler{Name: self.Name, Version: self.Version, BuildNumber: self.BuildNumber}
-	productsHandler := &ProductsHandler{}
+	productsHandler := &ProductHandler{}
 
 	e.GET("/", healthCheckHandler.Healthcheck)
 	e.POST("/v1/products/filter", productsHandler.FilterProducts)
