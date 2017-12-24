@@ -22,6 +22,6 @@ func Test_Healthcheck_should_always_return_the_name_and_version_of_the_app(t *te
 
 	Expect(healthCheckResponse).ToNot(BeNil())
 	Expect(healthCheckResponse.Name).To(Equal("crashtested-api"))
-	Expect(healthCheckResponse.Version).To(Equal("integrationtests"))
-	Expect(healthCheckResponse.BuildNumber).To(Equal("1337"))
+	Expect(healthCheckResponse.Version).To(Equal("integration-tests-version"))
+	Expect(healthCheckResponse.BuildNumber).To(Equal("integration-tests-build"))
 }

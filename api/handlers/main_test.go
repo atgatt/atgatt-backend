@@ -1,9 +1,12 @@
 package handlers
 
 import (
+	"crashtested-backend/api/configuration"
+	"crashtested-backend/persistence/helpers"
 	"crashtested-backend/seeds"
 	"database/sql"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"net/http"
 	"os"
 	"testing"
@@ -26,14 +29,14 @@ func WaitFor(label string, isRunningFunc func() (bool, error)) bool {
 	var err error
 	timeWaited := time.Duration(0)
 	for !isRunning && (timeWaited < MaxTimeToWait) {
-		fmt.Printf("Waiting for %s to come online...\n", label)
+		logrus.Infof("Waiting for %s to come online...", label)
 		isRunning, err = isRunningFunc()
 		if err != nil {
-			fmt.Printf("%s returned an error: %s\n", label, err.Error())
+			logrus.Errorf("%s returned an error: %s", label, err.Error())
 		}
 
 		if !isRunning {
-			fmt.Println("Trying again after 200ms...")
+			logrus.Infof("Trying again after 200ms...")
 			time.Sleep(200 * time.Millisecond)
 			timeWaited += 200 * time.Millisecond
 		}
@@ -50,7 +53,6 @@ func WaitForApi() bool {
 
 func WaitForMigrations() bool {
 	return WaitFor("database", func() (bool, error) {
-		migrationsSource := &migrate.FileMigrationSource{Dir: "../../persistence/migrations"}
 		dbServerConn, err := sql.Open("postgres", DatabaseServerConnectionString)
 		defer dbServerConn.Close()
 		if err != nil {
@@ -66,21 +68,11 @@ func WaitForMigrations() bool {
 			return false, err
 		}
 
-		var dbConn *sql.DB
-		dbConn, err = sql.Open("postgres", DatabaseConnectionString)
-		defer dbConn.Close()
-
+		err = helpers.RunMigrations(DatabaseConnectionString, "../../persistence/migrations")
 		if err != nil {
 			return false, err
 		}
-
-		fmt.Println("Running migrations...")
-		appliedMigrations, err := migrate.Exec(dbConn, "postgres", migrationsSource, migrate.Up)
-
-		if err != nil {
-			return false, err
-		}
-		fmt.Println("Successfully ran migrations. Running seeds...")
+		logrus.Info("Running seeds...")
 
 		productSeedsSql := seeds.GetProductSeedsSqlStatements()
 		seedMigrationsSource := &migrate.MemoryMigrationSource{
@@ -90,28 +82,32 @@ func WaitForMigrations() bool {
 		}
 
 		var appliedSeedMigrations int
+		dbConn, err := sql.Open("postgres", DatabaseConnectionString)
+		defer dbConn.Close()
 		appliedSeedMigrations, err = migrate.Exec(dbConn, "postgres", seedMigrationsSource, migrate.Up)
 
-		return (appliedMigrations > 0 && appliedSeedMigrations > 0), err
+		return (appliedSeedMigrations > 0), err
 	})
 }
 
 func TestMain(m *testing.M) {
-	fmt.Println("Starting server and database migrations...")
+	logrus.Info("Starting server and database migrations...")
 	migrationsRan := WaitForMigrations()
-	server := Server{Port: ":5001", Name: "crashtested-api", Version: "integrationtests", BuildNumber: "1337"}
+	defaultConfiguration := configuration.GetDefaultConfiguration()
+	defaultConfiguration.AppEnvironment = "integration-tests"
+	server := Server{Port: ":5001", Name: "crashtested-api", Version: "integration-tests-version", BuildNumber: "integration-tests-build", Configuration: defaultConfiguration}
 	go server.StartAndBlock()
 
 	apiStarted := WaitForApi()
 
 	statusCode := -1
 	if apiStarted && migrationsRan {
-		fmt.Println("Server is running! Starting tests.")
+		logrus.Info("Server is running! Starting tests.")
 		statusCode = m.Run()
 	}
 
-	fmt.Println("Tests finished. Closing resources...")
+	logrus.Info("Tests finished. Closing resources...")
 	server.Stop()
-	fmt.Println("Done. Exiting...")
+	logrus.Info("Done. Exiting...")
 	os.Exit(statusCode)
 }

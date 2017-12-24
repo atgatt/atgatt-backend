@@ -46,9 +46,21 @@
   name = "github.com/lib/pq"
 
 [[constraint]]
+  name = "github.com/google/uuid"
+  version = "0.2.0"
+
+[[constraint]]
+  name = "github.com/sirupsen/logrus"
+  version = "1.0.4"
+
+[[constraint]]
   name = "github.com/go-ozzo/ozzo-validation"
   version = "3.3.0"
 
 [[constraint]]
-  name = "github.com/google/uuid"
-  version = "0.2.0"
+  branch = "master"
+  name = "github.com/bakatz/echo-logrusmiddleware"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/bshuster-repo/logruzio"
