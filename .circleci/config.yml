@@ -35,6 +35,8 @@ jobs:
       - run: go test -v ./...
       - run: zip artifacts.zip crashtested-api Procfile persistence/migrations/
       - run: eb deploy --label api-build-${CIRCLE_BUILD_NUM} --process --verbose
+      - store_artifacts:
+          path: artifacts.zip
   promote_staging_to_prod:
     docker:
       - image: circleci/golang:1.9

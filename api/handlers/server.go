@@ -46,7 +46,9 @@ func (self *Server) Build() {
 
 	err = helpers.RunMigrations(self.Configuration.DatabaseConnectionString, "persistence/migrations")
 	if err != nil {
-		logrus.Errorf("Failed to run migrations, but starting the app anyway: ", err.Error())
+		logrus.Errorf("Failed to run migrations, but starting the app anyway: %s", err.Error())
+	} else {
+		logrus.Info("Successfully ran migrations")
 	}
 
 	if self.Configuration.LogzioToken != "" {
