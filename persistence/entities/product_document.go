@@ -1,15 +1,18 @@
 package entities
 
+import (
+	"github.com/google/uuid"
+)
+
 type ProductDocument struct {
-	UID             string
-	Type            string
-	Subtype         string
-	AmazonProductID string
-	Manufacturer    string
-	Model           string
-	ImageURL        string
-	PriceInUsd      string
-	Certifications  struct {
+	UUID           uuid.UUID
+	Type           string
+	Subtype        string
+	Manufacturer   string
+	Model          string
+	ImageURL       string
+	PriceInUsd     string
+	Certifications struct {
 		SHARP struct {
 			Stars             int
 			ImpactZoneRatings struct {
@@ -22,12 +25,8 @@ type ProductDocument struct {
 				Rear int
 			}
 		}
-		SNELL struct {
-		}
-		ECE struct {
-		}
-		DOT struct {
-		}
+		SNELL bool
+		ECE   bool
+		DOT   bool
 	}
-	Score string
 }

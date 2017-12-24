@@ -28,10 +28,6 @@
 [[constraint]]
   name = "github.com/dgrijalva/jwt-go"
   version = "3.1.0"
-
-[[constraint]]
-  name = "github.com/google/uuid"
-  version = "0.2.0"
   
 [[constraint]]
   name = "github.com/onsi/gomega"
@@ -52,3 +48,7 @@
 [[constraint]]
   name = "github.com/go-ozzo/ozzo-validation"
   version = "3.3.0"
+
+[[constraint]]
+  name = "github.com/google/uuid"
+  version = "0.2.0"

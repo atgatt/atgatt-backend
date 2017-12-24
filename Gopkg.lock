@@ -14,6 +14,12 @@
   version = "v3.3"
 
 [[projects]]
+  name = "github.com/google/uuid"
+  packages = ["."]
+  revision = "064e2069ce9c359c118179501254f67d7d37ba24"
+  version = "0.2"
+
+[[projects]]
   name = "github.com/labstack/echo"
   packages = [".","middleware"]
   revision = "0473c51f1dbd83487effce00702571d19033a6e5"
@@ -106,6 +112,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "812aadaa16e45a3a8cd1e7df7b983bf24e60c213540b33d2c3cbd4cac045125b"
+  inputs-digest = "28eb665adc3d35b21d32da987dec781ed72171550271c1333326e14135c49798"
   solver-name = "gps-cdcl"
   solver-version = 1
