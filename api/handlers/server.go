@@ -58,6 +58,7 @@ func (self *Server) Build() {
 		logrus.Warn("LOGZIO_TOKEN was not set, so all application logs are going to stdout")
 	}
 
+	logrus.Info("Starting to run migrations...")
 	err = helpers.RunMigrations(self.Configuration.DatabaseConnectionString, "persistence/migrations")
 	if err != nil {
 		logrus.Errorf("Failed to run migrations, but starting the app anyway: %s", err.Error())

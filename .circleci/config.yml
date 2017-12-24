@@ -33,7 +33,7 @@ jobs:
           key: v1-dependencies-{{ checksum "Gopkg.toml" }}
       - run: go build -o crashtested-api ./api
       - run: go test -v ./...
-      - run: zip artifacts.zip crashtested-api Procfile persistence/migrations/
+      - run: zip artifacts.zip crashtested-api Procfile ./persistence/migrations/
       - run: eb deploy --label api-build-${CIRCLE_BUILD_NUM} --process --verbose
       - store_artifacts:
           path: artifacts.zip
