@@ -47,6 +47,10 @@ func WaitFor(label string, isRunningFunc func() (bool, error)) bool {
 func WaitForApi() bool {
 	return WaitFor("api", func() (bool, error) {
 		resp, err := http.Get(ApiBaseUrl)
+		if err != nil {
+			return false, err
+		}
+
 		return resp.StatusCode == http.StatusOK, err
 	})
 }
