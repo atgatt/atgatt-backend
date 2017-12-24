@@ -44,13 +44,6 @@ func (self *Server) Build() {
 		os.Exit(-1)
 	}
 
-	err = helpers.RunMigrations(self.Configuration.DatabaseConnectionString, "persistence/migrations")
-	if err != nil {
-		logrus.Errorf("Failed to run migrations, but starting the app anyway: %s", err.Error())
-	} else {
-		logrus.Info("Successfully ran migrations")
-	}
-
 	if self.Configuration.LogzioToken != "" {
 		logContext := logrus.Fields{
 			"BuildNumber": self.BuildNumber,
@@ -63,6 +56,13 @@ func (self *Server) Build() {
 		logrus.AddHook(logzioHook)
 	} else {
 		logrus.Warn("LOGZIO_TOKEN was not set, so all application logs are going to stdout")
+	}
+
+	err = helpers.RunMigrations(self.Configuration.DatabaseConnectionString, "persistence/migrations")
+	if err != nil {
+		logrus.Errorf("Failed to run migrations, but starting the app anyway: %s", err.Error())
+	} else {
+		logrus.Info("Successfully ran migrations")
 	}
 
 	healthCheckHandler := &HealthCheckHandler{Name: self.Name, Version: self.Version, BuildNumber: self.BuildNumber}
