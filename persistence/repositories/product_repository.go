@@ -17,7 +17,7 @@ func (self *ProductRepository) FilterProducts(query *queries.FilterProductsQuery
 		return nil, err
 	}
 
-	var productDocuments []*entities.ProductDocument
+	var productDocuments []*entities.ProductDocument = make([]*entities.ProductDocument, 0)
 	var productJsonStrings []string
 	err = db.Select(&productJsonStrings, "select document from products where document->>'type' = $1", "helmet")
 	if err != nil {
