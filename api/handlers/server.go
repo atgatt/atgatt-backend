@@ -29,6 +29,7 @@ func (self *Server) Build() {
 	e.HideBanner = true
 	e.Logger = logrusmiddleware.Logger{Logger: logrus.StandardLogger()}
 	e.Use(logrusmiddleware.Hook())
+	e.Use(middleware.RequestID())
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{AllowOrigins: []string{"https://staging.crashtested.co", "https://www.staging.crashtested.co", "https://crashtested.co", "https://www.crashtested.co"}}))
 
 	if self.Configuration == nil {
