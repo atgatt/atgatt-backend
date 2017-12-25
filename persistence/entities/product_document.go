@@ -5,28 +5,29 @@ import (
 )
 
 type ProductDocument struct {
-	UUID           uuid.UUID
-	Type           string
-	Subtype        string
-	Manufacturer   string
-	Model          string
-	ImageURL       string
-	PriceInUsd     string
+	UUID           uuid.UUID `json:"uuid"`
+	Type           string    `json:"type"`
+	Subtype        string    `json:"subtype"`
+	Manufacturer   string    `json:"manufacturer"`
+	Model          string    `json:"model"`
+	ImageURL       string    `json:"imageUrl"`
+	PriceInUsd     string    `json:"priceInUsd"`
 	Certifications struct {
 		SHARP struct {
-			Stars             int
+			Stars             int `json:"ratingValue"`
 			ImpactZoneRatings struct {
-				Left  int
-				Right int
+				Left  int `json:"left"`
+				Right int `json:"right"`
 				Top   struct {
-					Front int
-					Rear  int
-				}
-				Rear int
-			}
-		}
-		SNELL bool
-		ECE   bool
-		DOT   bool
-	}
+					Front int `json:"front"`
+					Rear  int `json:"rear"`
+				} `json:"top"`
+				Rear int `json:"rear"`
+			} `json:"impactZoneRatings"`
+		} `json:"SHARP"`
+		SNELL bool `json:"SNELL"`
+		ECE   bool `json:"ECE"`
+		DOT   bool `json:"DOT"`
+	} `json:"certifications"`
+	Score string `json:"score"`
 }
