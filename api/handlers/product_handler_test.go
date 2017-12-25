@@ -49,14 +49,16 @@ func Test_FilterProducts_should_correctly_page_through_the_resultset_when_start_
 	request.ImpactZoneMinimums.Top.Rear = 2
 	request.ImpactZoneMinimums.Rear = 6
 
-	for i := 0; i < 5; i++ {
+	seeds := seeds.GetProductSeeds()
+	for i := 0; i < len(seeds)+1; i++ {
 		responseBody := &[]*entities.ProductDocument{}
 		resp, err := helpers.MakeJsonPOSTRequest(fmt.Sprintf("%s/v1/products/filter", ApiBaseUrl), request, responseBody)
 
 		Expect(err).To(BeNil())
 		Expect(resp.StatusCode).To(Equal(http.StatusOK))
-		if i < 4 {
+		if i < len(seeds) {
 			Expect(*responseBody).To(HaveLen(1))
+			Expect((*responseBody)[0]).To(BeEquivalentTo(seeds[i]))
 		} else {
 			Expect(*responseBody).To(HaveLen(0))
 		}
