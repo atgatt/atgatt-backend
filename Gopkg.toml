@@ -64,3 +64,7 @@
 [[constraint]]
   branch = "master"
   name = "github.com/bshuster-repo/logruzio"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/jmoiron/sqlx"

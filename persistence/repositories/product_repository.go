@@ -1,12 +1,37 @@
 package repositories
 
+import "crashtested-backend/persistence/entities"
 import "crashtested-backend/persistence/queries"
+import "github.com/jmoiron/sqlx"
+import "encoding/json"
 
 type ProductRepository struct {
 	ConnectionString string
 }
 
-func (self *ProductRepository) FilterProducts(query *queries.FilterProductsQuery) string {
-	mockResponseJson := `[{"uid":"abc","amazonProductId":"A12341QC","manufacturer":"Shoei","model":"RF-SR","imageUrl":"https://www.shoei-helmets.com/pub/media/catalog/product/cache/1/image/700x560/e9c3970ab036de70892d86c6d221abfe/x/-/x-fourteen-white_2_2.png","priceInUsd":"399.99","certifications":{"SNELL":{},"ECE":{},"DOT":{}},"score":"76"},{"uid":"def","type":"helmet","subtype":"fullface","amazonProductId":"A45561QB","manufacturer":"Shoei","model":"RF-1200","imageUrl":"https://www.shoei-helmets.com/pub/media/catalog/product/cache/1/image/700x560/e9c3970ab036de70892d86c6d221abfe/x/-/x-fourteen-white_2_2.png","priceInUsd":"499.99","certifications":{"SHARP":{"ratingType":"stars","ratingValue":"4","impactZoneRatings":{"left":5,"right":4,"top":{"front":0,"rear":5},"rear":3}},"SNELL":{},"ECE":{},"DOT":{}},"score":"70"},{"uid":"ghi","type":"helmet","subtype":"fullface","amazonProductId":"A45561QB","manufacturer":"Shoei","model":"RF-1100","imageUrl":"https://www.shoei-helmets.com/pub/media/catalog/product/cache/1/image/700x560/e9c3970ab036de70892d86c6d221abfe/x/-/x-fourteen-white_2_2.png","priceInUsd":"259.99","certifications":{"SHARP":{"ratingType":"stars","ratingValue":"3","impactZoneRatings":{"left":5,"right":4,"top":{"front":3,"rear":2},"rear":1}},"SNELL":{},"ECE":{},"DOT":{}},"score":"65"},{"uid":"jkl","type":"helmet","subtype":"fullface","amazonProductId":"A45561QB","manufacturer":"Shoei","model":"Qwest","imageUrl":"https://sharp.dft.gov.uk/wp-content/uploads/2017/03/shoei-xr-1100-150x150.jpg","priceInUsd":"299.99","certifications":{"SHARP":{"ratingType":"stars","ratingValue":"5","impactZoneRatings":{"left":5,"right":4,"top":{"front":0,"rear":5},"rear":3}},"SNELL":{},"ECE":{},"DOT":{}},"score":"80"}]`
-	return mockResponseJson
+func (self *ProductRepository) FilterProducts(query *queries.FilterProductsQuery) ([]*entities.ProductDocument, error) {
+	db, err := sqlx.Open("postgres", self.ConnectionString)
+	defer db.Close()
+
+	if err != nil {
+		return nil, err
+	}
+
+	var productDocuments []*entities.ProductDocument
+	var productJsonStrings []string
+	err = db.Select(&productJsonStrings, "select document from products where document->>'type' = $1", "helmet")
+	if err != nil {
+		return nil, err
+	}
+
+	for _, productJsonString := range productJsonStrings {
+		productDocument := &entities.ProductDocument{}
+		err := json.Unmarshal([]byte(productJsonString), productDocument)
+		if err != nil {
+			return nil, err
+		}
+		productDocuments = append(productDocuments, productDocument)
+	}
+
+	return productDocuments, nil
 }

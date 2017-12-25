@@ -3,6 +3,7 @@ package handlers
 import (
 	"crashtested-backend/api/configuration"
 	"crashtested-backend/persistence/helpers"
+	"crashtested-backend/persistence/repositories"
 	"fmt"
 	"os"
 
@@ -67,7 +68,7 @@ func (self *Server) Build() {
 	}
 
 	healthCheckHandler := &HealthCheckHandler{Name: self.Name, Version: self.Version, BuildNumber: self.BuildNumber}
-	productsHandler := &ProductHandler{}
+	productsHandler := &ProductHandler{Repository: &repositories.ProductRepository{ConnectionString: self.Configuration.DatabaseConnectionString}}
 
 	e.GET("/", healthCheckHandler.Healthcheck)
 	e.POST("/v1/products/filter", productsHandler.FilterProducts)

@@ -1,7 +1,11 @@
 package handlers
 
 import (
+	"crashtested-backend/persistence/entities"
+	"crashtested-backend/seeds"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"strings"
 	"testing"
@@ -9,10 +13,10 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func Test_FilterProducts_should_always_return_the_mock_data(t *testing.T) {
+func Test_FilterProducts_should_always_return_the_seed_data(t *testing.T) {
 	RegisterTestingT(t)
 
-	resp, _ := http.Post(fmt.Sprintf("%s/v1/products/filter", ApiBaseUrl), "application/json", strings.NewReader(`{
+	resp, err := http.Post(fmt.Sprintf("%s/v1/products/filter", ApiBaseUrl), "application/json", strings.NewReader(`{
 		"manufacturer": "Shoei",
 		"model": "Hey bay",
 		"certifications": {
@@ -36,5 +40,12 @@ func Test_FilterProducts_should_always_return_the_mock_data(t *testing.T) {
 		"limit": 25
 	}`))
 
+	Expect(err).To(BeNil())
 	Expect(resp.StatusCode).To(Equal(http.StatusOK))
+
+	responseBodyBytes, _ := ioutil.ReadAll(resp.Body)
+	productsArrayPtr := &[]*entities.ProductDocument{}
+	json.Unmarshal(responseBodyBytes, productsArrayPtr)
+	products := *productsArrayPtr
+	Expect(products).To(BeEquivalentTo(seeds.GetProductSeeds()))
 }

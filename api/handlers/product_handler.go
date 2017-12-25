@@ -18,6 +18,10 @@ func (self *ProductHandler) FilterProducts(context echo.Context) (err error) {
 		return err
 	}
 
-	productsJson := self.Repository.FilterProducts(query)
-	return context.JSON(http.StatusOK, productsJson)
+	products, err := self.Repository.FilterProducts(query)
+	if err != nil {
+		return err
+	}
+
+	return context.JSON(http.StatusOK, products)
 }
