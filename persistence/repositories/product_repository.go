@@ -17,9 +17,12 @@ func (self *ProductRepository) FilterProducts(query *queries.FilterProductsQuery
 		return nil, err
 	}
 
-	var productDocuments []*entities.ProductDocument = make([]*entities.ProductDocument, 0)
+	productDocuments := make([]*entities.ProductDocument, 0)
 	var productJsonStrings []string
-	err = db.Select(&productJsonStrings, "select document from products where document->>'type' = $1", "helmet")
+	err = db.Select(&productJsonStrings, `select document from products 
+										  where document->>'type' = $1
+										  order by id
+										  offset $2 limit $3`, "helmet", query.Start, query.Limit)
 	if err != nil {
 		return nil, err
 	}

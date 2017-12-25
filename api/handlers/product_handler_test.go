@@ -1,51 +1,66 @@
 package handlers
 
 import (
+	"crashtested-backend/api/requests/helpers"
 	"crashtested-backend/persistence/entities"
+	"crashtested-backend/persistence/queries"
 	"crashtested-backend/seeds"
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
-	"strings"
 	"testing"
 
 	. "github.com/onsi/gomega"
 )
 
-func Test_FilterProducts_should_always_return_the_seed_data(t *testing.T) {
+func Test_FilterProducts_should_return_all_of_the_seed_data_when_the_limit_is_large_enough(t *testing.T) {
 	RegisterTestingT(t)
 
-	resp, err := http.Post(fmt.Sprintf("%s/v1/products/filter", ApiBaseUrl), "application/json", strings.NewReader(`{
-		"manufacturer": "Shoei",
-		"model": "Hey bay",
-		"certifications": {
-		   "SHARP": true,
-		   "SNELL": true,
-		   "ECE": true,
-		   "DOT": true
-		},
-		"minimumSHARPStars": 1,
-		"impactZoneMinimums": {
-		  "left": 2,
-		  "right": 3,
-		  "top": {
-			"front": 4,
-			"rear": 5
-		  },
-		  "rear": 6
-		},
-		"usdPriceRange": [0, 10001],
-		"start": 0,
-		"limit": 25
-	}`))
+	request := &queries.FilterProductsQuery{Manufacturer: "Shoei", Model: "Hey bay", MinimumSHARPStars: 1, UsdPriceRange: [2]int{0, 10000}, Start: 0, Limit: 25}
+	request.Certifications.SHARP = true
+	request.Certifications.SNELL = true
+	request.Certifications.ECE = true
+	request.Certifications.DOT = true
+	request.ImpactZoneMinimums.Left = 2
+	request.ImpactZoneMinimums.Right = 2
+	request.ImpactZoneMinimums.Top.Front = 2
+	request.ImpactZoneMinimums.Top.Rear = 2
+	request.ImpactZoneMinimums.Rear = 6
+
+	responseBody := &[]*entities.ProductDocument{}
+	resp, err := helpers.MakeJsonPOSTRequest(fmt.Sprintf("%s/v1/products/filter", ApiBaseUrl), request, responseBody)
 
 	Expect(err).To(BeNil())
 	Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
-	responseBodyBytes, _ := ioutil.ReadAll(resp.Body)
-	productsArrayPtr := &[]*entities.ProductDocument{}
-	json.Unmarshal(responseBodyBytes, productsArrayPtr)
-	products := *productsArrayPtr
-	Expect(products).To(BeEquivalentTo(seeds.GetProductSeeds()))
+	Expect(*responseBody).To(BeEquivalentTo(seeds.GetProductSeeds()))
+}
+
+func Test_FilterProducts_should_correctly_page_through_the_resultset_when_start_and_limit_are_specified(t *testing.T) {
+	RegisterTestingT(t)
+
+	request := &queries.FilterProductsQuery{Manufacturer: "Shoei", Model: "Hey bay", MinimumSHARPStars: 1, UsdPriceRange: [2]int{0, 10000}, Start: 0, Limit: 1}
+	request.Certifications.SHARP = true
+	request.Certifications.SNELL = true
+	request.Certifications.ECE = true
+	request.Certifications.DOT = true
+	request.ImpactZoneMinimums.Left = 2
+	request.ImpactZoneMinimums.Right = 2
+	request.ImpactZoneMinimums.Top.Front = 2
+	request.ImpactZoneMinimums.Top.Rear = 2
+	request.ImpactZoneMinimums.Rear = 6
+
+	for i := 0; i < 5; i++ {
+		responseBody := &[]*entities.ProductDocument{}
+		resp, err := helpers.MakeJsonPOSTRequest(fmt.Sprintf("%s/v1/products/filter", ApiBaseUrl), request, responseBody)
+
+		Expect(err).To(BeNil())
+		Expect(resp.StatusCode).To(Equal(http.StatusOK))
+		if i < 4 {
+			Expect(*responseBody).To(HaveLen(1))
+		} else {
+			Expect(*responseBody).To(HaveLen(0))
+		}
+
+		request.Start++
+	}
 }
