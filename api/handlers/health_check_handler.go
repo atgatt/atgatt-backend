@@ -14,6 +14,10 @@ type HealthCheckHandler struct {
 }
 
 func (self *HealthCheckHandler) Healthcheck(context echo.Context) (err error) {
+	if context.Request().Method == http.MethodHead {
+		return context.NoContent(http.StatusOK)
+	}
+
 	healthCheckResponse := &responses.HealthCheckResponse{Name: self.Name, Version: self.Version}
 
 	if len(self.BuildNumber) > 0 {

@@ -71,6 +71,7 @@ func (self *Server) Build() {
 	productsHandler := &ProductHandler{Repository: &repositories.ProductRepository{ConnectionString: self.Configuration.DatabaseConnectionString}}
 
 	e.GET("/", healthCheckHandler.Healthcheck)
+	e.HEAD("/", healthCheckHandler.Healthcheck)
 	e.POST("/v1/products/filter", productsHandler.FilterProducts)
 
 	self.echoInstance = e
