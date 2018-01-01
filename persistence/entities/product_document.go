@@ -13,21 +13,9 @@ type ProductDocument struct {
 	ImageURL       string    `json:"imageUrl"`
 	PriceInUsd     string    `json:"priceInUsd"`
 	Certifications struct {
-		SHARP struct {
-			Stars             int `json:"ratingValue"`
-			ImpactZoneRatings struct {
-				Left  int `json:"left"`
-				Right int `json:"right"`
-				Top   struct {
-					Front int `json:"front"`
-					Rear  int `json:"rear"`
-				} `json:"top"`
-				Rear int `json:"rear"`
-			} `json:"impactZoneRatings"`
-		} `json:"SHARP"`
-		SNELL bool `json:"SNELL"`
-		ECE   bool `json:"ECE"`
-		DOT   bool `json:"DOT"`
+		SHARP *SHARPCertificationDocument `json:"SHARP"`
+		SNELL bool                        `json:"SNELL"`
+		ECE   bool                        `json:"ECE"`
+		DOT   bool                        `json:"DOT"`
 	} `json:"certifications"`
-	Score string `json:"score"`
 }

@@ -1,15 +1,18 @@
 package repositories
 
-import "crashtested-backend/persistence/entities"
-import "crashtested-backend/persistence/queries"
-import "github.com/jmoiron/sqlx"
-import "encoding/json"
+import (
+	"crashtested-backend/persistence/entities"
+	"crashtested-backend/persistence/queries"
+	"encoding/json"
+	"fmt"
+	"github.com/jmoiron/sqlx"
+)
 
 type ProductRepository struct {
 	ConnectionString string
 }
 
-func (self *ProductRepository) FilterProducts(query *queries.FilterProductsQuery) ([]*entities.ProductDocument, error) {
+func (self *ProductRepository) FilterProducts(query *queries.FilterProductsQuery) ([]entities.ProductDocument, error) {
 	db, err := sqlx.Open("postgres", self.ConnectionString)
 	defer db.Close()
 
@@ -17,23 +20,111 @@ func (self *ProductRepository) FilterProducts(query *queries.FilterProductsQuery
 		return nil, err
 	}
 
-	productDocuments := make([]*entities.ProductDocument, 0)
-	var productJsonStrings []string
-	err = db.Select(&productJsonStrings, `select document from products 
-										  where document->>'type' = $1
-										  order by id
-										  offset $2 limit $3`, "helmet", query.Start, query.Limit)
+	queryParams := make(map[string]interface{})
+	whereCriteria := `where document->>'type' = :type `
+	queryParams["type"] = "helmet" // TODO: this is hardcoded for now
+	queryParams["start"] = query.Start
+	queryParams["limit"] = query.Limit
+
+	orderByExpression := query.Order.Field
+	// TODO: find a cleaner way to do this
+	if orderByExpression == "document->>'priceInUsd'" {
+		orderByExpression = "to_number((document->>'priceInUsd'), '9999.99')"
+	}
+	queryParams["order_by"] = query.Order.Field
+
+	var orderByDirection string
+	if query.Order.Descending {
+		orderByDirection = "desc"
+	} else {
+		orderByDirection = "asc"
+	}
+
+	if len(query.UsdPriceRange) == 2 {
+		lowPrice := query.UsdPriceRange[0]
+		highPrice := query.UsdPriceRange[1]
+		queryParams["low_price"] = lowPrice
+		queryParams["high_price"] = highPrice
+		whereCriteria += "and to_number((document->>'priceInUsd'), '9999.99') >= :low_price and to_number((document->>'priceInUsd'), '9999.99') <= :high_price "
+	}
+
+	if query.Manufacturer != "" {
+		queryParams["manufacturer"] = query.Manufacturer
+		whereCriteria += "and document->>'manufacturer' ilike (:manufacturer || '%') "
+	}
+
+	if query.Model != "" {
+		queryParams["model"] = query.Model
+		whereCriteria += "and document->>'model' ilike (:model || '%') "
+	}
+
+	sharpCert := query.Certifications.SHARP
+	if sharpCert != nil {
+		whereCriteria += "and document->'certifications'->>'SHARP' is not null "
+		if sharpCert.Stars > 0 {
+			queryParams["minimum_SHARP_stars"] = query.Certifications.SHARP.Stars
+			whereCriteria += "and document->'certifications'->'SHARP'->>'stars' >= :minimum_SHARP_stars "
+		}
+
+		if sharpCert.ImpactZoneMinimums.Left > 0 {
+			queryParams["left_impact_zone_minimum"] = sharpCert.ImpactZoneMinimums.Left
+			whereCriteria += "and to_number((document->'certifications'->'SHARP'->'impactZoneRatings'->>'left'), '9') >= :left_impact_zone_minimum "
+		}
+
+		if sharpCert.ImpactZoneMinimums.Rear > 0 {
+			queryParams["rear_impact_zone_minimum"] = sharpCert.ImpactZoneMinimums.Rear
+			whereCriteria += "and to_number((document->'certifications'->'SHARP'->'impactZoneRatings'->>'rear'), '9') >= :rear_impact_zone_minimum "
+		}
+
+		if sharpCert.ImpactZoneMinimums.Right > 0 {
+			queryParams["right_impact_zone_minimum"] = sharpCert.ImpactZoneMinimums.Right
+			whereCriteria += "and to_number((document->'certifications'->'SHARP'->'impactZoneRatings'->>'right'), '9') >= :right_impact_zone_minimum "
+		}
+
+		if sharpCert.ImpactZoneMinimums.Top.Front > 0 {
+			queryParams["top_front_impact_zone_minimum"] = sharpCert.ImpactZoneMinimums.Top.Front
+			whereCriteria += "and to_number((document->'certifications'->'SHARP'->'impactZoneRatings'->'top'->>'front'), '9') >= :top_front_impact_zone_minimum "
+		}
+
+		if sharpCert.ImpactZoneMinimums.Top.Rear > 0 {
+			queryParams["top_rear_impact_zone_minimum"] = sharpCert.ImpactZoneMinimums.Top.Rear
+			whereCriteria += "and to_number((document->'certifications'->'SHARP'->'impactZoneRatings'->'top'->>'rear'), '9') >= :top_rear_impact_zone_minimum "
+		}
+	}
+
+	if query.Certifications.SNELL {
+		whereCriteria += "and document->'certifications'->>'SNELL' = 'true' "
+	}
+
+	if query.Certifications.ECE {
+		whereCriteria += "and document->'certifications'->>'ECE' = 'true' "
+	}
+
+	if query.Certifications.DOT {
+		whereCriteria += "and document->'certifications'->>'DOT' = 'true' "
+	}
+
+	productDocuments := make([]entities.ProductDocument, 0)
+	rows, err := db.NamedQuery(fmt.Sprintf(`select document from products
+											%s
+											order by %s %s
+											offset :start limit :limit`, whereCriteria, orderByExpression, orderByDirection), queryParams)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, productJsonString := range productJsonStrings {
+	for rows.Next() {
+		productJsonString := &[]byte{}
 		productDocument := &entities.ProductDocument{}
-		err := json.Unmarshal([]byte(productJsonString), productDocument)
+		err := rows.Scan(productJsonString)
 		if err != nil {
 			return nil, err
 		}
-		productDocuments = append(productDocuments, productDocument)
+		err = json.Unmarshal(*productJsonString, productDocument)
+		if err != nil {
+			return nil, err
+		}
+		productDocuments = append(productDocuments, *productDocument)
 	}
 
 	return productDocuments, nil

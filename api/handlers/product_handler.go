@@ -18,6 +18,11 @@ func (self *ProductHandler) FilterProducts(context echo.Context) (err error) {
 		return err
 	}
 
+	err = (&queries.FilterProductsQueryValidator{Query: query}).Validate()
+	if err != nil {
+		return context.JSON(http.StatusBadRequest, err)
+	}
+
 	products, err := self.Repository.FilterProducts(query)
 	if err != nil {
 		return err

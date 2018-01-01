@@ -24,55 +24,68 @@ func GetProductSeedsSqlStatements() []string {
 }
 
 func GetProductSeeds() []*entities.ProductDocument {
+	uuids := []string{
+		"2ef2e322-8b7c-4b11-8432-15d082f49f43", "55e620cb-4eb3-46d7-a612-d8bf55088494", "0e78d74a-da19-4015-a76a-703a37d02503", "7321fc5c-596c-4b63-be0c-0d7af3fd78cc", "a23b4567-40bf-4761-ae19-00101223b124",
+		"dbd3b9cb-253b-449d-a72b-ce0d62231d82", "455a8746-7e92-4f42-a2db-f653cce0e2dd", "c79f1957-6403-4316-82bd-e7dd79dc5682", "a1afdbeb-d551-4a1a-873a-8ad16a8800dc", "9a2ad6c7-553f-4a59-957a-c9f875651e99",
+		"f8c57db1-f7f3-42ba-934f-bd30d5d31531", "912fbebc-1e42-46c2-bc1c-10666c724a21", "9f501018-e9c4-448e-89c9-8f48b571baa3", "90c2895c-ed20-483c-8a4e-6c41b6e6498f", "13131da7-fab3-42fe-9cce-7c7903fe5f8a",
+		"ac1ae9ef-22b0-41c0-8401-84f6b3eb5ff7", "9ee16a4a-0dde-4628-83a5-ebecf8978165", "e67730e6-8134-4717-b3ca-21122b9c3c4d", "bbf2d99e-b21b-406b-adb5-200cec4c5766", "47365987-8e22-45dc-804f-58bc68497b62",
+	}
+
 	seeds := []*entities.ProductDocument{
-		&entities.ProductDocument{ImageURL: MockHelmetImageUrl, Manufacturer: "Shoei2", Model: "RF-SR", PriceInUsd: "399.99", Type: "helmet", Subtype: "fullface"},
-		&entities.ProductDocument{ImageURL: MockHelmetImageUrl, Manufacturer: "Shoei", Model: "RF-1200", PriceInUsd: "499.99", Type: "helmet", Subtype: "fullface"},
-		&entities.ProductDocument{ImageURL: MockHelmetImageUrl, Manufacturer: "Arai", Model: "Signet-X", PriceInUsd: "799.99", Type: "helmet", Subtype: "fullface"},
-		&entities.ProductDocument{ImageURL: MockHelmetImageUrl, Manufacturer: "Shoei", Model: "RF-SR", PriceInUsd: "399.99", Type: "helmet", Subtype: "fullface"}}
+		&entities.ProductDocument{ImageURL: MockHelmetImageUrl, Manufacturer: "Shoei2", Model: "RF-1100", PriceInUsd: "299.00", Type: "helmet", Subtype: "full"},
+		&entities.ProductDocument{ImageURL: MockHelmetImageUrl, Manufacturer: "Shoei", Model: "RF-1200", PriceInUsd: "499.99", Type: "helmet", Subtype: "modular"},
+		&entities.ProductDocument{ImageURL: MockHelmetImageUrl, Manufacturer: "Arai", Model: "Signet-X", PriceInUsd: "799.99", Type: "helmet", Subtype: "open"},
+		&entities.ProductDocument{ImageURL: MockHelmetImageUrl, Manufacturer: "NotAShoei", Model: "Model-RF", PriceInUsd: "199.99", Type: "helmet", Subtype: "half"},
+		&entities.ProductDocument{ImageURL: MockHelmetImageUrl, Manufacturer: "AGV", Model: "Pista", PriceInUsd: "299.99", Type: "helmet", Subtype: "offroad"},
+		&entities.ProductDocument{ImageURL: MockHelmetImageUrl, Manufacturer: "Manufacturer1", Model: "RF-SR1", PriceInUsd: "298.99", Type: "helmet", Subtype: "full"},
+		&entities.ProductDocument{ImageURL: MockHelmetImageUrl, Manufacturer: "Manufacturer2", Model: "RF-SR2", PriceInUsd: "400.12", Type: "helmet", Subtype: "modular"},
+		&entities.ProductDocument{ImageURL: MockHelmetImageUrl, Manufacturer: "Manufacturer3", Model: "RF-SR", PriceInUsd: "500.99", Type: "helmet", Subtype: "open"},
+		&entities.ProductDocument{ImageURL: MockHelmetImageUrl, Manufacturer: "Manufacturer4", Model: "RF-SR", PriceInUsd: "600.99", Type: "helmet", Subtype: "half"},
+		&entities.ProductDocument{ImageURL: MockHelmetImageUrl, Manufacturer: "Manufacturer5", Model: "RF-SR3", PriceInUsd: "700.99", Type: "helmet", Subtype: "full"},
+		&entities.ProductDocument{ImageURL: MockHelmetImageUrl, Manufacturer: "Manufacturer6", Model: "RF-SR4", PriceInUsd: "799.99", Type: "helmet", Subtype: "modular"},
+		&entities.ProductDocument{ImageURL: MockHelmetImageUrl, Manufacturer: "Manufacturer7", Model: "RF-SR5", PriceInUsd: "800.99", Type: "helmet", Subtype: "open"},
+		&entities.ProductDocument{ImageURL: MockHelmetImageUrl, Manufacturer: "Manufacturer8", Model: "RF-SR6", PriceInUsd: "899.99", Type: "helmet", Subtype: "half"},
+		&entities.ProductDocument{ImageURL: MockHelmetImageUrl, Manufacturer: "Manufacturer9", Model: "RF-SR7", PriceInUsd: "900.99", Type: "helmet", Subtype: "full"},
+		&entities.ProductDocument{ImageURL: MockHelmetImageUrl, Manufacturer: "Manufacturer10", Model: "RF-SR8", PriceInUsd: "999.99", Type: "helmet", Subtype: "modular"},
+		&entities.ProductDocument{ImageURL: MockHelmetImageUrl, Manufacturer: "Manufacturer11", Model: "RF-SR9", PriceInUsd: "1000.99", Type: "helmet", Subtype: "open"},
+		&entities.ProductDocument{ImageURL: MockHelmetImageUrl, Manufacturer: "Manufacturer12", Model: "RF-SR10", PriceInUsd: "1002.99", Type: "helmet", Subtype: "half"},
+		&entities.ProductDocument{ImageURL: MockHelmetImageUrl, Manufacturer: "Manufacturer13", Model: "RF-SR11", PriceInUsd: "1100.99", Type: "helmet", Subtype: "offroad"},
+		&entities.ProductDocument{ImageURL: MockHelmetImageUrl, Manufacturer: "Manufacturer14", Model: "RF-SR12", PriceInUsd: "1200.99", Type: "helmet", Subtype: "full"},
+		&entities.ProductDocument{ImageURL: MockHelmetImageUrl, Manufacturer: "Manufacturer15", Model: "RF-SR13", PriceInUsd: "1330.01", Type: "helmet", Subtype: "modular"},
+	}
 
-	seeds[0].UUID, _ = uuid.Parse("f83d5b3f-160e-49d5-bfe6-7143be91ee6d")
-	seeds[0].Certifications.DOT = true
-	seeds[0].Certifications.ECE = true
-	seeds[0].Certifications.SHARP.Stars = 5
-	seeds[0].Certifications.SHARP.ImpactZoneRatings.Left = 1
-	seeds[0].Certifications.SHARP.ImpactZoneRatings.Right = 3
-	seeds[0].Certifications.SHARP.ImpactZoneRatings.Rear = 2
-	seeds[0].Certifications.SHARP.ImpactZoneRatings.Top.Front = 4
-	seeds[0].Certifications.SHARP.ImpactZoneRatings.Top.Rear = 5
-	seeds[0].Certifications.SNELL = true
+	for i := 0; i < len(seeds); i++ {
+		seeds[i].UUID, _ = uuid.Parse(uuids[i])
+		if i%2 == 0 {
+			seeds[i].Certifications.ECE = true
+			seeds[i].Certifications.DOT = true
+			seeds[i].Certifications.SHARP = &entities.SHARPCertificationDocument{}
+			seeds[i].Certifications.SHARP.Stars = 4
+			seeds[i].Certifications.SHARP.ImpactZoneRatings.Left = 4
+			seeds[i].Certifications.SHARP.ImpactZoneRatings.Right = 3
+			seeds[i].Certifications.SHARP.ImpactZoneRatings.Rear = 4
+			seeds[i].Certifications.SHARP.ImpactZoneRatings.Top.Front = 3
+			seeds[i].Certifications.SHARP.ImpactZoneRatings.Top.Rear = 5
+			seeds[i].Certifications.SNELL = true
+		} else if i%3 == 0 {
+			seeds[i].Certifications.ECE = true
+			seeds[i].Certifications.DOT = true
+			seeds[i].Certifications.SHARP = &entities.SHARPCertificationDocument{}
+			seeds[i].Certifications.SHARP.Stars = 3
+			seeds[i].Certifications.SHARP.ImpactZoneRatings.Left = 1
+			seeds[i].Certifications.SHARP.ImpactZoneRatings.Right = 1
+			seeds[i].Certifications.SHARP.ImpactZoneRatings.Rear = 2
+			seeds[i].Certifications.SHARP.ImpactZoneRatings.Top.Front = 2
+			seeds[i].Certifications.SHARP.ImpactZoneRatings.Top.Rear = 3
+			seeds[i].Certifications.SNELL = true
+		} else {
+			seeds[i].Certifications.ECE = false
+			seeds[i].Certifications.DOT = false
+			seeds[i].Certifications.SHARP = nil
+			seeds[i].Certifications.SNELL = false
+		}
 
-	seeds[1].UUID, _ = uuid.Parse("b7f5fd24-dd35-4b1c-a7ce-f642c5d873bd")
-	seeds[1].Certifications.DOT = true
-	seeds[1].Certifications.ECE = true
-	seeds[1].Certifications.SHARP.Stars = 4
-	seeds[1].Certifications.SHARP.ImpactZoneRatings.Left = 5
-	seeds[1].Certifications.SHARP.ImpactZoneRatings.Right = 4
-	seeds[1].Certifications.SHARP.ImpactZoneRatings.Rear = 3
-	seeds[1].Certifications.SHARP.ImpactZoneRatings.Top.Front = 2
-	seeds[1].Certifications.SHARP.ImpactZoneRatings.Top.Rear = 1
-	seeds[1].Certifications.SNELL = true
-
-	seeds[2].UUID, _ = uuid.Parse("0c2636d9-7efe-4450-8f92-4577fe58f642")
-	seeds[2].Certifications.DOT = true
-	seeds[2].Certifications.ECE = true
-	seeds[2].Certifications.SHARP.Stars = 3
-	seeds[2].Certifications.SHARP.ImpactZoneRatings.Left = 5
-	seeds[2].Certifications.SHARP.ImpactZoneRatings.Right = 5
-	seeds[2].Certifications.SHARP.ImpactZoneRatings.Rear = 5
-	seeds[2].Certifications.SHARP.ImpactZoneRatings.Top.Front = 5
-	seeds[2].Certifications.SHARP.ImpactZoneRatings.Top.Rear = 5
-	seeds[2].Certifications.SNELL = true
-
-	seeds[3].UUID, _ = uuid.Parse("df733953-a18d-477f-8fa3-c558f6576e15")
-	seeds[3].Certifications.DOT = true
-	seeds[3].Certifications.ECE = true
-	seeds[3].Certifications.SHARP.Stars = 2
-	seeds[3].Certifications.SHARP.ImpactZoneRatings.Left = 1
-	seeds[3].Certifications.SHARP.ImpactZoneRatings.Right = 1
-	seeds[3].Certifications.SHARP.ImpactZoneRatings.Rear = 1
-	seeds[3].Certifications.SHARP.ImpactZoneRatings.Top.Front = 2
-	seeds[3].Certifications.SHARP.ImpactZoneRatings.Top.Rear = 1
-	seeds[3].Certifications.SNELL = true
+	}
 
 	return seeds
 }
