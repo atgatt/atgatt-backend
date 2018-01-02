@@ -1,7 +1,7 @@
 package queries
 
 type SHARPCertificationQueryParams struct {
-	Stars              int `json:"minimumSHARPStars"`
+	Stars              int `json:"stars"`
 	ImpactZoneMinimums struct {
 		Left  int `json:"left"`
 		Right int `json:"right"`
