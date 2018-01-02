@@ -63,7 +63,7 @@ func (self *ProductRepository) FilterProducts(query *queries.FilterProductsQuery
 		whereCriteria += "and document->'certifications'->>'SHARP' is not null "
 		if sharpCert.Stars > 0 {
 			queryParams["minimum_SHARP_stars"] = query.Certifications.SHARP.Stars
-			whereCriteria += "and document->'certifications'->'SHARP'->>'stars' >= :minimum_SHARP_stars "
+			whereCriteria += "and to_number((document->'certifications'->'SHARP'->>'stars'), '9') >= :minimum_SHARP_stars "
 		}
 
 		if sharpCert.ImpactZoneMinimums.Left > 0 {

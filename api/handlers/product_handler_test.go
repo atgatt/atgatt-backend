@@ -252,11 +252,11 @@ func Test_FilterProducts_should_return_products_with_SHARP_certifications_and_mi
 	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 20000}}
 	request.Order.Field = "created_at_utc"
 	request.Certifications.SHARP = &queries.SHARPCertificationQueryParams{}
-	request.Certifications.SHARP.ImpactZoneMinimums.Left = 1
-	request.Certifications.SHARP.ImpactZoneMinimums.Right = 1
-	request.Certifications.SHARP.ImpactZoneMinimums.Rear = 1
-	request.Certifications.SHARP.ImpactZoneMinimums.Top.Front = 1
-	request.Certifications.SHARP.ImpactZoneMinimums.Top.Rear = 1
+	request.Certifications.SHARP.ImpactZoneMinimums.Left = 3
+	request.Certifications.SHARP.ImpactZoneMinimums.Right = 3
+	request.Certifications.SHARP.ImpactZoneMinimums.Rear = 3
+	request.Certifications.SHARP.ImpactZoneMinimums.Top.Front = 3
+	request.Certifications.SHARP.ImpactZoneMinimums.Top.Rear = 3
 
 	responseBody := &[]*entities.ProductDocument{}
 	resp, err := helpers.MakeJsonPOSTRequest(fmt.Sprintf("%s/v1/products/filter", ApiBaseUrl), request, responseBody)
@@ -272,6 +272,26 @@ func Test_FilterProducts_should_return_products_with_SHARP_certifications_and_mi
 		Expect(item.Certifications.SHARP.ImpactZoneRatings.Rear).To(BeNumerically(">=", request.Certifications.SHARP.ImpactZoneMinimums.Rear))
 		Expect(item.Certifications.SHARP.ImpactZoneRatings.Top.Front).To(BeNumerically(">=", request.Certifications.SHARP.ImpactZoneMinimums.Top.Front))
 		Expect(item.Certifications.SHARP.ImpactZoneRatings.Top.Rear).To(BeNumerically(">=", request.Certifications.SHARP.ImpactZoneMinimums.Top.Rear))
+	}
+}
+
+func Test_FilterProducts_should_return_products_with_SHARP_certifications_and_minimum_stars(t *testing.T) {
+	RegisterTestingT(t)
+
+	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 20000}}
+	request.Order.Field = "created_at_utc"
+	request.Certifications.SHARP = &queries.SHARPCertificationQueryParams{Stars: 3}
+
+	responseBody := &[]*entities.ProductDocument{}
+	resp, err := helpers.MakeJsonPOSTRequest(fmt.Sprintf("%s/v1/products/filter", ApiBaseUrl), request, responseBody)
+
+	Expect(err).To(BeNil())
+	Expect(resp.StatusCode).To(Equal(http.StatusOK))
+
+	Expect(*responseBody).ToNot(BeEmpty())
+	for _, item := range *responseBody {
+		Expect(item.Certifications.SHARP).ToNot(BeNil())
+		Expect(item.Certifications.SHARP.Stars).To(BeNumerically(">=", request.Certifications.SHARP.Stars))
 	}
 }
 
