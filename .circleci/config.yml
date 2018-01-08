@@ -39,29 +39,25 @@ jobs:
       - run: eb deploy --label api-${CIRCLE_SHA1} --process --verbose
       - run: mkdir -p workspace/artifacts && mkdir -p workspace/config
       - run: cp artifacts.zip workspace/artifacts
-      - run: cp .elasticbeanstalk/config.yml workspace/config
-      - run: cp ./deploy/setup_aws_credentials.sh workspace/config
       - persist_to_workspace:
           root: workspace
           paths:
             - artifacts
-            - config
       - store_artifacts:
           path: artifacts.zip
   promote_staging_to_prod:
     docker:
       - image: circleci/golang:1.9
     steps:
+      - checkout
       - attach_workspace:
           at: workspace
       - run: sudo apt-get -y -qq install awscli python-pip
       - run: pip install awsebcli --upgrade --user
       - run: echo 'export PATH=$PATH:~/.local/bin' >> $BASH_ENV
       - run: source ~/.bashrc
-      - run: mkdir -p ./deploy && cp workspace/config/setup_aws_credentials.sh ./deploy
       - run: chmod +x ./deploy/setup_aws_credentials.sh && ./deploy/setup_aws_credentials.sh
       - run: cp workspace/artifacts/artifacts.zip .
-      - run: mkdir .elasticbeanstalk && cp workspace/config/config.yml .elasticbeanstalk
       - run: eb deploy api-prod --label api-${CIRCLE_SHA1} --process --verbose
 workflows:
   version: 2
