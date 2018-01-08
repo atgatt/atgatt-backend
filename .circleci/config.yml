@@ -31,6 +31,7 @@ jobs:
           paths:
             - vendor
           key: v1-dependencies-{{ checksum "Gopkg.toml" }}
+      - run: sed -i 's/{LOCAL-DEV-BUILD}/${CIRCLE_BUILD_NUM}/g' ./api/main.go
       - run: go build -o crashtested-api ./api
       - run: go test -v ./...
       - run: zip -r artifacts.zip crashtested-api Procfile ./persistence/migrations/
