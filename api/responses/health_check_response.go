@@ -1,11 +1,11 @@
 package responses
 
 type HealthCheckResponse struct {
-	Name        string
-	Version     string
-	BuildNumber string
-	CommitHash  string
+	Name        string `json:"name"`
+	Version     string `json:"version"`
+	BuildNumber string `json:"buildNumber"`
+	CommitHash  string `json:"commitHash"`
 	Database    struct {
-		CurrentVersion string
-	}
+		CurrentVersion string `json:"currentVersion"`
+	} `json:"database"`
 }
