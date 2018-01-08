@@ -61,7 +61,7 @@ jobs:
       - run: mkdir -p ./deploy && cp workspace/config/setup_aws_credentials.sh ./deploy
       - run: chmod +x ./deploy/setup_aws_credentials.sh && ./deploy/setup_aws_credentials.sh
       - run: cp workspace/artifacts/artifacts.zip .
-      - run: mkdir .elasticbeanstalk && cp workspace/config.yml .elasticbeanstalk
+      - run: mkdir .elasticbeanstalk && cp workspace/config/config.yml .elasticbeanstalk
       - run: eb deploy api-prod --label api-${CIRCLE_SHA1} --process --verbose
 workflows:
   version: 2
