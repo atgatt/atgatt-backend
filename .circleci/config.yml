@@ -51,7 +51,7 @@ jobs:
       - image: circleci/golang:1.9
     steps:
       - attach_workspace:
-        at: workspace
+          at: workspace
       - run: sudo apt-get -y -qq install awscli python-pip
       - run: pip install awsebcli --upgrade --user
       - run: echo 'export PATH=$PATH:~/.local/bin' >> $BASH_ENV
