@@ -20,6 +20,7 @@ type Server struct {
 	Name          string
 	Version       string
 	BuildNumber   string
+	CommitHash    string
 	Configuration *configuration.Configuration
 	echoInstance  *echo.Echo
 }
@@ -50,6 +51,7 @@ func (self *Server) Build() {
 		logContext := logrus.Fields{
 			"BuildNumber": self.BuildNumber,
 			"Version":     self.Version,
+			"CommitHash":  self.CommitHash,
 		}
 		logzioHook, err := logruzio.New(self.Configuration.LogzioToken, fmt.Sprintf("%s-%s", self.Name, self.Configuration.AppEnvironment), logContext)
 		if err != nil {
@@ -65,7 +67,7 @@ func (self *Server) Build() {
 		logrus.Errorf("Failed to run migrations, but starting the app anyway: %s", err.Error())
 	}
 
-	healthCheckHandler := &HealthCheckHandler{Name: self.Name, Version: self.Version, BuildNumber: self.BuildNumber, MigrationsRepository: &repositories.MigrationsRepository{ConnectionString: self.Configuration.DatabaseConnectionString}}
+	healthCheckHandler := &HealthCheckHandler{Name: self.Name, Version: self.Version, BuildNumber: self.BuildNumber, CommitHash: self.CommitHash, MigrationsRepository: &repositories.MigrationsRepository{ConnectionString: self.Configuration.DatabaseConnectionString}}
 	productsHandler := &ProductHandler{Repository: &repositories.ProductRepository{ConnectionString: self.Configuration.DatabaseConnectionString}}
 
 	e.GET("/", healthCheckHandler.Healthcheck)

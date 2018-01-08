@@ -102,7 +102,7 @@ func TestMain(m *testing.M) {
 	migrationsRan := WaitForMigrations()
 	defaultConfiguration := configuration.GetDefaultConfiguration()
 	defaultConfiguration.AppEnvironment = "integration-tests"
-	server := Server{Port: ":5001", Name: "crashtested-api", Version: "integration-tests-version", BuildNumber: "integration-tests-build", Configuration: defaultConfiguration}
+	server := Server{Port: ":5001", Name: "crashtested-api", Version: "integration-tests-version", BuildNumber: "integration-tests-build", CommitHash: "integration-tests-commit", Configuration: defaultConfiguration}
 	go server.StartAndBlock()
 
 	apiStarted := WaitForApi()

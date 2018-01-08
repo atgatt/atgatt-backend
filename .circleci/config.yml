@@ -32,6 +32,7 @@ jobs:
             - vendor
           key: v1-dependencies-{{ checksum "Gopkg.toml" }}
       - run: sed -i "s/{LOCAL-DEV-BUILD}/${CIRCLE_BUILD_NUM}/g" ./api/main.go
+      - run: sed -i "s/{LOCAL-DEV-COMMIT}/${CIRCLE_SHA1}/g" ./api/main.go
       - run: go build -o crashtested-api ./api
       - run: go test -v ./...
       - run: zip -r artifacts.zip crashtested-api Procfile ./persistence/migrations/
@@ -57,7 +58,7 @@ jobs:
       - run: source ~/.bashrc
       - run: chmod +x ./deploy/setup_aws_credentials.sh && ./deploy/setup_aws_credentials.sh
       - run: cp workspace/artifacts/artifacts.zip .
-      - run: mkdir .elasticbeanstalk && cp workspace/config.yml .elasticbeanstalk/config.yml
+      - run: mkdir .elasticbeanstalk && cp workspace/config.yml .elasticbeanstalk
       - run: eb deploy api-prod --label api-${CIRCLE_SHA1} --process --verbose
 workflows:
   version: 2

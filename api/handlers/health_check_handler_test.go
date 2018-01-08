@@ -24,6 +24,7 @@ func Test_Healthcheck_should_return_the_name_and_version_of_the_app_when_a_GET_r
 	Expect(healthCheckResponse.Name).To(Equal("crashtested-api"))
 	Expect(healthCheckResponse.Version).To(Equal("integration-tests-version"))
 	Expect(healthCheckResponse.BuildNumber).To(Equal("integration-tests-build"))
+	Expect(healthCheckResponse.CommitHash).To(Equal("integration-tests-commit"))
 	Expect(healthCheckResponse.Database.CurrentVersion).ToNot(BeEmpty())
 }
 

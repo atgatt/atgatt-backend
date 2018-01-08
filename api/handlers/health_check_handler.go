@@ -10,6 +10,7 @@ import (
 
 type HealthCheckHandler struct {
 	BuildNumber          string
+	CommitHash           string
 	Name                 string
 	Version              string
 	MigrationsRepository *repositories.MigrationsRepository
@@ -20,7 +21,7 @@ func (self *HealthCheckHandler) Healthcheck(context echo.Context) (err error) {
 		return context.NoContent(http.StatusOK)
 	}
 
-	healthCheckResponse := &responses.HealthCheckResponse{Name: self.Name, Version: self.Version}
+	healthCheckResponse := &responses.HealthCheckResponse{Name: self.Name, Version: self.Version, CommitHash: self.CommitHash}
 	healthCheckResponse.Database.CurrentVersion, err = self.MigrationsRepository.GetLatestMigrationVersion()
 	if err != nil {
 		return err
