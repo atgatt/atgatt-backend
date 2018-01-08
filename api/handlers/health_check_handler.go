@@ -2,15 +2,17 @@ package handlers
 
 import (
 	"crashtested-backend/api/responses"
+	"crashtested-backend/persistence/repositories"
 	"net/http"
 
 	"github.com/labstack/echo"
 )
 
 type HealthCheckHandler struct {
-	BuildNumber string
-	Name        string
-	Version     string
+	BuildNumber          string
+	Name                 string
+	Version              string
+	MigrationsRepository *repositories.MigrationsRepository
 }
 
 func (self *HealthCheckHandler) Healthcheck(context echo.Context) (err error) {
@@ -19,6 +21,10 @@ func (self *HealthCheckHandler) Healthcheck(context echo.Context) (err error) {
 	}
 
 	healthCheckResponse := &responses.HealthCheckResponse{Name: self.Name, Version: self.Version}
+	healthCheckResponse.Database.CurrentVersion, err = self.MigrationsRepository.GetLatestMigrationVersion()
+	if err != nil {
+		return err
+	}
 
 	if len(self.BuildNumber) > 0 {
 		healthCheckResponse.BuildNumber = self.BuildNumber

@@ -65,7 +65,7 @@ func (self *Server) Build() {
 		logrus.Errorf("Failed to run migrations, but starting the app anyway: %s", err.Error())
 	}
 
-	healthCheckHandler := &HealthCheckHandler{Name: self.Name, Version: self.Version, BuildNumber: self.BuildNumber}
+	healthCheckHandler := &HealthCheckHandler{Name: self.Name, Version: self.Version, BuildNumber: self.BuildNumber, MigrationsRepository: &repositories.MigrationsRepository{ConnectionString: self.Configuration.DatabaseConnectionString}}
 	productsHandler := &ProductHandler{Repository: &repositories.ProductRepository{ConnectionString: self.Configuration.DatabaseConnectionString}}
 
 	e.GET("/", healthCheckHandler.Healthcheck)
