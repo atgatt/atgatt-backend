@@ -49,9 +49,10 @@ func (self *Server) Build() {
 
 	if self.Configuration.LogzioToken != "" {
 		logContext := logrus.Fields{
-			"BuildNumber": self.BuildNumber,
-			"Version":     self.Version,
-			"CommitHash":  self.CommitHash,
+			"BuildNumber":    self.BuildNumber,
+			"Version":        self.Version,
+			"CommitHash":     self.CommitHash,
+			"AppEnvironment": self.Configuration.AppEnvironment,
 		}
 		logzioHook, err := logruzio.New(self.Configuration.LogzioToken, fmt.Sprintf("%s-%s", self.Name, self.Configuration.AppEnvironment), logContext)
 		if err != nil {
