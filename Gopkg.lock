@@ -5,7 +5,7 @@
   branch = "master"
   name = "github.com/bakatz/echo-logrusmiddleware"
   packages = ["."]
-  revision = "883ada8bdbb45b085e9c456709d1f1da058e1c9f"
+  revision = "b8a7ac7b02e85c3de534e743376f8a593ba45794"
 
 [[projects]]
   branch = "master"
