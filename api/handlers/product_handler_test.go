@@ -15,6 +15,7 @@ import (
 )
 
 func Test_FilterProducts_should_return_all_of_the_products_data_when_the_limit_is_large_enough_and_there_are_no_optional_filters_set(t *testing.T) {
+	t.Parallel()
 	RegisterTestingT(t)
 
 	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 10000}}
@@ -29,7 +30,49 @@ func Test_FilterProducts_should_return_all_of_the_products_data_when_the_limit_i
 	Expect(*responseBody).To(BeEquivalentTo(seeds.GetProductSeeds()))
 }
 
+func Test_FilterProducts_should_return_all_of_the_products_that_have_the_given_subtype_when_the_subtypes_array_has_one_element(t *testing.T) {
+	t.Parallel()
+	RegisterTestingT(t)
+
+	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 10000}}
+	request.Order.Field = "created_at_utc"
+	request.Subtypes = []string{"full"}
+
+	responseBody := &[]*entities.ProductDocument{}
+	resp, err := helpers.MakeJsonPOSTRequest(fmt.Sprintf("%s/v1/products/filter", ApiBaseUrl), request, responseBody)
+
+	Expect(err).To(BeNil())
+	Expect(resp.StatusCode).To(Equal(http.StatusOK))
+
+	Expect(*responseBody).ToNot(BeEmpty())
+	for _, item := range *responseBody {
+		Expect(item.Subtype).To(Equal(request.Subtypes[0]))
+	}
+}
+
+func Test_FilterProducts_should_return_all_of_the_products_that_have_the_given_subtype_when_the_subtypes_array_has_multiple_elements(t *testing.T) {
+	t.Parallel()
+	RegisterTestingT(t)
+
+	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 10000}}
+	request.Order.Field = "created_at_utc"
+	request.Subtypes = []string{"full", "modular"}
+
+	responseBody := &[]*entities.ProductDocument{}
+	resp, err := helpers.MakeJsonPOSTRequest(fmt.Sprintf("%s/v1/products/filter", ApiBaseUrl), request, responseBody)
+
+	Expect(err).To(BeNil())
+	Expect(resp.StatusCode).To(Equal(http.StatusOK))
+
+	Expect(*responseBody).ToNot(BeEmpty())
+	for _, item := range *responseBody {
+		isExpectedSubtype := item.Subtype == request.Subtypes[0] || item.Subtype == request.Subtypes[1]
+		Expect(isExpectedSubtype).To(BeTrue())
+	}
+}
+
 func Test_FilterProducts_should_return_the_products_in_the_given_price_range_when_the_low_price_is_less_than_the_high_price(t *testing.T) {
+	t.Parallel()
 	RegisterTestingT(t)
 
 	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{299, 400}}
@@ -50,6 +93,7 @@ func Test_FilterProducts_should_return_the_products_in_the_given_price_range_whe
 }
 
 func Test_FilterProducts_should_return_bad_request_when_the_low_price_is_greater_than_the_high_price(t *testing.T) {
+	t.Parallel()
 	RegisterTestingT(t)
 
 	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{400, 299}}
@@ -63,6 +107,7 @@ func Test_FilterProducts_should_return_bad_request_when_the_low_price_is_greater
 }
 
 func Test_FilterProducts_should_return_bad_request_when_the_low_price_is_negative(t *testing.T) {
+	t.Parallel()
 	RegisterTestingT(t)
 
 	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{-1, 100}}
@@ -75,6 +120,7 @@ func Test_FilterProducts_should_return_bad_request_when_the_low_price_is_negativ
 }
 
 func Test_FilterProducts_should_return_bad_request_when_the_high_price_is_negative(t *testing.T) {
+	t.Parallel()
 	RegisterTestingT(t)
 
 	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, -100}}
@@ -88,6 +134,7 @@ func Test_FilterProducts_should_return_bad_request_when_the_high_price_is_negati
 }
 
 func Test_FilterProducts_should_return_bad_request_when_the_high_price_is_zero(t *testing.T) {
+	t.Parallel()
 	RegisterTestingT(t)
 
 	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 0}}
@@ -101,6 +148,7 @@ func Test_FilterProducts_should_return_bad_request_when_the_high_price_is_zero(t
 }
 
 func Test_FilterProducts_should_return_bad_request_when_there_are_too_many_price_range_array_elements(t *testing.T) {
+	t.Parallel()
 	RegisterTestingT(t)
 
 	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 10, 50}}
@@ -114,6 +162,7 @@ func Test_FilterProducts_should_return_bad_request_when_there_are_too_many_price
 }
 
 func Test_FilterProducts_should_return_the_products_in_the_given_price_range_when_the_low_price_is_equal_to_the_high_price(t *testing.T) {
+	t.Parallel()
 	RegisterTestingT(t)
 
 	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{299, 299}}
@@ -133,6 +182,7 @@ func Test_FilterProducts_should_return_the_products_in_the_given_price_range_whe
 }
 
 func Test_FilterProducts_should_return_products_whose_models_start_with_the_specified_value(t *testing.T) {
+	t.Parallel()
 	RegisterTestingT(t)
 
 	expectedModelPrefix := "RF"
@@ -152,6 +202,7 @@ func Test_FilterProducts_should_return_products_whose_models_start_with_the_spec
 }
 
 func Test_FilterProducts_should_return_products_whose_manufacturers_start_with_the_specified_value(t *testing.T) {
+	t.Parallel()
 	RegisterTestingT(t)
 
 	expectedManufacturerPrefix := "Sho"
@@ -171,6 +222,7 @@ func Test_FilterProducts_should_return_products_whose_manufacturers_start_with_t
 }
 
 func Test_FilterProducts_should_return_products_with_SNELL_certifications(t *testing.T) {
+	t.Parallel()
 	RegisterTestingT(t)
 
 	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 20000}}
@@ -190,6 +242,7 @@ func Test_FilterProducts_should_return_products_with_SNELL_certifications(t *tes
 }
 
 func Test_FilterProducts_should_return_products_with_ECE_certifications(t *testing.T) {
+	t.Parallel()
 	RegisterTestingT(t)
 
 	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 20000}}
@@ -209,6 +262,7 @@ func Test_FilterProducts_should_return_products_with_ECE_certifications(t *testi
 }
 
 func Test_FilterProducts_should_return_products_with_DOT_certifications(t *testing.T) {
+	t.Parallel()
 	RegisterTestingT(t)
 
 	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 20000}}
@@ -228,6 +282,7 @@ func Test_FilterProducts_should_return_products_with_DOT_certifications(t *testi
 }
 
 func Test_FilterProducts_should_return_products_with_SHARP_certifications(t *testing.T) {
+	t.Parallel()
 	RegisterTestingT(t)
 
 	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 20000}}
@@ -247,6 +302,7 @@ func Test_FilterProducts_should_return_products_with_SHARP_certifications(t *tes
 }
 
 func Test_FilterProducts_should_return_products_with_SHARP_certifications_and_minimum_impact_zones(t *testing.T) {
+	t.Parallel()
 	RegisterTestingT(t)
 
 	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 20000}}
@@ -276,6 +332,7 @@ func Test_FilterProducts_should_return_products_with_SHARP_certifications_and_mi
 }
 
 func Test_FilterProducts_should_return_products_with_SHARP_certifications_and_minimum_stars(t *testing.T) {
+	t.Parallel()
 	RegisterTestingT(t)
 
 	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 20000}}
@@ -296,6 +353,7 @@ func Test_FilterProducts_should_return_products_with_SHARP_certifications_and_mi
 }
 
 func Test_FilterProducts_should_correctly_page_through_the_resultset_when_start_and_limit_are_specified_and_there_are_no_filters_set(t *testing.T) {
+	t.Parallel()
 	RegisterTestingT(t)
 
 	request := &queries.FilterProductsQuery{Start: 0, Limit: 1, UsdPriceRange: []int{0, 10000}}
@@ -320,6 +378,7 @@ func Test_FilterProducts_should_correctly_page_through_the_resultset_when_start_
 }
 
 func Test_FilterProducts_should_return_bad_request_when_the_limit_is_too_large(t *testing.T) {
+	t.Parallel()
 	RegisterTestingT(t)
 
 	request := &queries.FilterProductsQuery{Start: 0, Limit: 26, UsdPriceRange: []int{0, 10}}
@@ -333,6 +392,7 @@ func Test_FilterProducts_should_return_bad_request_when_the_limit_is_too_large(t
 }
 
 func Test_FilterProducts_should_return_bad_request_when_the_limit_is_too_small(t *testing.T) {
+	t.Parallel()
 	RegisterTestingT(t)
 
 	request := &queries.FilterProductsQuery{Start: 0, Limit: -1, UsdPriceRange: []int{0, 10}}

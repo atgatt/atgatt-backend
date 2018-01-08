@@ -1,8 +1,9 @@
 package queries
 
 type FilterProductsQuery struct {
-	Manufacturer   string `json:"manufacturer"`
-	Model          string `json:"model"`
+	Manufacturer   string   `json:"manufacturer"`
+	Model          string   `json:"model"`
+	Subtypes       []string `json:"subtypes"`
 	Certifications struct {
 		SHARP *SHARPCertificationQueryParams `json:"SHARP"`
 		SNELL bool                           `json:"SNELL"`
@@ -13,7 +14,7 @@ type FilterProductsQuery struct {
 	Start         int   `json:"start"`
 	Limit         int   `json:"limit"`
 	Order         struct {
-		Field      string
-		Descending bool
-	}
+		Field      string `json:"field"`
+		Descending bool   `json:"descending"`
+	} `json:"order"`
 }

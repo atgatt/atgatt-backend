@@ -48,6 +48,11 @@ func (self *ProductRepository) FilterProducts(query *queries.FilterProductsQuery
 		whereCriteria += "and to_number((document->>'priceInUsd'), '9999.99') >= :low_price and to_number((document->>'priceInUsd'), '9999.99') <= :high_price "
 	}
 
+	if len(query.Subtypes) > 0 {
+		queryParams["subtypes"] = query.Subtypes
+		whereCriteria += "and document->>'subtype' in (:subtypes) "
+	}
+
 	if query.Manufacturer != "" {
 		queryParams["manufacturer"] = query.Manufacturer
 		whereCriteria += "and document->>'manufacturer' ilike (:manufacturer || '%') "
@@ -105,10 +110,26 @@ func (self *ProductRepository) FilterProducts(query *queries.FilterProductsQuery
 	}
 
 	productDocuments := make([]entities.ProductDocument, 0)
-	rows, err := db.NamedQuery(fmt.Sprintf(`select document from products
-											%s
-											order by %s %s
-											offset :start limit :limit`, whereCriteria, orderByExpression, orderByDirection), queryParams)
+	originalSqlQueryString := fmt.Sprintf(`select document from products
+								%s
+								order by %s %s
+								offset :start limit :limit`, whereCriteria, orderByExpression, orderByDirection)
+
+	// Converts :arguments to ? arguments so that we can preprocess the query
+	preProcessedSqlQueryString, args, err := sqlx.Named(originalSqlQueryString, queryParams)
+	if err != nil {
+		return nil, err
+	}
+
+	// Converts `where in` statements to work with the SQL driver
+	preProcessedSqlQueryString, args, err = sqlx.In(preProcessedSqlQueryString, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	// Converts ? arguments back to positional ($0, $1, $2, etc) arguments so that they can be executed in the DB.
+	preProcessedSqlQueryString = db.Rebind(preProcessedSqlQueryString)
+	rows, err := db.Query(preProcessedSqlQueryString, args...)
 	if err != nil {
 		return nil, err
 	}

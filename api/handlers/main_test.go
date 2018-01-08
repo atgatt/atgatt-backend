@@ -88,6 +88,9 @@ func WaitForMigrations() bool {
 		var appliedSeedMigrations int
 		dbConn, err := sql.Open("postgres", DatabaseConnectionString)
 		defer dbConn.Close()
+		if err != nil {
+			return false, err
+		}
 		appliedSeedMigrations, err = migrate.Exec(dbConn, "postgres", seedMigrationsSource, migrate.Up)
 
 		return (appliedSeedMigrations > 0), err
