@@ -57,6 +57,7 @@ func (self *Server) Build() {
 		logzioHook, err := logruzio.New(self.Configuration.LogzioToken, fmt.Sprintf("%s-%s", self.Name, self.Configuration.AppEnvironment), logContext)
 		if err != nil {
 			logrus.Fatalf("Failed to start the API because the logger could not be initialized: %s", err.Error())
+			os.Exit(-1)
 		}
 		logrus.AddHook(logzioHook)
 	} else {

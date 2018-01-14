@@ -308,7 +308,7 @@ func Test_FilterProducts_should_return_products_with_SHARP_certifications_and_mi
 	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 20000}}
 	request.Order.Field = "created_at_utc"
 	request.Certifications.SHARP = &queries.SHARPCertificationQueryParams{}
-	request.Certifications.SHARP.ImpactZoneMinimums.Left = 3
+	request.Certifications.SHARP.ImpactZoneMinimums.Left = 4
 	request.Certifications.SHARP.ImpactZoneMinimums.Right = 3
 	request.Certifications.SHARP.ImpactZoneMinimums.Rear = 3
 	request.Certifications.SHARP.ImpactZoneMinimums.Top.Front = 3

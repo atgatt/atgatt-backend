@@ -37,7 +37,7 @@ jobs:
       - run: go test -v ./...
       - run: zip -r artifacts.zip crashtested-api Procfile ./persistence/migrations/
       - run: eb deploy --label api-${CIRCLE_SHA1} --process --verbose
-      - run: mkdir -p workspace/artifacts && mkdir -p workspace/config
+      - run: mkdir -p workspace/artifacts
       - run: cp artifacts.zip workspace/artifacts
       - persist_to_workspace:
           root: workspace
