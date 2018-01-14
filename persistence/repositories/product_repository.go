@@ -45,7 +45,7 @@ func (self *ProductRepository) FilterProducts(query *queries.FilterProductsQuery
 		highPrice := query.UsdPriceRange[1]
 		queryParams["low_price"] = lowPrice
 		queryParams["high_price"] = highPrice
-		whereCriteria += "and to_number((document->>'priceInUsd'), '9999.99') >= :low_price and to_number((document->>'priceInUsd'), '9999.99') <= :high_price "
+		whereCriteria += "and to_number((document->>'priceInUsd'), '9999.99') between :low_price and :high_price "
 	}
 
 	if len(query.Subtypes) > 0 {
@@ -111,9 +111,9 @@ func (self *ProductRepository) FilterProducts(query *queries.FilterProductsQuery
 
 	productDocuments := make([]entities.ProductDocument, 0)
 	originalSqlQueryString := fmt.Sprintf(`select document from products
-								%s
-								order by %s %s
-								offset :start limit :limit`, whereCriteria, orderByExpression, orderByDirection)
+											%s
+											order by %s %s
+											offset :start limit :limit`, whereCriteria, orderByExpression, orderByDirection)
 
 	// Converts :arguments to ? arguments so that we can preprocess the query
 	preProcessedSqlQueryString, args, err := sqlx.Named(originalSqlQueryString, queryParams)
