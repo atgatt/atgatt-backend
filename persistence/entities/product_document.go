@@ -10,6 +10,7 @@ type ProductDocument struct {
 	Subtype        string    `json:"subtype"`
 	Manufacturer   string    `json:"manufacturer"`
 	Model          string    `json:"model"`
+	ModelAlias     string    `json:"modelAlias"`
 	ImageURL       string    `json:"imageUrl"`
 	PriceInUsd     string    `json:"priceInUsd"`
 	Certifications struct {

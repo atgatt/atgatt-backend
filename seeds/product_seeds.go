@@ -51,7 +51,7 @@ func GetProductSeeds() []*entities.ProductDocument {
 		&entities.ProductDocument{ImageURL: MockHelmetImageUrl, Manufacturer: "Manufacturer12", Model: "RF-SR10", PriceInUsd: "1002.99", Type: "helmet", Subtype: "half"},
 		&entities.ProductDocument{ImageURL: MockHelmetImageUrl, Manufacturer: "Manufacturer13", Model: "RF-SR11", PriceInUsd: "1100.99", Type: "helmet", Subtype: "offroad"},
 		&entities.ProductDocument{ImageURL: MockHelmetImageUrl, Manufacturer: "Manufacturer14", Model: "RF-SR12", PriceInUsd: "1200.99", Type: "helmet", Subtype: "full"},
-		&entities.ProductDocument{ImageURL: MockHelmetImageUrl, Manufacturer: "Manufacturer15", Model: "RF-SR13", PriceInUsd: "1330.01", Type: "helmet", Subtype: "modular"},
+		&entities.ProductDocument{ImageURL: MockHelmetImageUrl, Manufacturer: "Manufacturer15", Model: "RF-SR13", PriceInUsd: "1330.01", Type: "helmet", Subtype: "modular", ModelAlias: "RF-1300"},
 	}
 
 	for i := 0; i < len(seeds); i++ {

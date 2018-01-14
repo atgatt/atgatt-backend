@@ -181,7 +181,7 @@ func Test_FilterProducts_should_return_the_products_in_the_given_price_range_whe
 	}
 }
 
-func Test_FilterProducts_should_return_products_whose_models_start_with_the_specified_value(t *testing.T) {
+func Test_FilterProducts_should_return_products_whose_models_or_aliases_start_with_the_specified_value(t *testing.T) {
 	t.Parallel()
 	RegisterTestingT(t)
 
@@ -197,7 +197,9 @@ func Test_FilterProducts_should_return_products_whose_models_start_with_the_spec
 
 	Expect(*responseBody).ToNot(BeEmpty())
 	for _, item := range *responseBody {
-		Expect(strings.Index(item.Model, expectedModelPrefix)).To(BeZero()) // Make sure the model started with the value we expect
+		isModelCorrect := strings.Index(item.Model, expectedModelPrefix) == 0
+		isModelAliasCorrect := strings.Index(item.ModelAlias, expectedModelPrefix) == 0
+		Expect(isModelCorrect || isModelAliasCorrect).To(BeTrue()) // Make sure the model or the alias started with the value we expect
 	}
 }
 

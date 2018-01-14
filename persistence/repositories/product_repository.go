@@ -60,7 +60,7 @@ func (self *ProductRepository) FilterProducts(query *queries.FilterProductsQuery
 
 	if query.Model != "" {
 		queryParams["model"] = query.Model
-		whereCriteria += "and document->>'model' ilike (:model || '%') "
+		whereCriteria += "and (document->>'model' ilike (:model || '%') or document->>'modelAlias' ilike (:model || '%')) " // TODO: may need to optimize this query once the dataset grows larger, OR across multiple columns is likely not sargable
 	}
 
 	sharpCert := query.Certifications.SHARP
