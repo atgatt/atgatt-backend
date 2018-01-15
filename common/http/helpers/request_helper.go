@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/sirupsen/logrus"
@@ -25,4 +26,15 @@ func MakeJsonPOSTRequest(url string, request interface{}, response interface{}) 
 	json.Unmarshal(responseBodyBytes, response)
 
 	return resp, nil
+}
+
+func MakeFormPOSTRequest(url string, formValues url.Values) (string, error) {
+	logrus.WithField("formValues", formValues).Info("Making JSON POST form request")
+	resp, postErr := http.PostForm(url, formValues)
+	if postErr != nil {
+		return "", postErr
+	}
+	responseBodyBytes, _ := ioutil.ReadAll(resp.Body)
+
+	return string(responseBodyBytes), nil
 }
