@@ -61,6 +61,7 @@ func GetProductSeeds() []*entities.ProductDocument {
 			seeds[i].Certifications.DOT = true
 			seeds[i].Certifications.SHARP = &entities.SHARPCertificationDocument{}
 			seeds[i].Certifications.SHARP.Stars = 4
+			seeds[i].Certifications.SHARP.ImpactZoneRatings = &entities.SHARPImpactZoneRatingsDocument{}
 			seeds[i].Certifications.SHARP.ImpactZoneRatings.Left = 4
 			seeds[i].Certifications.SHARP.ImpactZoneRatings.Right = 3
 			seeds[i].Certifications.SHARP.ImpactZoneRatings.Rear = 4
@@ -72,6 +73,7 @@ func GetProductSeeds() []*entities.ProductDocument {
 			seeds[i].Certifications.DOT = true
 			seeds[i].Certifications.SHARP = &entities.SHARPCertificationDocument{}
 			seeds[i].Certifications.SHARP.Stars = 3
+			seeds[i].Certifications.SHARP.ImpactZoneRatings = &entities.SHARPImpactZoneRatingsDocument{}
 			seeds[i].Certifications.SHARP.ImpactZoneRatings.Left = 1
 			seeds[i].Certifications.SHARP.ImpactZoneRatings.Right = 1
 			seeds[i].Certifications.SHARP.ImpactZoneRatings.Rear = 2
