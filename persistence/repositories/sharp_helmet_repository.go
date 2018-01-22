@@ -1,13 +1,12 @@
-package jobs
+package repositories
 
 import (
 	"crashtested-backend/common/http/helpers"
 	"crashtested-backend/persistence/entities"
-	"crashtested-backend/persistence/repositories"
 	"errors"
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
-	"github.com/google/uuid"
+	"github.com/hashicorp/go-cleanhttp"
 	"github.com/sirupsen/logrus"
 	"net/http"
 	"net/url"
@@ -17,32 +16,68 @@ import (
 	"time"
 )
 
-type ImportHelmetDataJob struct {
-	ProductRepository *repositories.ProductRepository
+type SHARPHelmetRepository struct {
+	Limit int
 }
 
-// Get SHARP data
-// Get SNELL data
+func (self *SHARPHelmetRepository) GetAllHelmets() ([]*entities.SHARPHelmet, error) {
+	logrus.Info("Started getting all SHARP helmets")
+	helmets := make([]*entities.SHARPHelmet, 0)
+	starsRegexp := regexp.MustCompile(`rating-star-(\d)`)
+	topImpactZoneRegexp := regexp.MustCompile(`front-(\d)-(\d)\.jpg`) // SHARP calls this front-front and front-rear which isn't correct, it's actually top-front and top-rear
+	leftImpactZoneRegexp := regexp.MustCompile(`left-(\d)\.jpg`)
+	rightImpactZoneRegexp := regexp.MustCompile(`right-(\d)\.jpg`)
+	rearImpactZoneRegexp := regexp.MustCompile(`rear-(\d)\.jpg`)
+	weightRegexp := regexp.MustCompile(`(\d\.\d\d)`)
+	startTime := time.Now()
+	helmetResultsChannel := make(chan *parseHelmetResult)
+	httpRequestSemaphore := make(chan struct{}, 4) // maximum of 4 concurrent http requests
+	helmetUrlsMap, err := self.GetHelmetUrls()
+	if err != nil {
+		return nil, err
+	}
 
-// Must be run first:
-// For each helmet in SHARP, try to find helmets by manufacturer+model combo
-// does it already exist and are the SHARP fields different? If so, replace SHARP subdocument; else, create document.
+	numHelmetUrls := len(helmetUrlsMap)
+	if numHelmetUrls < 400 {
+		return nil, errors.New("Too few helmets were found; check to see if the SHARP website changed its layout")
+	}
 
-// The below 2 steps can be run in parallel:
+	pooledHttpClient := cleanhttp.DefaultPooledClient() // use a pooled http client so that the SSL session is reused between connections
+	for helmetUrl := range helmetUrlsMap {
+		go parseSHARPHelmetByUrl(pooledHttpClient, httpRequestSemaphore, helmetUrl, helmetResultsChannel, weightRegexp, starsRegexp, topImpactZoneRegexp, leftImpactZoneRegexp, rightImpactZoneRegexp, rearImpactZoneRegexp)
+	}
 
-// For each helmet in SNELL, try to find helmets by manufacturer+model combo
-// does it already exist? If so, set document.certifications.SNELL to true if it isn't already true; else, create document and log a warning that we couldn't find a matching SHARP helmet.
+	for index := 0; index < numHelmetUrls; index++ {
+		productResult := <-helmetResultsChannel
+		if productResult.err != nil {
+			logrus.WithFields(logrus.Fields{
+				"helmetUrl": productResult.helmetUrl,
+				"error":     productResult.err,
+			}).Error("Encountered an error while processing a SHARP helmet")
+			continue
+		}
 
-// For each helmet in the database, query CJ Affiliate's product data using Helmet manufacturer + model. Order by price descending, take top result, get product description.
-// If no results, log a warning; if results:
-// does description contain "DOT"? Set DOT to true.
-// set price to the price
-// if request limit reached, wait for 1.5 minutes and keep going
-func (*ImportHelmetDataJob) Run() error {
-	products := make([]*entities.ProductDocument, 0)
+		helmets = append(helmets, productResult.helmet)
+	}
+
+	if len(helmets) != numHelmetUrls {
+		return nil, errors.New("Did not successfully process all SHARP helmets")
+	}
+
+	millisecondsElapsed := time.Now().Sub(startTime).Seconds() * 1000
+	logrus.WithField("millisecondsElapsed", millisecondsElapsed).Info("Finished getting all SHARP helmets")
+	return helmets, nil
+}
+
+func (self *SHARPHelmetRepository) GetHelmetUrls() (map[string]bool, error) {
+	limitToUse := strconv.Itoa(self.Limit)
+	if self.Limit < 0 {
+		limitToUse = "500000"
+	}
+
 	form := url.Values{}
 	form.Add("action", "more_helmet_ajax")
-	form.Add("postsperpage", "500000") // "500000") // TODO: use 500000
+	form.Add("postsperpage", limitToUse)
 	form.Add("manufacturer", "All")
 	form.Add("model", "All")
 	form.Add("pageNumber", "1")
@@ -50,14 +85,14 @@ func (*ImportHelmetDataJob) Run() error {
 
 	resp, err := helpers.MakeFormPOSTRequest("https://sharp.dft.gov.uk/wp-admin/admin-ajax.php", form)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	resp = "<html><table>" + resp + "</table></html>" // SHARP's undocumented API returns invalid HTML with no root node, so we have to add the root nodes ourselves
 	responseReader := strings.NewReader(resp)
 
 	doc, err := goquery.NewDocumentFromReader(responseReader)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	rows := doc.Find("a[href*='sharp.dft.gov.uk/helmets/']")
 	helmetUrlsMap := make(map[string]bool)
@@ -73,41 +108,37 @@ func (*ImportHelmetDataJob) Run() error {
 			helmetUrlsMap[url] = true
 		}
 	}
-
-	starsRegexp := regexp.MustCompile(`rating-star-(\d)`)
-	topImpactZoneRegexp := regexp.MustCompile(`front-(\d)-(\d)\.jpg`) // SHARP calls this front-front and front-rear which isn't correct, it's actually top-front and top-rear
-	leftImpactZoneRegexp := regexp.MustCompile(`left-(\d)\.jpg`)
-	rightImpactZoneRegexp := regexp.MustCompile(`right-(\d)\.jpg`)
-	rearImpactZoneRegexp := regexp.MustCompile(`rear-(\d)\.jpg`)
-	weightRegexp := regexp.MustCompile(`(\d\.\d\d)`)
-	startTime := time.Now()
-	productsChannel := make(chan *entities.ProductDocument, len(helmetUrlsMap))
-	for helmetUrl := range helmetUrlsMap {
-		product, err := parseProductBySHARPHelmetUrl(helmetUrl, productsChannel, weightRegexp, starsRegexp, topImpactZoneRegexp, leftImpactZoneRegexp, rightImpactZoneRegexp, rearImpactZoneRegexp)
-		if err != nil {
-			logrus.WithFields(logrus.Fields{
-				"helmetUrl": helmetUrl,
-				"error":     err,
-			}).Error("Failed to parse a helmet, aborting process")
-			return err
-		}
-		products = append(products, product)
-	}
-	timeTaken := time.Now().Unix() - startTime.Unix() // 404 seconds synchronously
-	logrus.Info(len(products), timeTaken)
-	return nil
+	return helmetUrlsMap, nil
 }
 
-func parseProductBySHARPHelmetUrl(helmetUrl string, productsChannel chan *entities.ProductDocument, weightRegexp *regexp.Regexp, starsRegexp *regexp.Regexp, topImpactZoneRegexp *regexp.Regexp, leftImpactZoneRegexp *regexp.Regexp, rightImpactZoneRegexp *regexp.Regexp, rearImpactZoneRegexp *regexp.Regexp) (*entities.ProductDocument, error) {
+type parseHelmetResult struct {
+	helmet    *entities.SHARPHelmet
+	helmetUrl string
+	err       error
+}
+
+func parseSHARPHelmetByUrl(pooledHttpClient *http.Client, httpRequestsSemaphore chan struct{}, helmetUrl string, helmetResultsChannel chan *parseHelmetResult, weightRegexp *regexp.Regexp, starsRegexp *regexp.Regexp, topImpactZoneRegexp *regexp.Regexp, leftImpactZoneRegexp *regexp.Regexp, rightImpactZoneRegexp *regexp.Regexp, rearImpactZoneRegexp *regexp.Regexp) {
 	helmetLogger := logrus.WithField("helmetUrl", helmetUrl)
-	resp, err := http.Get(helmetUrl)
+	helmetLogger.Info("Starting to parse helmet data")
+	var emptyItem struct{}
+
+	// increment while we're waiting for the request to finish
+	httpRequestsSemaphore <- emptyItem
+	resp, err := pooledHttpClient.Get(helmetUrl)
+	result := &parseHelmetResult{helmetUrl: helmetUrl}
 	if err != nil {
-		return nil, err
+		result.err = err
+		helmetResultsChannel <- result
+		return
 	}
+	<-httpRequestsSemaphore
+	// ^ decrement after the request is done
 
 	helmetDetailsDoc, err := goquery.NewDocumentFromResponse(resp)
 	if err != nil {
-		return nil, err
+		result.err = err
+		helmetResultsChannel <- result
+		return
 	}
 
 	productImageUrl, found := helmetDetailsDoc.Find(".wp-post-image").First().Attr("src")
@@ -121,7 +152,9 @@ func parseProductBySHARPHelmetUrl(helmetUrl string, productsChannel chan *entiti
 		impactZoneImageSelection := impactZoneImages.Eq(index)
 		impactZoneRatings, err = getImpactZoneRatings(helmetLogger, impactZoneImageSelection, leftImpactZoneRegexp, rightImpactZoneRegexp, topImpactZoneRegexp, rearImpactZoneRegexp)
 		if err != nil {
-			return nil, err
+			result.err = err
+			helmetResultsChannel <- result
+			return
 		}
 	}
 
@@ -131,11 +164,15 @@ func parseProductBySHARPHelmetUrl(helmetUrl string, productsChannel chan *entiti
 	starsImageUrl, _ := starsSelection.ChildrenFiltered("img").First().Attr("src")
 	subMatchArray := starsRegexp.FindStringSubmatch(starsImageUrl)
 	if len(subMatchArray) < 2 {
-		return nil, errors.New("Encountered an unexpected star rating array")
+		result.err = errors.New("Encountered an unexpected star rating array")
+		helmetResultsChannel <- result
+		return
 	}
 	starsValue, err := strconv.Atoi(subMatchArray[1])
 	if err != nil {
-		return nil, err
+		result.err = err
+		helmetResultsChannel <- result
+		return
 	}
 
 	manufacturer := findDetailsTextByHeader(helmetDetailsDoc, "manufacturer")
@@ -147,7 +184,9 @@ func parseProductBySHARPHelmetUrl(helmetUrl string, productsChannel chan *entiti
 		weightText := weightMatches[1]
 		weightInKg, err := strconv.ParseFloat(weightText, 64)
 		if err != nil {
-			return nil, err
+			result.err = err
+			helmetResultsChannel <- result
+			return
 		}
 		weightInLbs = float64(2.20462) * weightInKg
 		weightInLbs = float64(int64(weightInLbs/0.01+0.5)) * 0.01
@@ -172,7 +211,9 @@ func parseProductBySHARPHelmetUrl(helmetUrl string, productsChannel chan *entiti
 		var err error
 		latchPercentage, err = strconv.Atoi(latchPercentageArray[0])
 		if err != nil {
-			return nil, err
+			result.err = err
+			helmetResultsChannel <- result
+			return
 		}
 	} else if subtype == "modular" {
 		helmetLogger.Warn("Encountered a modular helmet with a latch percentage array that did not contain at least 2 elements, assuming empty latch percentage")
@@ -183,9 +224,7 @@ func parseProductBySHARPHelmetUrl(helmetUrl string, productsChannel chan *entiti
 	otherStandardsText := findDetailsTextByHeader(helmetDetailsDoc, "other standards")
 	isECERated := strings.Contains(otherStandardsText, "ECE")
 
-	product := &entities.ProductDocument{
-		UUID:            uuid.New(),
-		Type:            "helmet",
+	helmet := &entities.SHARPHelmet{
 		Subtype:         subtype,
 		Model:           model,
 		Manufacturer:    manufacturer,
@@ -195,10 +234,13 @@ func parseProductBySHARPHelmetUrl(helmetUrl string, productsChannel chan *entiti
 		Sizes:           sizes,
 		RetentionSystem: retentionSystem,
 		Materials:       materials,
+		IsECERated:      isECERated,
+		Certifications:  &entities.SHARPCertificationDocument{Stars: starsValue, ImpactZoneRatings: impactZoneRatings},
 	}
-	product.Certifications.ECE = isECERated
-	product.Certifications.SHARP = &entities.SHARPCertificationDocument{Stars: starsValue, ImpactZoneRatings: impactZoneRatings}
-	return product, nil
+
+	result.helmet = helmet
+	helmetResultsChannel <- result
+	helmetLogger.Info("Finished parsing helmet data")
 }
 
 func getImpactZoneRatings(helmetLogger *logrus.Entry, impactZoneImageSelection *goquery.Selection, leftImpactZoneRegexp *regexp.Regexp, rightImpactZoneRegexp *regexp.Regexp, topImpactZoneRegexp *regexp.Regexp, rearImpactZoneRegexp *regexp.Regexp) (*entities.SHARPImpactZoneRatingsDocument, error) {

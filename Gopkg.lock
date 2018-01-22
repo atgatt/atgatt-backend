@@ -45,6 +45,12 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/hashicorp/go-cleanhttp"
+  packages = ["."]
+  revision = "d5fe4b57a186c716b0e00b8c301cbd9b4182694d"
+
+[[projects]]
+  branch = "master"
   name = "github.com/jmoiron/sqlx"
   packages = [".","reflectx"]
   revision = "de8647470aafe4854c976707c431dbe1eb2822c6"
@@ -148,6 +154,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "9c01cf014e0bc8c9d323545cd69f4f2c3e29ad3ff7bb30e8bd7d2722465fc1c6"
+  inputs-digest = "6a1c564b5219b0b08ec24e3203bd6369a1ad3ccbde0b6f4e345b666f0276f769"
   solver-name = "gps-cdcl"
   solver-version = 1

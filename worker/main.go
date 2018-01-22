@@ -8,6 +8,10 @@ import (
 
 func main() {
 	config := configuration.GetDefaultConfiguration()
-	job := &jobs.ImportHelmetDataJob{ProductRepository: &repositories.ProductRepository{ConnectionString: config.DatabaseConnectionString}}
+	job := &jobs.ImportHelmetsJob{
+		ProductRepository:     &repositories.ProductRepository{ConnectionString: config.DatabaseConnectionString},
+		SHARPHelmetRepository: &repositories.SHARPHelmetRepository{Limit: -1},
+		SNELLHelmetRepository: &repositories.SNELLHelmetRepository{},
+	}
 	job.Run()
 }
