@@ -32,6 +32,11 @@ type ImportHelmetsJob struct {
 // if request limit reached, wait for 1.5 minutes and keep going
 func (self *ImportHelmetsJob) Run() error {
 	products := make([]*entities.ProductDocument, 0)
+	snellHelmets, err := self.SNELLHelmetRepository.GetAllHelmets()
+	if err != nil {
+		return err
+	}
+	logrus.Info(snellHelmets)
 	// NOTE: This call blocks for about a minute on average as we need to fetch 400+ HTML files and scrape them for data.
 	sharpHelmets, err := self.SHARPHelmetRepository.GetAllHelmets()
 	if err != nil {
@@ -58,12 +63,6 @@ func (self *ImportHelmetsJob) Run() error {
 		products = append(products, product)
 	}
 	logrus.Info(sharpHelmets)
-
-	snellHelmets, err := self.SNELLHelmetRepository.GetAllHelmets()
-	if err != nil {
-		return err
-	}
-	logrus.Info(snellHelmets)
 
 	return nil
 }
