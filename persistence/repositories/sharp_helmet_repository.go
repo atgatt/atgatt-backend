@@ -20,7 +20,7 @@ type SHARPHelmetRepository struct {
 	Limit int
 }
 
-func (self *SHARPHelmetRepository) GetAllHelmets() ([]*entities.SHARPHelmet, error) {
+func (self *SHARPHelmetRepository) GetAll() ([]*entities.SHARPHelmet, error) {
 	logrus.Info("Started getting all SHARP helmets")
 	helmets := make([]*entities.SHARPHelmet, 0)
 	starsRegexp := regexp.MustCompile(`rating-star-(\d)`)
@@ -234,7 +234,7 @@ func parseSHARPHelmetByUrl(pooledHttpClient *http.Client, httpRequestsSemaphore 
 		Sizes:           sizes,
 		RetentionSystem: retentionSystem,
 		Materials:       materials,
-		IsECERated:      isECERated,
+		IsECECertified:  isECERated,
 		Certifications:  &entities.SHARPCertificationDocument{Stars: starsValue, ImpactZoneRatings: impactZoneRatings},
 	}
 

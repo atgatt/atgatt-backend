@@ -1,4 +1,4 @@
 development:
     dialect: postgres
     dir: persistence/migrations
-    datasource: notneeded
+    datasource: postgres://postgres:password@localhost:5432/crashtested?sslmode=disable

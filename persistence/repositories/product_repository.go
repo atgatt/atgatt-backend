@@ -4,12 +4,68 @@ import (
 	"crashtested-backend/persistence/entities"
 	"crashtested-backend/persistence/queries"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
 )
 
 type ProductRepository struct {
 	ConnectionString string
+}
+
+func (self *ProductRepository) GetByModel(manufacturer string, model string) (*entities.ProductDocument, error) {
+	query := &queries.FilterProductsQuery{Start: 0, Limit: 1, Manufacturer: manufacturer, Model: model}
+	query.Order.Field = "id"
+
+	filteredProducts, err := self.FilterProducts(query)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(filteredProducts) != 1 {
+		return nil, errors.New("An unexpected number of products were returned")
+	}
+
+	return &filteredProducts[0], nil
+}
+
+func (self *ProductRepository) UpdateProduct(product *entities.ProductDocument) error {
+	db, err := sqlx.Open("postgres", self.ConnectionString)
+	defer db.Close()
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Exec("update products set document = :document where uuid = :uuid", map[string]interface{}{
+		"document": product,
+		"uuid":     product.UUID,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (self *ProductRepository) CreateProduct(product *entities.ProductDocument) error {
+	db, err := sqlx.Open("postgres", self.ConnectionString)
+	defer db.Close()
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Exec("insert into products (uuid, document, created_at_utc, updated_at_utc) values (:uuid, :document, (now() at time zone 'utc'), null);", map[string]interface{}{
+		"document": product,
+		"uuid":     product.UUID,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (self *ProductRepository) FilterProducts(query *queries.FilterProductsQuery) ([]entities.ProductDocument, error) {

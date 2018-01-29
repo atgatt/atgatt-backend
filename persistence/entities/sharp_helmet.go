@@ -12,5 +12,5 @@ type SHARPHelmet struct {
 	Materials       string
 	RetentionSystem string
 	Certifications  *SHARPCertificationDocument
-	IsECERated      bool
+	IsECECertified  bool
 }

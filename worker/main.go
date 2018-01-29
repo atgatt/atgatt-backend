@@ -9,9 +9,10 @@ import (
 func main() {
 	config := configuration.GetDefaultConfiguration()
 	job := &jobs.ImportHelmetsJob{
-		ProductRepository:     &repositories.ProductRepository{ConnectionString: config.DatabaseConnectionString},
-		SHARPHelmetRepository: &repositories.SHARPHelmetRepository{Limit: -1},
-		SNELLHelmetRepository: &repositories.SNELLHelmetRepository{},
+		ProductRepository:      &repositories.ProductRepository{ConnectionString: config.DatabaseConnectionString},
+		SHARPHelmetRepository:  &repositories.SHARPHelmetRepository{Limit: -1},
+		SNELLHelmetRepository:  &repositories.SNELLHelmetRepository{},
+		ManufacturerRepository: &repositories.ManufacturerRepository{ConnectionString: config.DatabaseConnectionString},
 	}
 	job.Run()
 }

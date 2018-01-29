@@ -4,6 +4,7 @@ import (
 	"sort"
 
 	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
 	"github.com/rubenv/sql-migrate"
 )
 
