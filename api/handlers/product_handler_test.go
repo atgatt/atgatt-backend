@@ -7,7 +7,6 @@ import (
 	"crashtested-backend/seeds"
 	"fmt"
 	"net/http"
-	"strconv"
 	"strings"
 	"testing"
 
@@ -17,7 +16,7 @@ import (
 func Test_FilterProducts_should_return_all_of_the_products_data_when_the_limit_is_large_enough_and_there_are_no_optional_filters_set(t *testing.T) {
 	RegisterTestingT(t)
 
-	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 10000}}
+	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 2000000}}
 	request.Order.Field = "created_at_utc"
 
 	responseBody := &[]*entities.ProductDocument{}
@@ -32,7 +31,7 @@ func Test_FilterProducts_should_return_all_of_the_products_data_when_the_limit_i
 func Test_FilterProducts_should_return_all_of_the_products_that_have_the_given_subtype_when_the_subtypes_array_has_one_element(t *testing.T) {
 	RegisterTestingT(t)
 
-	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 10000}}
+	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 2000000}}
 	request.Order.Field = "created_at_utc"
 	request.Subtypes = []string{"full"}
 
@@ -51,7 +50,7 @@ func Test_FilterProducts_should_return_all_of_the_products_that_have_the_given_s
 func Test_FilterProducts_should_return_all_of_the_products_that_have_the_given_subtype_when_the_subtypes_array_has_multiple_elements(t *testing.T) {
 	RegisterTestingT(t)
 
-	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 10000}}
+	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 2000000}}
 	request.Order.Field = "created_at_utc"
 	request.Subtypes = []string{"full", "modular"}
 
@@ -71,7 +70,7 @@ func Test_FilterProducts_should_return_all_of_the_products_that_have_the_given_s
 func Test_FilterProducts_should_return_the_products_in_the_given_price_range_when_the_low_price_is_less_than_the_high_price(t *testing.T) {
 	RegisterTestingT(t)
 
-	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{299, 400}}
+	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{29900, 40000}}
 	request.Order.Field = "created_at_utc"
 
 	responseBody := &[]*entities.ProductDocument{}
@@ -82,16 +81,15 @@ func Test_FilterProducts_should_return_the_products_in_the_given_price_range_whe
 
 	Expect(*responseBody).ToNot(BeEmpty())
 	for _, item := range *responseBody {
-		priceFloat, _ := strconv.ParseFloat(item.PriceInUsd, 64)
-		Expect(priceFloat).To(BeNumerically("<=", 400))
-		Expect(priceFloat).To(BeNumerically(">=", 299))
+		Expect(item.PriceInUsdMultiple).To(BeNumerically("<=", 40000))
+		Expect(item.PriceInUsdMultiple).To(BeNumerically(">=", 29900))
 	}
 }
 
 func Test_FilterProducts_should_return_bad_request_when_the_low_price_is_greater_than_the_high_price(t *testing.T) {
 	RegisterTestingT(t)
 
-	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{400, 299}}
+	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{40000, 29900}}
 	request.Order.Field = "created_at_utc"
 
 	responseBody := &[]*entities.ProductDocument{}
@@ -104,7 +102,7 @@ func Test_FilterProducts_should_return_bad_request_when_the_low_price_is_greater
 func Test_FilterProducts_should_return_bad_request_when_the_low_price_is_negative(t *testing.T) {
 	RegisterTestingT(t)
 
-	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{-1, 100}}
+	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{-1, 1000000}}
 
 	responseBody := &[]*entities.ProductDocument{}
 	resp, err := helpers.MakeJsonPOSTRequest(fmt.Sprintf("%s/v1/products/filter", ApiBaseUrl), request, responseBody)
@@ -116,7 +114,7 @@ func Test_FilterProducts_should_return_bad_request_when_the_low_price_is_negativ
 func Test_FilterProducts_should_return_bad_request_when_the_high_price_is_negative(t *testing.T) {
 	RegisterTestingT(t)
 
-	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, -100}}
+	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, -1000000}}
 	request.Order.Field = "created_at_utc"
 
 	responseBody := &[]*entities.ProductDocument{}
@@ -142,7 +140,7 @@ func Test_FilterProducts_should_return_bad_request_when_the_high_price_is_zero(t
 func Test_FilterProducts_should_return_bad_request_when_there_are_too_many_price_range_array_elements(t *testing.T) {
 	RegisterTestingT(t)
 
-	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 10, 50}}
+	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 100000, 500000}}
 	request.Order.Field = "created_at_utc"
 
 	responseBody := &[]*entities.ProductDocument{}
@@ -155,7 +153,7 @@ func Test_FilterProducts_should_return_bad_request_when_there_are_too_many_price
 func Test_FilterProducts_should_return_the_products_in_the_given_price_range_when_the_low_price_is_equal_to_the_high_price(t *testing.T) {
 	RegisterTestingT(t)
 
-	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{299, 299}}
+	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{29900, 29900}}
 	request.Order.Field = "created_at_utc"
 
 	responseBody := &[]*entities.ProductDocument{}
@@ -166,8 +164,7 @@ func Test_FilterProducts_should_return_the_products_in_the_given_price_range_whe
 
 	Expect(*responseBody).ToNot(BeEmpty())
 	for _, item := range *responseBody {
-		priceFloat, _ := strconv.ParseFloat(item.PriceInUsd, 64)
-		Expect(priceFloat).To(Equal(float64(299)))
+		Expect(item.PriceInUsdMultiple).To(Equal(29900))
 	}
 }
 
@@ -175,7 +172,7 @@ func Test_FilterProducts_should_return_products_whose_models_or_aliases_start_wi
 	RegisterTestingT(t)
 
 	expectedModelPrefix := "RF"
-	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 20000}, Model: expectedModelPrefix}
+	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 2000000}, Model: expectedModelPrefix}
 	request.Order.Field = "created_at_utc"
 
 	responseBody := &[]*entities.ProductDocument{}
@@ -196,7 +193,7 @@ func Test_FilterProducts_should_return_products_whose_manufacturers_start_with_t
 	RegisterTestingT(t)
 
 	expectedManufacturerPrefix := "Sho"
-	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 20000}, Manufacturer: expectedManufacturerPrefix}
+	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 2000000}, Manufacturer: expectedManufacturerPrefix}
 	request.Order.Field = "created_at_utc"
 
 	responseBody := &[]*entities.ProductDocument{}
@@ -214,7 +211,7 @@ func Test_FilterProducts_should_return_products_whose_manufacturers_start_with_t
 func Test_FilterProducts_should_return_products_with_SNELL_certifications(t *testing.T) {
 	RegisterTestingT(t)
 
-	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 20000}}
+	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 2000000}}
 	request.Order.Field = "created_at_utc"
 	request.Certifications.SNELL = true
 
@@ -233,7 +230,7 @@ func Test_FilterProducts_should_return_products_with_SNELL_certifications(t *tes
 func Test_FilterProducts_should_return_products_with_ECE_certifications(t *testing.T) {
 	RegisterTestingT(t)
 
-	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 20000}}
+	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 2000000}}
 	request.Order.Field = "created_at_utc"
 	request.Certifications.ECE = true
 
@@ -252,7 +249,7 @@ func Test_FilterProducts_should_return_products_with_ECE_certifications(t *testi
 func Test_FilterProducts_should_return_products_with_DOT_certifications(t *testing.T) {
 	RegisterTestingT(t)
 
-	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 20000}}
+	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 2000000}}
 	request.Order.Field = "created_at_utc"
 	request.Certifications.DOT = true
 
@@ -271,7 +268,7 @@ func Test_FilterProducts_should_return_products_with_DOT_certifications(t *testi
 func Test_FilterProducts_should_return_products_with_SHARP_certifications(t *testing.T) {
 	RegisterTestingT(t)
 
-	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 20000}}
+	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 2000000}}
 	request.Order.Field = "created_at_utc"
 	request.Certifications.SHARP = &queries.SHARPCertificationQueryParams{}
 
@@ -290,7 +287,7 @@ func Test_FilterProducts_should_return_products_with_SHARP_certifications(t *tes
 func Test_FilterProducts_should_return_products_with_SHARP_certifications_and_minimum_impact_zones(t *testing.T) {
 	RegisterTestingT(t)
 
-	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 20000}}
+	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 2000000}}
 	request.Order.Field = "created_at_utc"
 	request.Certifications.SHARP = &queries.SHARPCertificationQueryParams{}
 	request.Certifications.SHARP.ImpactZoneMinimums.Left = 4
@@ -319,7 +316,7 @@ func Test_FilterProducts_should_return_products_with_SHARP_certifications_and_mi
 func Test_FilterProducts_should_return_products_with_SHARP_certifications_and_minimum_stars(t *testing.T) {
 	RegisterTestingT(t)
 
-	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 20000}}
+	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 2000000}}
 	request.Order.Field = "created_at_utc"
 	request.Certifications.SHARP = &queries.SHARPCertificationQueryParams{Stars: 3}
 
@@ -339,7 +336,7 @@ func Test_FilterProducts_should_return_products_with_SHARP_certifications_and_mi
 func Test_FilterProducts_should_correctly_page_through_the_resultset_when_start_and_limit_are_specified_and_there_are_no_filters_set(t *testing.T) {
 	RegisterTestingT(t)
 
-	request := &queries.FilterProductsQuery{Start: 0, Limit: 1, UsdPriceRange: []int{0, 10000}}
+	request := &queries.FilterProductsQuery{Start: 0, Limit: 1, UsdPriceRange: []int{0, 2000000}}
 	request.Order.Field = "id"
 
 	seeds := seeds.GetProductSeeds()
@@ -363,7 +360,7 @@ func Test_FilterProducts_should_correctly_page_through_the_resultset_when_start_
 func Test_FilterProducts_should_return_bad_request_when_the_limit_is_too_large(t *testing.T) {
 	RegisterTestingT(t)
 
-	request := &queries.FilterProductsQuery{Start: 0, Limit: 26, UsdPriceRange: []int{0, 10}}
+	request := &queries.FilterProductsQuery{Start: 0, Limit: 26, UsdPriceRange: []int{0, 1000}}
 	request.Order.Field = "created_at_utc"
 
 	responseBody := &[]*entities.ProductDocument{}
@@ -376,7 +373,7 @@ func Test_FilterProducts_should_return_bad_request_when_the_limit_is_too_large(t
 func Test_FilterProducts_should_return_bad_request_when_the_limit_is_too_small(t *testing.T) {
 	RegisterTestingT(t)
 
-	request := &queries.FilterProductsQuery{Start: 0, Limit: -1, UsdPriceRange: []int{0, 10}}
+	request := &queries.FilterProductsQuery{Start: 0, Limit: -1, UsdPriceRange: []int{0, 1000}}
 	request.Order.Field = "created_at_utc"
 
 	responseBody := &[]*entities.ProductDocument{}

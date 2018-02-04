@@ -148,14 +148,11 @@ func parseSHARPHelmetByUrl(pooledHttpClient *http.Client, httpRequestsSemaphore 
 
 	impactZoneRatings := &entities.SHARPImpactZoneRatingsDocument{}
 	impactZoneImages := helmetDetailsDoc.Find("img[src*='impact-zones/dots']")
-	for index, _ := range impactZoneImages.Nodes {
-		impactZoneImageSelection := impactZoneImages.Eq(index)
-		impactZoneRatings, err = getImpactZoneRatings(helmetLogger, impactZoneImageSelection, leftImpactZoneRegexp, rightImpactZoneRegexp, topImpactZoneRegexp, rearImpactZoneRegexp)
-		if err != nil {
-			result.err = err
-			helmetResultsChannel <- result
-			return
-		}
+	impactZoneRatings, err = getImpactZoneRatings(helmetLogger, impactZoneImages, leftImpactZoneRegexp, rightImpactZoneRegexp, topImpactZoneRegexp, rearImpactZoneRegexp)
+	if err != nil {
+		result.err = err
+		helmetResultsChannel <- result
+		return
 	}
 
 	model := findDetailsTextByHeader(helmetDetailsDoc, "model")
@@ -177,7 +174,7 @@ func parseSHARPHelmetByUrl(pooledHttpClient *http.Client, httpRequestsSemaphore 
 
 	manufacturer := findDetailsTextByHeader(helmetDetailsDoc, "manufacturer")
 	rawWeightText := findDetailsTextByHeader(helmetDetailsDoc, "helmet weight")
-	weightInLbs := float64(-1)
+	weightInLbsMultiple := -1
 
 	weightMatches := weightRegexp.FindStringSubmatch(strings.Replace(rawWeightText, ",", ".", -1))
 	if len(weightMatches) > 1 {
@@ -188,8 +185,7 @@ func parseSHARPHelmetByUrl(pooledHttpClient *http.Client, httpRequestsSemaphore 
 			helmetResultsChannel <- result
 			return
 		}
-		weightInLbs = float64(2.20462) * weightInKg
-		weightInLbs = float64(int64(weightInLbs/0.01+0.5)) * 0.01
+		weightInLbsMultiple = int(float64(2.20462) * weightInKg * 100)
 	} else {
 		helmetLogger.Warning("An unexpected weight was encountered, setting weight to -1 lbs")
 	}
@@ -225,17 +221,17 @@ func parseSHARPHelmetByUrl(pooledHttpClient *http.Client, httpRequestsSemaphore 
 	isECERated := strings.Contains(otherStandardsText, "ECE")
 
 	helmet := &entities.SHARPHelmet{
-		Subtype:         subtype,
-		Model:           model,
-		Manufacturer:    manufacturer,
-		ImageURL:        productImageUrl,
-		LatchPercentage: latchPercentage,
-		WeightInLbs:     weightInLbs,
-		Sizes:           sizes,
-		RetentionSystem: retentionSystem,
-		Materials:       materials,
-		IsECECertified:  isECERated,
-		Certifications:  &entities.SHARPCertificationDocument{Stars: starsValue, ImpactZoneRatings: impactZoneRatings},
+		Subtype:             subtype,
+		Model:               model,
+		Manufacturer:        manufacturer,
+		ImageURL:            productImageUrl,
+		LatchPercentage:     latchPercentage,
+		WeightInLbsMultiple: weightInLbsMultiple,
+		Sizes:               sizes,
+		RetentionSystem:     retentionSystem,
+		Materials:           materials,
+		IsECECertified:      isECERated,
+		Certifications:      &entities.SHARPCertificationDocument{Stars: starsValue, ImpactZoneRatings: impactZoneRatings},
 	}
 
 	result.helmet = helmet
@@ -243,42 +239,58 @@ func parseSHARPHelmetByUrl(pooledHttpClient *http.Client, httpRequestsSemaphore 
 	helmetLogger.Info("Finished parsing helmet data")
 }
 
-func getImpactZoneRatings(helmetLogger *logrus.Entry, impactZoneImageSelection *goquery.Selection, leftImpactZoneRegexp *regexp.Regexp, rightImpactZoneRegexp *regexp.Regexp, topImpactZoneRegexp *regexp.Regexp, rearImpactZoneRegexp *regexp.Regexp) (*entities.SHARPImpactZoneRatingsDocument, error) {
-	impactZoneImageUrl, impactZoneImageUrlExists := impactZoneImageSelection.Attr("src")
-	if !impactZoneImageUrlExists {
-		errString := "Impact zone image url not found"
-		helmetLogger.Error(errString)
-		return nil, errors.New(errString)
-	}
-
-	var err error
+func getImpactZoneRatings(helmetLogger *logrus.Entry, impactZoneImagesSelection *goquery.Selection, leftImpactZoneRegexp *regexp.Regexp, rightImpactZoneRegexp *regexp.Regexp, topImpactZoneRegexp *regexp.Regexp, rearImpactZoneRegexp *regexp.Regexp) (*entities.SHARPImpactZoneRatingsDocument, error) {
 	impactZoneRatings := &entities.SHARPImpactZoneRatingsDocument{}
-	if strings.Index(impactZoneImageUrl, "left") >= 0 {
-		impactZoneRatings.Left, err = getImpactZoneRating(impactZoneImageUrl, leftImpactZoneRegexp)
+	var err error
+	impactZoneImagesSelection.Each(func(index int, selection *goquery.Selection) {
 		if err != nil {
-			return nil, err
+			return
 		}
-	} else if strings.Index(impactZoneImageUrl, "right") >= 0 {
-		impactZoneRatings.Right, err = getImpactZoneRating(impactZoneImageUrl, rightImpactZoneRegexp)
-		if err != nil {
-			return nil, err
-		}
-	} else if strings.Index(impactZoneImageUrl, "front") >= 0 {
-		impactZoneRatings.Top.Front, impactZoneRatings.Top.Rear, err = getTopImpactZoneRatings(impactZoneImageUrl, topImpactZoneRegexp)
-		if err != nil {
-			return nil, err
-		}
-	} else if strings.Index(impactZoneImageUrl, "rear") >= 0 {
-		impactZoneRatings.Rear, err = getImpactZoneRating(impactZoneImageUrl, rearImpactZoneRegexp)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		unknownImpactZoneError := "Encountered an unknown impact zone rating"
-		helmetLogger.Info(unknownImpactZoneError)
-		return nil, errors.New(unknownImpactZoneError)
-	}
 
+		impactZoneImageUrl, impactZoneImageUrlExists := selection.Attr("src")
+		if !impactZoneImageUrlExists {
+			errString := "Impact zone image url not found"
+			helmetLogger.Error(errString)
+			err = errors.New(errString)
+			return
+		}
+
+		var err error
+		if strings.Index(impactZoneImageUrl, "left") >= 0 {
+			impactZoneRatings.Left, err = getImpactZoneRating(impactZoneImageUrl, leftImpactZoneRegexp)
+			if err != nil {
+				err = err
+				return
+			}
+		} else if strings.Index(impactZoneImageUrl, "right") >= 0 {
+			impactZoneRatings.Right, err = getImpactZoneRating(impactZoneImageUrl, rightImpactZoneRegexp)
+			if err != nil {
+				err = err
+				return
+			}
+		} else if strings.Index(impactZoneImageUrl, "front") >= 0 {
+			impactZoneRatings.Top.Front, impactZoneRatings.Top.Rear, err = getTopImpactZoneRatings(impactZoneImageUrl, topImpactZoneRegexp)
+			if err != nil {
+				err = err
+				return
+			}
+		} else if strings.Index(impactZoneImageUrl, "rear") >= 0 {
+			impactZoneRatings.Rear, err = getImpactZoneRating(impactZoneImageUrl, rearImpactZoneRegexp)
+			if err != nil {
+				err = err
+				return
+			}
+		} else {
+			unknownImpactZoneError := "Encountered an unknown impact zone rating"
+			helmetLogger.Info(unknownImpactZoneError)
+			err = errors.New(unknownImpactZoneError)
+			return
+		}
+	})
+
+	if err != nil {
+		return nil, err
+	}
 	return impactZoneRatings, nil
 }
 

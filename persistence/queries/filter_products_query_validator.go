@@ -42,14 +42,14 @@ func (self *FilterProductsQueryValidator) Validate() error {
 func OrderByField(value interface{}) error {
 	orderByField := value.(string)
 	allowedOrderFields := make(map[string]bool)
-	allowedOrderFields["document->>'priceInUsd'"] = true
+	allowedOrderFields["document->>'priceInUsdMultiple'"] = true
 	allowedOrderFields["document->>'manufacturer'"] = true
 	allowedOrderFields["document->>'model'"] = true
 	allowedOrderFields["created_at_utc"] = true
 	allowedOrderFields["updated_at_utc"] = true
 	allowedOrderFields["id"] = true
 
-	if _, ok := allowedOrderFields[orderByField]; !ok {
+	if _, exists := allowedOrderFields[orderByField]; !exists {
 		return errors.New("The order field that was specified is not allowed to be used")
 	}
 	return nil

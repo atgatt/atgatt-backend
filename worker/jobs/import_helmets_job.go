@@ -60,19 +60,19 @@ func (self *ImportHelmetsJob) Run() error {
 		sharpHelmet.Manufacturer = cleanedManufacturer
 
 		product := &entities.ProductDocument{
-			ImageURL:        sharpHelmet.ImageURL,
-			LatchPercentage: sharpHelmet.LatchPercentage,
-			Manufacturer:    sharpHelmet.Manufacturer,
-			Materials:       sharpHelmet.Materials,
-			Model:           sharpHelmet.Model,
-			ModelAlias:      "",
-			PriceInUsd:      "",
-			RetentionSystem: sharpHelmet.RetentionSystem,
-			Sizes:           sharpHelmet.Sizes,
-			Subtype:         sharpHelmet.Subtype,
-			Type:            "helmet",
-			UUID:            uuid.New(),
-			WeightInLbs:     sharpHelmet.WeightInLbs,
+			ImageURL:            sharpHelmet.ImageURL,
+			LatchPercentage:     sharpHelmet.LatchPercentage,
+			Manufacturer:        sharpHelmet.Manufacturer,
+			Materials:           sharpHelmet.Materials,
+			Model:               sharpHelmet.Model,
+			ModelAlias:          "",
+			PriceInUsdMultiple:  0,
+			RetentionSystem:     sharpHelmet.RetentionSystem,
+			Sizes:               sharpHelmet.Sizes,
+			Subtype:             sharpHelmet.Subtype,
+			Type:                "helmet",
+			UUID:                uuid.New(),
+			WeightInLbsMultiple: sharpHelmet.WeightInLbsMultiple,
 		}
 
 		product.Certifications.SHARP = sharpHelmet.Certifications
@@ -106,7 +106,7 @@ func (self *ImportHelmetsJob) Run() error {
 			logrus.WithFields(logrus.Fields{
 				"manufacturer": cleanedManufacturer,
 				"model":        snellHelmet.Model,
-			}).Info("Could not find a matching SHARP helmet, so creating a new SNELL helmet")
+			}).Info("Could not find a matching SHARP helmet, so initializing a helmet with only SNELL and DOT ratings")
 
 			sizes := strings.Split(snellHelmet.Size, ",")
 			snellProduct := &entities.ProductDocument{Manufacturer: cleanedManufacturer, Model: snellHelmet.Model, UUID: uuid.New(), Subtype: snellHelmet.FaceConfig, Sizes: sizes}
@@ -124,10 +124,16 @@ func (self *ImportHelmetsJob) Run() error {
 		}
 
 		if existingProduct == nil {
-			self.ProductRepository.CreateProduct(product)
+			err := self.ProductRepository.CreateProduct(product)
+			if err != nil {
+				return err
+			}
 		} else {
 			product.UUID = existingProduct.UUID
-			self.ProductRepository.UpdateProduct(product)
+			err := self.ProductRepository.UpdateProduct(product)
+			if err != nil {
+				return err
+			}
 		}
 	}
 

@@ -23,7 +23,11 @@ func (self *ProductRepository) GetByModel(manufacturer string, model string) (*e
 		return nil, err
 	}
 
-	if len(filteredProducts) != 1 {
+	if len(filteredProducts) == 0 {
+		return nil, nil
+	}
+
+	if len(filteredProducts) > 1 {
 		return nil, errors.New("An unexpected number of products were returned")
 	}
 
@@ -37,8 +41,16 @@ func (self *ProductRepository) UpdateProduct(product *entities.ProductDocument) 
 		return err
 	}
 
-	_, err = db.Exec("update products set document = :document where uuid = :uuid", map[string]interface{}{
-		"document": product,
+	productJsonBytes, err := json.Marshal(product)
+	if err != nil {
+		return err
+	}
+
+	_, err = db.NamedExec(`update products set 
+								document = :document, 
+								updated_at_utc = (now() at time zone 'utc') 
+							where uuid = :uuid`, map[string]interface{}{
+		"document": string(productJsonBytes),
 		"uuid":     product.UUID,
 	})
 
@@ -56,8 +68,13 @@ func (self *ProductRepository) CreateProduct(product *entities.ProductDocument) 
 		return err
 	}
 
-	_, err = db.Exec("insert into products (uuid, document, created_at_utc, updated_at_utc) values (:uuid, :document, (now() at time zone 'utc'), null);", map[string]interface{}{
-		"document": product,
+	productJsonBytes, err := json.Marshal(product)
+	if err != nil {
+		return err
+	}
+
+	_, err = db.NamedExec("insert into products (uuid, document, created_at_utc, updated_at_utc) values (:uuid, :document, (now() at time zone 'utc'), null);", map[string]interface{}{
+		"document": string(productJsonBytes),
 		"uuid":     product.UUID,
 	})
 
@@ -83,9 +100,10 @@ func (self *ProductRepository) FilterProducts(query *queries.FilterProductsQuery
 	queryParams["limit"] = query.Limit
 
 	orderByExpression := query.Order.Field
+
 	// TODO: find a cleaner way to do this
-	if orderByExpression == "document->>'priceInUsd'" {
-		orderByExpression = "to_number((document->>'priceInUsd'), '9999.99')"
+	if orderByExpression == "document->>'priceInUsdMultiple'" {
+		orderByExpression = "cast((document->>'priceInUsdMultiple') as int)"
 	}
 	queryParams["order_by"] = query.Order.Field
 
@@ -101,7 +119,7 @@ func (self *ProductRepository) FilterProducts(query *queries.FilterProductsQuery
 		highPrice := query.UsdPriceRange[1]
 		queryParams["low_price"] = lowPrice
 		queryParams["high_price"] = highPrice
-		whereCriteria += "and to_number((document->>'priceInUsd'), '9999.99') between :low_price and :high_price "
+		whereCriteria += "and cast((document->>'priceInUsdMultiple') as int) between :low_price and :high_price "
 	}
 
 	if len(query.Subtypes) > 0 {

@@ -4,6 +4,7 @@ import (
 	"crashtested-backend/persistence/repositories"
 	"crashtested-backend/worker/configuration"
 	"crashtested-backend/worker/jobs"
+	"github.com/sirupsen/logrus"
 )
 
 func main() {
@@ -14,5 +15,10 @@ func main() {
 		SNELLHelmetRepository:  &repositories.SNELLHelmetRepository{},
 		ManufacturerRepository: &repositories.ManufacturerRepository{ConnectionString: config.DatabaseConnectionString},
 	}
-	job.Run()
+	err := job.Run()
+	if err != nil {
+		logrus.Errorf("Job completed with errors: %s", err.Error())
+	} else {
+		logrus.Info("Job completed successfully")
+	}
 }
