@@ -21,6 +21,8 @@ type ImportHelmetsJob struct {
 	ManufacturerRepository *repositories.ManufacturerRepository
 }
 
+const helmetType string = "helmet"
+
 // Get SHARP data
 // Get SNELL data
 
@@ -70,7 +72,7 @@ func (self *ImportHelmetsJob) Run() error {
 			RetentionSystem:     sharpHelmet.RetentionSystem,
 			Sizes:               sharpHelmet.Sizes,
 			Subtype:             sharpHelmet.Subtype,
-			Type:                "helmet",
+			Type:                helmetType,
 			UUID:                uuid.New(),
 			WeightInLbsMultiple: sharpHelmet.WeightInLbsMultiple,
 		}
@@ -109,7 +111,7 @@ func (self *ImportHelmetsJob) Run() error {
 			}).Info("Could not find a matching SHARP helmet, so initializing a helmet with only SNELL and DOT ratings")
 
 			sizes := strings.Split(snellHelmet.Size, ",")
-			snellProduct := &entities.ProductDocument{Manufacturer: cleanedManufacturer, Model: snellHelmet.Model, UUID: uuid.New(), Subtype: snellHelmet.FaceConfig, Sizes: sizes}
+			snellProduct := &entities.ProductDocument{Manufacturer: cleanedManufacturer, Model: snellHelmet.Model, UUID: uuid.New(), Type: helmetType, Subtype: snellHelmet.FaceConfig, Sizes: sizes}
 			snellProduct.Certifications.SNELL = true
 			snellProduct.Certifications.DOT = true
 			snellProducts = append(snellProducts, snellProduct)
