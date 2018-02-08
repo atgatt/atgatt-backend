@@ -84,3 +84,7 @@
 [[constraint]]
   branch = "master"
   name = "github.com/xrash/smetrics"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/ngs/go-amazon-product-advertising-api"

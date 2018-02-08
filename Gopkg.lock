@@ -86,6 +86,12 @@
   version = "v0.0.3"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/ngs/go-amazon-product-advertising-api"
+  packages = ["amazon"]
+  revision = "61566202d7a2a0e9cd8b36c4208b6f96b72ccf2b"
+
+[[projects]]
   name = "github.com/onsi/gomega"
   packages = [".","format","internal/assertion","internal/asyncassertion","internal/oraclematcher","internal/testingtsupport","matchers","matchers/support/goraph/bipartitegraph","matchers/support/goraph/edge","matchers/support/goraph/node","matchers/support/goraph/util","types"]
   revision = "c893efa28eb45626cdaa76c9f653b62488858837"
@@ -160,6 +166,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "e99a455e9f43c4b9146e53a78ddaedfab817238d29c3c8892ac795e481f5aa7b"
+  inputs-digest = "0c70e7fb4af8ff7171ec59d7c4c9b322aa03b8bf2da32e82d591a57cdfec1a31"
   solver-name = "gps-cdcl"
   solver-version = 1

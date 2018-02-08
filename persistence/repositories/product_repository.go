@@ -34,6 +34,18 @@ func (self *ProductRepository) GetByModel(manufacturer string, model string) (*e
 	return &filteredProducts[0], nil
 }
 
+func (self *ProductRepository) GetAllPaged(start int, limit int) ([]entities.ProductDocument, error) {
+	query := &queries.FilterProductsQuery{Start: start, Limit: limit}
+	query.Order.Field = "id"
+
+	filteredProducts, err := self.FilterProducts(query)
+	if err != nil {
+		return nil, err
+	}
+
+	return filteredProducts, nil
+}
+
 func (self *ProductRepository) UpdateProduct(product *entities.ProductDocument) error {
 	db, err := sqlx.Open("postgres", self.ConnectionString)
 	defer db.Close()

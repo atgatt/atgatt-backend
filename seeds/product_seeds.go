@@ -46,7 +46,7 @@ func GetProductSeeds() []*entities.ProductDocument {
 		&entities.ProductDocument{ImageURL: MockHelmetImageUrl, Manufacturer: "Manufacturer7", Model: "RF-SR5", PriceInUsdMultiple: 80099, Type: "helmet", Subtype: "open"},
 		&entities.ProductDocument{ImageURL: MockHelmetImageUrl, Manufacturer: "Manufacturer8", Model: "RF-SR6", PriceInUsdMultiple: 89999, Type: "helmet", Subtype: "half"},
 		&entities.ProductDocument{ImageURL: MockHelmetImageUrl, Manufacturer: "Manufacturer9", Model: "RF-SR7", PriceInUsdMultiple: 90099, Type: "helmet", Subtype: "full"},
-		&entities.ProductDocument{ImageURL: MockHelmetImageUrl, Manufacturer: "Manufacturer10", Model: "RF-SR8", PriceInUsdMultiple: 0, Type: "helmet", Subtype: "modular"},
+		&entities.ProductDocument{ImageURL: "", Manufacturer: "Manufacturer10", Model: "RF-SR8", PriceInUsdMultiple: 0, Type: "helmet", Subtype: "modular"},
 		&entities.ProductDocument{ImageURL: MockHelmetImageUrl, Manufacturer: "Manufacturer11", Model: "RF-SR9", PriceInUsdMultiple: 100099, Type: "helmet", Subtype: "open"},
 		&entities.ProductDocument{ImageURL: MockHelmetImageUrl, Manufacturer: "Manufacturer12", Model: "RF-SR10", PriceInUsdMultiple: 100299, Type: "helmet", Subtype: "half"},
 		&entities.ProductDocument{ImageURL: MockHelmetImageUrl, Manufacturer: "Manufacturer13", Model: "RF-SR11", PriceInUsdMultiple: 110099, Type: "helmet", Subtype: "offroad"},
