@@ -2,11 +2,13 @@ package helpers
 
 import (
 	"database/sql"
+	// Importing the PostgreSQL driver with side effects because we need to call sql.Open() to run migrations
 	_ "github.com/lib/pq"
 	"github.com/rubenv/sql-migrate"
 	"github.com/sirupsen/logrus"
 )
 
+// RunMigrations runs all database migrations in migrationDirectory against the PostgreSQL instance running at connectionString.
 func RunMigrations(connectionString string, migrationsDirectory string) error {
 	var dbConn *sql.DB
 	migrationsSource := &migrate.FileMigrationSource{Dir: migrationsDirectory}

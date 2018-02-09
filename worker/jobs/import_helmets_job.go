@@ -3,17 +3,16 @@ package jobs
 import (
 	"crashtested-backend/persistence/entities"
 	"crashtested-backend/persistence/repositories"
-	// "errors"
 	"fmt"
+	"sort"
 	"strings"
-	// "fmt"
+
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"github.com/xrash/smetrics"
-	"sort"
-	// "strings"
 )
 
+// ImportHelmetsJob imports all helmet data from SHARP and SNELL into the database. It tries to normalize helmet models and manufacturers while doing this in order to have a clean data set.
 type ImportHelmetsJob struct {
 	ProductRepository      *repositories.ProductRepository
 	SNELLHelmetRepository  *repositories.SNELLHelmetRepository
@@ -23,32 +22,18 @@ type ImportHelmetsJob struct {
 
 const helmetType string = "helmet"
 
-// Get SHARP data
-// Get SNELL data
-
-// Must be run first:
-// For each helmet in SHARP, try to find helmets by manufacturer+model combo
-// does it already exist and are the SHARP fields different? If so, replace SHARP subdocument; else, create document.
-
-// The below 2 steps can be run in parallel:
-
-// For each helmet in SNELL, try to find helmets by manufacturer+model combo
-// does it already exist? If so, set document.certifications.SNELL to true if it isn't already true; else, create document and log a warning that we couldn't find a matching SHARP helmet.
-
-// For each helmet in the database, query CJ Affiliate's product data using Helmet manufacturer + model. Order by price descending, take top result, get product description.
-// set price to the price
-// if request limit reached, wait for 1.5 minutes and keep going
-func (self *ImportHelmetsJob) Run() error {
+// Run invokes the job and returns an error if any errors occurred while processing the helmet data.
+func (j *ImportHelmetsJob) Run() error {
 	sharpProducts := make([]*entities.ProductDocument, 0)
 	snellProducts := make([]*entities.ProductDocument, 0)
 
-	manufacturers, err := self.ManufacturerRepository.GetAll()
+	manufacturers, err := j.ManufacturerRepository.GetAll()
 	if err != nil {
 		return err
 	}
 
 	// NOTE: This call blocks for about a minute on average as we need to fetch 400+ HTML files and scrape them for data.
-	sharpHelmets, err := self.SHARPHelmetRepository.GetAll()
+	sharpHelmets, err := j.SHARPHelmetRepository.GetAll()
 	if err != nil {
 		return err
 	}
@@ -82,7 +67,7 @@ func (self *ImportHelmetsJob) Run() error {
 		sharpProducts = append(sharpProducts, product)
 	}
 
-	snellHelmets, err := self.SNELLHelmetRepository.GetAllByCertification("M2015")
+	snellHelmets, err := j.SNELLHelmetRepository.GetAllByCertification("M2015")
 	if err != nil {
 		return err
 	}
@@ -120,19 +105,19 @@ func (self *ImportHelmetsJob) Run() error {
 
 	combinedProductsList := append(sharpProducts, snellProducts...)
 	for _, product := range combinedProductsList {
-		existingProduct, err := self.ProductRepository.GetByModel(product.Manufacturer, product.Model)
+		existingProduct, err := j.ProductRepository.GetByModel(product.Manufacturer, product.Model)
 		if err != nil {
 			return err
 		}
 
 		if existingProduct == nil {
-			err := self.ProductRepository.CreateProduct(product)
+			err := j.ProductRepository.CreateProduct(product)
 			if err != nil {
 				return err
 			}
 		} else {
 			product.UUID = existingProduct.UUID
-			err := self.ProductRepository.UpdateProduct(product)
+			err := j.ProductRepository.UpdateProduct(product)
 			if err != nil {
 				return err
 			}
@@ -197,10 +182,10 @@ func findMatchingSHARPProduct(cleanedSNELLManufacturer string, rawSNELLModel str
 	if confidence >= 0.9 {
 		logEntry.Info("High confidence: found matching SHARP model using Jaro-Winkler algorithm")
 		return mostLikelySHARPHelmet, true
-	} else {
-		logEntry.Warn("Low confidence: SHARP match found, but confidence too low. Ignoring.")
-		return nil, false
 	}
+
+	logEntry.Warn("Low confidence: SHARP match found, but confidence too low. Ignoring.")
+	return nil, false
 }
 
 func findCleanedManufacturer(rawManufacturer string, cleanedManufacturers []string) (string, bool) {
@@ -244,21 +229,22 @@ func findCleanedManufacturer(rawManufacturer string, cleanedManufacturers []stri
 	if confidence >= 0.7 {
 		logEntry.Info("High confidence: replaced raw manufacturer with cleaned manufacturer using Jaro-Winkler algorithm")
 		return mostLikelyManufacturer, true
-	} else { // otherwise, try a stupider contains search to see if anything matches
-		for _, cleanedManufacturer := range cleanedManufacturers {
-			lowercaseCleanedManufacturer := strings.ToLower(cleanedManufacturer)
-			lowercaseRawManufacturer := strings.ToLower(rawManufacturer)
-
-			if strings.HasPrefix(lowercaseRawManufacturer, lowercaseCleanedManufacturer) || strings.Contains(lowercaseRawManufacturer, fmt.Sprintf(" %s", lowercaseCleanedManufacturer)) {
-				logrus.WithFields(logrus.Fields{
-					"rawManufacturer":     rawManufacturer,
-					"cleanedManufacturer": cleanedManufacturer,
-				}).Warn("Low confidence: Replaced raw manufacturer with cleaned manufacturer by contains search")
-				return cleanedManufacturer, true
-			}
-		}
-		// worst case, return the raw value
-		logrus.WithFields(logrus.Fields{"rawManufacturer": rawManufacturer}).Error("Could not find an appropriate match for the given raw manufacturer, using the value as-is", rawManufacturer)
-		return rawManufacturer, false
 	}
+
+	// Otherwise, do a stupider contains search to try to clean up the manufacturer
+	for _, cleanedManufacturer := range cleanedManufacturers {
+		lowercaseCleanedManufacturer := strings.ToLower(cleanedManufacturer)
+		lowercaseRawManufacturer := strings.ToLower(rawManufacturer)
+
+		if strings.HasPrefix(lowercaseRawManufacturer, lowercaseCleanedManufacturer) || strings.Contains(lowercaseRawManufacturer, fmt.Sprintf(" %s", lowercaseCleanedManufacturer)) {
+			logrus.WithFields(logrus.Fields{
+				"rawManufacturer":     rawManufacturer,
+				"cleanedManufacturer": cleanedManufacturer,
+			}).Warn("Low confidence: Replaced raw manufacturer with cleaned manufacturer by contains search")
+			return cleanedManufacturer, true
+		}
+	}
+	// Worst case, return the raw value
+	logrus.WithFields(logrus.Fields{"rawManufacturer": rawManufacturer}).Error("Could not find an appropriate match for the given raw manufacturer, using the value as-is")
+	return rawManufacturer, false
 }

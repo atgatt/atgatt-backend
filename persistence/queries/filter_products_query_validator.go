@@ -2,24 +2,27 @@ package queries
 
 import (
 	"errors"
+
 	"github.com/go-ozzo/ozzo-validation"
 )
 
+// FilterProductsQueryValidator is responsible for validating (or returning an error) for a single FilterProductsQuery
 type FilterProductsQueryValidator struct {
 	Query *FilterProductsQuery
 }
 
-func (self *FilterProductsQueryValidator) Validate() error {
-	err := validation.ValidateStruct(self.Query,
-		validation.Field(&self.Query.Start,
+// Validate returns an error if validation failed, or nil if it was successful
+func (v *FilterProductsQueryValidator) Validate() error {
+	err := validation.ValidateStruct(v.Query,
+		validation.Field(&v.Query.Start,
 			validation.Min(0),
 		),
-		validation.Field(&self.Query.Limit,
+		validation.Field(&v.Query.Limit,
 			validation.Required.Error("The limit must be specified"),
 			validation.Min(1),
 			validation.Max(25),
 		),
-		validation.Field(&self.Query.UsdPriceRange,
+		validation.Field(&v.Query.UsdPriceRange,
 			validation.Required,
 			validation.Length(2, 2).Error("The price range array must contain exactly two elements"),
 			validation.By(PriceRange),
@@ -29,7 +32,7 @@ func (self *FilterProductsQueryValidator) Validate() error {
 		return err
 	}
 
-	err = validation.Validate(self.Query.Order.Field, validation.Required, validation.By(OrderByField))
+	err = validation.Validate(v.Query.Order.Field, validation.Required, validation.By(OrderByField))
 	if err != nil {
 		validationErrors := validation.Errors{}
 		validationErrors["order.field"] = errors.New("Ordering is not allowed by this field")
@@ -39,6 +42,7 @@ func (self *FilterProductsQueryValidator) Validate() error {
 	return nil
 }
 
+// OrderByField ensures that the user only orders by one of the allowed values and not a random DB column
 func OrderByField(value interface{}) error {
 	orderByField := value.(string)
 	allowedOrderFields := make(map[string]bool)
@@ -55,6 +59,7 @@ func OrderByField(value interface{}) error {
 	return nil
 }
 
+// PriceRange ensures that the priceRange is valid
 func PriceRange(value interface{}) error {
 	priceRange := value.([]int)
 	if priceRange[0] > priceRange[1] {

@@ -4,6 +4,7 @@ import (
 	"github.com/google/uuid"
 )
 
+// ProductDocument represents a safety product such as a motorcycle helmet, jacket, etc. It contains the price of the product, certifications, etc.
 type ProductDocument struct {
 	UUID                uuid.UUID `json:"uuid"`
 	Type                string    `json:"type"`

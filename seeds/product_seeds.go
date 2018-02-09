@@ -8,21 +8,23 @@ import (
 	"github.com/google/uuid"
 )
 
-const MockHelmetImageUrl = "https://sharp.dft.gov.uk/wp-content/uploads/2017/03/shoei-x-spirit-lll.jpg"
+const mockHelmetImageURL = "https://sharp.dft.gov.uk/wp-content/uploads/2017/03/shoei-x-spirit-lll.jpg"
 
-func GetProductSeedsSqlStatements() []string {
+// GetProductSeedsSQLStatements returns an array of INSERT statements that target each of the product seed structs. Used to import test data into the database for automated tests, local development.
+func GetProductSeedsSQLStatements() []string {
 	productSeeds := GetProductSeeds()
 
 	statements := []string{}
 	for _, product := range productSeeds {
-		documentJsonBytes, _ := json.Marshal(product)
-		documentJsonString := string(documentJsonBytes)
-		formattedInsertStatement := fmt.Sprintf("insert into products (uuid, document, created_at_utc, updated_at_utc) values ('%s', '%s', (now() at time zone 'utc'), null);", product.UUID.String(), documentJsonString)
+		documentJSONBytes, _ := json.Marshal(product)
+		documentJSONString := string(documentJSONBytes)
+		formattedInsertStatement := fmt.Sprintf("insert into products (uuid, document, created_at_utc, updated_at_utc) values ('%s', '%s', (now() at time zone 'utc'), null);", product.UUID.String(), documentJSONString)
 		statements = append(statements, formattedInsertStatement)
 	}
 	return statements
 }
 
+// GetProductSeeds returns a sample list of product documents; these documents are used by GetProductSeedsSQLStatements() to seed the database with test data.
 func GetProductSeeds() []*entities.ProductDocument {
 	uuids := []string{
 		"2ef2e322-8b7c-4b11-8432-15d082f49f43", "55e620cb-4eb3-46d7-a612-d8bf55088494", "0e78d74a-da19-4015-a76a-703a37d02503", "7321fc5c-596c-4b63-be0c-0d7af3fd78cc", "a23b4567-40bf-4761-ae19-00101223b124",
@@ -32,26 +34,26 @@ func GetProductSeeds() []*entities.ProductDocument {
 	}
 
 	seeds := []*entities.ProductDocument{
-		&entities.ProductDocument{ImageURL: MockHelmetImageUrl, Manufacturer: "Shoei2", Model: "RF-8000", PriceInUsdMultiple: 29900, Type: "helmet", Subtype: "full"},
-		&entities.ProductDocument{ImageURL: MockHelmetImageUrl, Manufacturer: "Shoei", Model: "RF-7000", PriceInUsdMultiple: 49999, Type: "helmet", Subtype: "modular"},
-		&entities.ProductDocument{ImageURL: MockHelmetImageUrl, Manufacturer: "Arai", Model: "Some Arai Helmet", PriceInUsdMultiple: 79999, Type: "helmet", Subtype: "open"},
-		&entities.ProductDocument{ImageURL: MockHelmetImageUrl, Manufacturer: "NotAShoei", Model: "Model-RF", PriceInUsdMultiple: 19999, Type: "helmet", Subtype: "half"},
-		&entities.ProductDocument{ImageURL: MockHelmetImageUrl, Manufacturer: "AGV", Model: "AyyGeeVee", PriceInUsdMultiple: 29999, Type: "helmet", Subtype: "offroad"},
-		&entities.ProductDocument{ImageURL: MockHelmetImageUrl, Manufacturer: "Manufacturer1", Model: "RF-SR1", PriceInUsdMultiple: 29899, Type: "helmet", Subtype: "full"},
-		&entities.ProductDocument{ImageURL: MockHelmetImageUrl, Manufacturer: "Manufacturer2", Model: "RF-SR2", PriceInUsdMultiple: 40012, Type: "helmet", Subtype: "modular"},
-		&entities.ProductDocument{ImageURL: MockHelmetImageUrl, Manufacturer: "Manufacturer3", Model: "RF-SR", PriceInUsdMultiple: 50099, Type: "helmet", Subtype: "open"},
-		&entities.ProductDocument{ImageURL: MockHelmetImageUrl, Manufacturer: "Manufacturer4", Model: "RF-SR", PriceInUsdMultiple: 60099, Type: "helmet", Subtype: "half"},
-		&entities.ProductDocument{ImageURL: MockHelmetImageUrl, Manufacturer: "Manufacturer5", Model: "RF-SR3", PriceInUsdMultiple: 70099, Type: "helmet", Subtype: "full"},
-		&entities.ProductDocument{ImageURL: MockHelmetImageUrl, Manufacturer: "Manufacturer6", Model: "RF-SR4", PriceInUsdMultiple: 79999, Type: "helmet", Subtype: "modular"},
-		&entities.ProductDocument{ImageURL: MockHelmetImageUrl, Manufacturer: "Manufacturer7", Model: "RF-SR5", PriceInUsdMultiple: 80099, Type: "helmet", Subtype: "open"},
-		&entities.ProductDocument{ImageURL: MockHelmetImageUrl, Manufacturer: "Manufacturer8", Model: "RF-SR6", PriceInUsdMultiple: 89999, Type: "helmet", Subtype: "half"},
-		&entities.ProductDocument{ImageURL: MockHelmetImageUrl, Manufacturer: "Manufacturer9", Model: "RF-SR7", PriceInUsdMultiple: 90099, Type: "helmet", Subtype: "full"},
+		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "Shoei2", Model: "RF-8000", PriceInUsdMultiple: 29900, Type: "helmet", Subtype: "full"},
+		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "Shoei", Model: "RF-7000", PriceInUsdMultiple: 49999, Type: "helmet", Subtype: "modular"},
+		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "Arai", Model: "Some Arai Helmet", PriceInUsdMultiple: 79999, Type: "helmet", Subtype: "open"},
+		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "NotAShoei", Model: "Model-RF", PriceInUsdMultiple: 19999, Type: "helmet", Subtype: "half"},
+		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "AGV", Model: "AyyGeeVee", PriceInUsdMultiple: 29999, Type: "helmet", Subtype: "offroad"},
+		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "Manufacturer1", Model: "RF-SR1", PriceInUsdMultiple: 29899, Type: "helmet", Subtype: "full"},
+		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "Manufacturer2", Model: "RF-SR2", PriceInUsdMultiple: 40012, Type: "helmet", Subtype: "modular"},
+		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "Manufacturer3", Model: "RF-SR", PriceInUsdMultiple: 50099, Type: "helmet", Subtype: "open"},
+		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "Manufacturer4", Model: "RF-SR", PriceInUsdMultiple: 60099, Type: "helmet", Subtype: "half"},
+		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "Manufacturer5", Model: "RF-SR3", PriceInUsdMultiple: 70099, Type: "helmet", Subtype: "full"},
+		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "Manufacturer6", Model: "RF-SR4", PriceInUsdMultiple: 79999, Type: "helmet", Subtype: "modular"},
+		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "Manufacturer7", Model: "RF-SR5", PriceInUsdMultiple: 80099, Type: "helmet", Subtype: "open"},
+		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "Manufacturer8", Model: "RF-SR6", PriceInUsdMultiple: 89999, Type: "helmet", Subtype: "half"},
+		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "Manufacturer9", Model: "RF-SR7", PriceInUsdMultiple: 90099, Type: "helmet", Subtype: "full"},
 		&entities.ProductDocument{ImageURL: "", Manufacturer: "Manufacturer10", Model: "RF-SR8", PriceInUsdMultiple: 0, Type: "helmet", Subtype: "modular"},
-		&entities.ProductDocument{ImageURL: MockHelmetImageUrl, Manufacturer: "Manufacturer11", Model: "RF-SR9", PriceInUsdMultiple: 100099, Type: "helmet", Subtype: "open"},
-		&entities.ProductDocument{ImageURL: MockHelmetImageUrl, Manufacturer: "Manufacturer12", Model: "RF-SR10", PriceInUsdMultiple: 100299, Type: "helmet", Subtype: "half"},
-		&entities.ProductDocument{ImageURL: MockHelmetImageUrl, Manufacturer: "Manufacturer13", Model: "RF-SR11", PriceInUsdMultiple: 110099, Type: "helmet", Subtype: "offroad"},
-		&entities.ProductDocument{ImageURL: MockHelmetImageUrl, Manufacturer: "Manufacturer14", Model: "RF-SR12", PriceInUsdMultiple: 120099, Type: "helmet", Subtype: "full"},
-		&entities.ProductDocument{ImageURL: MockHelmetImageUrl, Manufacturer: "Manufacturer15", Model: "RF-SR13", PriceInUsdMultiple: 133001, Type: "helmet", Subtype: "modular", ModelAlias: "RF-1300"},
+		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "Manufacturer11", Model: "RF-SR9", PriceInUsdMultiple: 100099, Type: "helmet", Subtype: "open"},
+		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "Manufacturer12", Model: "RF-SR10", PriceInUsdMultiple: 100299, Type: "helmet", Subtype: "half"},
+		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "Manufacturer13", Model: "RF-SR11", PriceInUsdMultiple: 110099, Type: "helmet", Subtype: "offroad"},
+		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "Manufacturer14", Model: "RF-SR12", PriceInUsdMultiple: 120099, Type: "helmet", Subtype: "full"},
+		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "Manufacturer15", Model: "RF-SR13", PriceInUsdMultiple: 133001, Type: "helmet", Subtype: "modular", ModelAlias: "RF-1300"},
 	}
 
 	for i := 0; i < len(seeds); i++ {

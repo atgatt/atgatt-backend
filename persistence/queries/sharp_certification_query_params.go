@@ -1,5 +1,6 @@
 package queries
 
+// SHARPCertificationQueryParams is a sub-query used in conjunction with FilterProductsQuery in order to narrow down motorcycle helmet results
 type SHARPCertificationQueryParams struct {
 	Stars              int `json:"stars"`
 	ImpactZoneMinimums struct {

@@ -1,5 +1,6 @@
 package entities
 
+// SHARPHelmet represents the data scraped for one motorcycle helmet from the SHARP website
 type SHARPHelmet struct {
 	Subtype             string
 	Manufacturer        string

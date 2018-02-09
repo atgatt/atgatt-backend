@@ -8,6 +8,7 @@ import (
 	"github.com/labstack/echo"
 )
 
+// HealthCheckHandler contains methods used for automated healthchecks.
 type HealthCheckHandler struct {
 	BuildNumber          string
 	CommitHash           string
@@ -16,19 +17,20 @@ type HealthCheckHandler struct {
 	MigrationsRepository *repositories.MigrationsRepository
 }
 
-func (self *HealthCheckHandler) Healthcheck(context echo.Context) (err error) {
+// Healthcheck returns the API's current build number, database migration status, etc.
+func (h *HealthCheckHandler) Healthcheck(context echo.Context) (err error) {
 	if context.Request().Method == http.MethodHead {
 		return context.NoContent(http.StatusOK)
 	}
 
-	healthCheckResponse := &responses.HealthCheckResponse{Name: self.Name, Version: self.Version, CommitHash: self.CommitHash}
-	healthCheckResponse.Database.CurrentVersion, err = self.MigrationsRepository.GetLatestMigrationVersion()
+	healthCheckResponse := &responses.HealthCheckResponse{Name: h.Name, Version: h.Version, CommitHash: h.CommitHash}
+	healthCheckResponse.Database.CurrentVersion, err = h.MigrationsRepository.GetLatestMigrationVersion()
 	if err != nil {
 		return err
 	}
 
-	if len(self.BuildNumber) > 0 {
-		healthCheckResponse.BuildNumber = self.BuildNumber
+	if len(h.BuildNumber) > 0 {
+		healthCheckResponse.BuildNumber = h.BuildNumber
 	}
 
 	return context.JSON(http.StatusOK, healthCheckResponse)

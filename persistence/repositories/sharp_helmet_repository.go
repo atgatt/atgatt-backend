@@ -5,22 +5,25 @@ import (
 	"crashtested-backend/persistence/entities"
 	"errors"
 	"fmt"
-	"github.com/PuerkitoBio/goquery"
-	"github.com/hashicorp/go-cleanhttp"
-	"github.com/sirupsen/logrus"
 	"net/http"
 	"net/url"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/PuerkitoBio/goquery"
+	"github.com/hashicorp/go-cleanhttp"
+	"github.com/sirupsen/logrus"
 )
 
+// SHARPHelmetRepository contains functions used to scrape helmet data from SHARP's website
 type SHARPHelmetRepository struct {
 	Limit int
 }
 
-func (self *SHARPHelmetRepository) GetAll() ([]*entities.SHARPHelmet, error) {
+// GetAll scrapes and returns all helmet data from SHARP's website, or an error if there was a problem fetching/scraping the HTML
+func (r *SHARPHelmetRepository) GetAll() ([]*entities.SHARPHelmet, error) {
 	logrus.Info("Started getting all SHARP helmets")
 	helmets := make([]*entities.SHARPHelmet, 0)
 	starsRegexp := regexp.MustCompile(`rating-star-(\d)`)
@@ -32,7 +35,7 @@ func (self *SHARPHelmetRepository) GetAll() ([]*entities.SHARPHelmet, error) {
 	startTime := time.Now()
 	helmetResultsChannel := make(chan *parseHelmetResult)
 	httpRequestSemaphore := make(chan struct{}, 4) // maximum of 4 concurrent http requests
-	helmetUrlsMap, err := self.GetHelmetUrls()
+	helmetUrlsMap, err := r.GetHelmetUrls()
 	if err != nil {
 		return nil, err
 	}
@@ -42,16 +45,16 @@ func (self *SHARPHelmetRepository) GetAll() ([]*entities.SHARPHelmet, error) {
 		return nil, errors.New("Too few helmets were found; check to see if the SHARP website changed its layout")
 	}
 
-	pooledHttpClient := cleanhttp.DefaultPooledClient() // use a pooled http client so that the SSL session is reused between connections
-	for helmetUrl := range helmetUrlsMap {
-		go parseSHARPHelmetByUrl(pooledHttpClient, httpRequestSemaphore, helmetUrl, helmetResultsChannel, weightRegexp, starsRegexp, topImpactZoneRegexp, leftImpactZoneRegexp, rightImpactZoneRegexp, rearImpactZoneRegexp)
+	pooledHTTPClient := cleanhttp.DefaultPooledClient() // use a pooled http client so that the SSL session is reused between connections
+	for helmetURL := range helmetUrlsMap {
+		go parseSHARPHelmetByURL(pooledHTTPClient, httpRequestSemaphore, helmetURL, helmetResultsChannel, weightRegexp, starsRegexp, topImpactZoneRegexp, leftImpactZoneRegexp, rightImpactZoneRegexp, rearImpactZoneRegexp)
 	}
 
 	for index := 0; index < numHelmetUrls; index++ {
 		productResult := <-helmetResultsChannel
 		if productResult.err != nil {
 			logrus.WithFields(logrus.Fields{
-				"helmetUrl": productResult.helmetUrl,
+				"helmetUrl": productResult.helmetURL,
 				"error":     productResult.err,
 			}).Error("Encountered an error while processing a SHARP helmet")
 			continue
@@ -69,9 +72,10 @@ func (self *SHARPHelmetRepository) GetAll() ([]*entities.SHARPHelmet, error) {
 	return helmets, nil
 }
 
-func (self *SHARPHelmetRepository) GetHelmetUrls() (map[string]bool, error) {
-	limitToUse := strconv.Itoa(self.Limit)
-	if self.Limit < 0 {
+// GetHelmetUrls calls an undocumented SHARP endpoint to retrieve a hash set of all the helmet urls on the SHARP website
+func (r *SHARPHelmetRepository) GetHelmetUrls() (map[string]bool, error) {
+	limitToUse := strconv.Itoa(r.Limit)
+	if r.Limit < 0 {
 		limitToUse = "500000"
 	}
 
@@ -96,7 +100,9 @@ func (self *SHARPHelmetRepository) GetHelmetUrls() (map[string]bool, error) {
 	}
 	rows := doc.Find("a[href*='sharp.dft.gov.uk/helmets/']")
 	helmetUrlsMap := make(map[string]bool)
-	for linkIndex, _ := range rows.Nodes {
+
+	numLinks := len(rows.Nodes)
+	for linkIndex := 0; linkIndex < numLinks; linkIndex++ {
 		linkSelection := rows.Eq(linkIndex)
 		url, linkExists := linkSelection.Attr("href")
 		if !linkExists {
@@ -113,19 +119,19 @@ func (self *SHARPHelmetRepository) GetHelmetUrls() (map[string]bool, error) {
 
 type parseHelmetResult struct {
 	helmet    *entities.SHARPHelmet
-	helmetUrl string
+	helmetURL string
 	err       error
 }
 
-func parseSHARPHelmetByUrl(pooledHttpClient *http.Client, httpRequestsSemaphore chan struct{}, helmetUrl string, helmetResultsChannel chan *parseHelmetResult, weightRegexp *regexp.Regexp, starsRegexp *regexp.Regexp, topImpactZoneRegexp *regexp.Regexp, leftImpactZoneRegexp *regexp.Regexp, rightImpactZoneRegexp *regexp.Regexp, rearImpactZoneRegexp *regexp.Regexp) {
-	helmetLogger := logrus.WithField("helmetUrl", helmetUrl)
+func parseSHARPHelmetByURL(pooledHTTPClient *http.Client, httpRequestsSemaphore chan struct{}, helmetURL string, helmetResultsChannel chan *parseHelmetResult, weightRegexp *regexp.Regexp, starsRegexp *regexp.Regexp, topImpactZoneRegexp *regexp.Regexp, leftImpactZoneRegexp *regexp.Regexp, rightImpactZoneRegexp *regexp.Regexp, rearImpactZoneRegexp *regexp.Regexp) {
+	helmetLogger := logrus.WithField("helmetUrl", helmetURL)
 	helmetLogger.Info("Starting to parse helmet data")
 	var emptyItem struct{}
 
 	// increment while we're waiting for the request to finish
 	httpRequestsSemaphore <- emptyItem
-	resp, err := pooledHttpClient.Get(helmetUrl)
-	result := &parseHelmetResult{helmetUrl: helmetUrl}
+	resp, err := pooledHTTPClient.Get(helmetURL)
+	result := &parseHelmetResult{helmetURL: helmetURL}
 	if err != nil {
 		result.err = err
 		helmetResultsChannel <- result
@@ -141,7 +147,7 @@ func parseSHARPHelmetByUrl(pooledHttpClient *http.Client, httpRequestsSemaphore 
 		return
 	}
 
-	productImageUrl, found := helmetDetailsDoc.Find(".wp-post-image").First().Attr("src")
+	productImageURL, found := helmetDetailsDoc.Find(".wp-post-image").First().Attr("src")
 	if !found {
 		helmetLogger.Warn("Product image not found")
 	}
@@ -158,8 +164,8 @@ func parseSHARPHelmetByUrl(pooledHttpClient *http.Client, httpRequestsSemaphore 
 	model := findDetailsTextByHeader(helmetDetailsDoc, "model")
 
 	starsSelection := findDetailsSelectionByHeader(helmetDetailsDoc, "helmet rating")
-	starsImageUrl, _ := starsSelection.ChildrenFiltered("img").First().Attr("src")
-	subMatchArray := starsRegexp.FindStringSubmatch(starsImageUrl)
+	starsImageURL, _ := starsSelection.ChildrenFiltered("img").First().Attr("src")
+	subMatchArray := starsRegexp.FindStringSubmatch(starsImageURL)
 	if len(subMatchArray) < 2 {
 		result.err = errors.New("Encountered an unexpected star rating array")
 		helmetResultsChannel <- result
@@ -224,7 +230,7 @@ func parseSHARPHelmetByUrl(pooledHttpClient *http.Client, httpRequestsSemaphore 
 		Subtype:             subtype,
 		Model:               model,
 		Manufacturer:        manufacturer,
-		ImageURL:            productImageUrl,
+		ImageURL:            productImageURL,
 		LatchPercentage:     latchPercentage,
 		WeightInLbsMultiple: weightInLbsMultiple,
 		Sizes:               sizes,
@@ -247,37 +253,32 @@ func getImpactZoneRatings(helmetLogger *logrus.Entry, impactZoneImagesSelection 
 			return
 		}
 
-		impactZoneImageUrl, impactZoneImageUrlExists := selection.Attr("src")
-		if !impactZoneImageUrlExists {
+		impactZoneImageURL, impactZoneImageURLExists := selection.Attr("src")
+		if !impactZoneImageURLExists {
 			errString := "Impact zone image url not found"
 			helmetLogger.Error(errString)
 			err = errors.New(errString)
 			return
 		}
 
-		var err error
-		if strings.Index(impactZoneImageUrl, "left") >= 0 {
-			impactZoneRatings.Left, err = getImpactZoneRating(impactZoneImageUrl, leftImpactZoneRegexp)
+		if strings.Index(impactZoneImageURL, "left") >= 0 {
+			impactZoneRatings.Left, err = getImpactZoneRating(impactZoneImageURL, leftImpactZoneRegexp)
 			if err != nil {
-				err = err
 				return
 			}
-		} else if strings.Index(impactZoneImageUrl, "right") >= 0 {
-			impactZoneRatings.Right, err = getImpactZoneRating(impactZoneImageUrl, rightImpactZoneRegexp)
+		} else if strings.Index(impactZoneImageURL, "right") >= 0 {
+			impactZoneRatings.Right, err = getImpactZoneRating(impactZoneImageURL, rightImpactZoneRegexp)
 			if err != nil {
-				err = err
 				return
 			}
-		} else if strings.Index(impactZoneImageUrl, "front") >= 0 {
-			impactZoneRatings.Top.Front, impactZoneRatings.Top.Rear, err = getTopImpactZoneRatings(impactZoneImageUrl, topImpactZoneRegexp)
+		} else if strings.Index(impactZoneImageURL, "front") >= 0 {
+			impactZoneRatings.Top.Front, impactZoneRatings.Top.Rear, err = getTopImpactZoneRatings(impactZoneImageURL, topImpactZoneRegexp)
 			if err != nil {
-				err = err
 				return
 			}
-		} else if strings.Index(impactZoneImageUrl, "rear") >= 0 {
-			impactZoneRatings.Rear, err = getImpactZoneRating(impactZoneImageUrl, rearImpactZoneRegexp)
+		} else if strings.Index(impactZoneImageURL, "rear") >= 0 {
+			impactZoneRatings.Rear, err = getImpactZoneRating(impactZoneImageURL, rearImpactZoneRegexp)
 			if err != nil {
-				err = err
 				return
 			}
 		} else {
@@ -298,7 +299,7 @@ func getImpactZoneRating(url string, regexp *regexp.Regexp) (int, error) {
 	if regexp.MatchString(url) {
 		matches := regexp.FindStringSubmatch(url)
 		if len(matches) < 2 {
-			return -1, errors.New(fmt.Sprintf("Encountered less than two matches for the %s impact zone regex", url))
+			return -1, fmt.Errorf("Encountered less than two matches for the %s impact zone regex", url)
 		}
 		rating, err := strconv.Atoi(matches[1])
 		if err != nil {
@@ -313,7 +314,7 @@ func getTopImpactZoneRatings(url string, regexp *regexp.Regexp) (int, int, error
 	if regexp.MatchString(url) {
 		matches := regexp.FindStringSubmatch(url)
 		if len(matches) < 3 {
-			return -1, -1, errors.New(fmt.Sprintf("Encountered less than three matches for the %s impact zone regex", url))
+			return -1, -1, fmt.Errorf("Encountered less than three matches for the %s impact zone regex", url)
 		}
 		topFrontRating, err := strconv.Atoi(matches[1])
 		if err != nil {

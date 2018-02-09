@@ -6,19 +6,23 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+
 	"github.com/jmoiron/sqlx"
+	// Importing the PQ driver because we need to run queries!
 	_ "github.com/lib/pq"
 )
 
+// ProductRepository contains functions that are used to do CRUD operations on Products in the database
 type ProductRepository struct {
 	ConnectionString string
 }
 
-func (self *ProductRepository) GetByModel(manufacturer string, model string) (*entities.ProductDocument, error) {
+// GetByModel returns a single product where the manufacturer and model matches
+func (r *ProductRepository) GetByModel(manufacturer string, model string) (*entities.ProductDocument, error) {
 	query := &queries.FilterProductsQuery{Start: 0, Limit: 1, Manufacturer: manufacturer, Model: model}
 	query.Order.Field = "id"
 
-	filteredProducts, err := self.FilterProducts(query)
+	filteredProducts, err := r.FilterProducts(query)
 	if err != nil {
 		return nil, err
 	}
@@ -34,11 +38,12 @@ func (self *ProductRepository) GetByModel(manufacturer string, model string) (*e
 	return &filteredProducts[0], nil
 }
 
-func (self *ProductRepository) GetAllPaged(start int, limit int) ([]entities.ProductDocument, error) {
+// GetAllPaged queries the database for all products without any filters, within the range of start and limit. This function is useful for calling functions that to do batch operations on all products in the DB.
+func (r *ProductRepository) GetAllPaged(start int, limit int) ([]entities.ProductDocument, error) {
 	query := &queries.FilterProductsQuery{Start: start, Limit: limit}
 	query.Order.Field = "id"
 
-	filteredProducts, err := self.FilterProducts(query)
+	filteredProducts, err := r.FilterProducts(query)
 	if err != nil {
 		return nil, err
 	}
@@ -46,14 +51,15 @@ func (self *ProductRepository) GetAllPaged(start int, limit int) ([]entities.Pro
 	return filteredProducts, nil
 }
 
-func (self *ProductRepository) UpdateProduct(product *entities.ProductDocument) error {
-	db, err := sqlx.Open("postgres", self.ConnectionString)
+// UpdateProduct replaces the product in the DB with the supplied product, where the product's UUID matches the one supplied
+func (r *ProductRepository) UpdateProduct(product *entities.ProductDocument) error {
+	db, err := sqlx.Open("postgres", r.ConnectionString)
 	defer db.Close()
 	if err != nil {
 		return err
 	}
 
-	productJsonBytes, err := json.Marshal(product)
+	productJSONBytes, err := json.Marshal(product)
 	if err != nil {
 		return err
 	}
@@ -62,7 +68,7 @@ func (self *ProductRepository) UpdateProduct(product *entities.ProductDocument) 
 								document = :document, 
 								updated_at_utc = (now() at time zone 'utc') 
 							where uuid = :uuid`, map[string]interface{}{
-		"document": string(productJsonBytes),
+		"document": string(productJSONBytes),
 		"uuid":     product.UUID,
 	})
 
@@ -73,20 +79,21 @@ func (self *ProductRepository) UpdateProduct(product *entities.ProductDocument) 
 	return nil
 }
 
-func (self *ProductRepository) CreateProduct(product *entities.ProductDocument) error {
-	db, err := sqlx.Open("postgres", self.ConnectionString)
+// CreateProduct creates a product with the given fields by first converting it to json, and then dumping the json into a column in the DB.
+func (r *ProductRepository) CreateProduct(product *entities.ProductDocument) error {
+	db, err := sqlx.Open("postgres", r.ConnectionString)
 	defer db.Close()
 	if err != nil {
 		return err
 	}
 
-	productJsonBytes, err := json.Marshal(product)
+	productJSONBytes, err := json.Marshal(product)
 	if err != nil {
 		return err
 	}
 
 	_, err = db.NamedExec("insert into products (uuid, document, created_at_utc, updated_at_utc) values (:uuid, :document, (now() at time zone 'utc'), null);", map[string]interface{}{
-		"document": string(productJsonBytes),
+		"document": string(productJSONBytes),
 		"uuid":     product.UUID,
 	})
 
@@ -97,8 +104,9 @@ func (self *ProductRepository) CreateProduct(product *entities.ProductDocument) 
 	return nil
 }
 
-func (self *ProductRepository) FilterProducts(query *queries.FilterProductsQuery) ([]entities.ProductDocument, error) {
-	db, err := sqlx.Open("postgres", self.ConnectionString)
+// FilterProducts is a method that ANDs a bunch of query parameters together and returns a list of matching products, or an error if there was a problem executing the query.
+func (r *ProductRepository) FilterProducts(query *queries.FilterProductsQuery) ([]entities.ProductDocument, error) {
+	db, err := sqlx.Open("postgres", r.ConnectionString)
 	defer db.Close()
 
 	if err != nil {
@@ -196,38 +204,38 @@ func (self *ProductRepository) FilterProducts(query *queries.FilterProductsQuery
 	}
 
 	productDocuments := make([]entities.ProductDocument, 0)
-	originalSqlQueryString := fmt.Sprintf(`select document from products
+	originalSQLQueryString := fmt.Sprintf(`select document from products
 											%s
 											order by %s %s
 											offset :start limit :limit`, whereCriteria, orderByExpression, orderByDirection)
 
 	// Converts :arguments to ? arguments so that we can preprocess the query
-	preProcessedSqlQueryString, args, err := sqlx.Named(originalSqlQueryString, queryParams)
+	preProcessedSQLQueryString, args, err := sqlx.Named(originalSQLQueryString, queryParams)
 	if err != nil {
 		return nil, err
 	}
 
 	// Converts `where in` statements to work with the SQL driver
-	preProcessedSqlQueryString, args, err = sqlx.In(preProcessedSqlQueryString, args...)
+	preProcessedSQLQueryString, args, err = sqlx.In(preProcessedSQLQueryString, args...)
 	if err != nil {
 		return nil, err
 	}
 
 	// Converts ? arguments back to positional ($0, $1, $2, etc) arguments so that they can be executed in the DB.
-	preProcessedSqlQueryString = db.Rebind(preProcessedSqlQueryString)
-	rows, err := db.Query(preProcessedSqlQueryString, args...)
+	preProcessedSQLQueryString = db.Rebind(preProcessedSQLQueryString)
+	rows, err := db.Query(preProcessedSQLQueryString, args...)
 	if err != nil {
 		return nil, err
 	}
 
 	for rows.Next() {
-		productJsonString := &[]byte{}
+		productJSONString := &[]byte{}
 		productDocument := &entities.ProductDocument{}
-		err := rows.Scan(productJsonString)
+		err := rows.Scan(productJSONString)
 		if err != nil {
 			return nil, err
 		}
-		err = json.Unmarshal(*productJsonString, productDocument)
+		err = json.Unmarshal(*productJSONString, productDocument)
 		if err != nil {
 			return nil, err
 		}

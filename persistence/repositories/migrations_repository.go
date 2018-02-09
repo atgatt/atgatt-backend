@@ -4,16 +4,20 @@ import (
 	"sort"
 
 	"github.com/jmoiron/sqlx"
+
+	// Importing the PQ driver because we need to run queries!
 	_ "github.com/lib/pq"
 	"github.com/rubenv/sql-migrate"
 )
 
+// MigrationsRepository contains functions used to query the status of database migrations
 type MigrationsRepository struct {
 	ConnectionString string
 }
 
-func (self *MigrationsRepository) GetLatestMigrationVersion() (string, error) {
-	db, err := sqlx.Open("postgres", self.ConnectionString)
+// GetLatestMigrationVersion returns the version identifier of the last-run migration, i.e. "20180101-doSomething.sql"
+func (r *MigrationsRepository) GetLatestMigrationVersion() (string, error) {
+	db, err := sqlx.Open("postgres", r.ConnectionString)
 	defer db.Close()
 
 	if err != nil {
@@ -34,7 +38,7 @@ func (self *MigrationsRepository) GetLatestMigrationVersion() (string, error) {
 	sort.Strings(versionStrings)
 	if numMigrations <= 0 {
 		return "", nil
-	} else {
-		return migrations[numMigrations-1].Id, nil
 	}
+
+	return migrations[numMigrations-1].Id, nil
 }

@@ -15,6 +15,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// Server contains the bootstrapping code for the API
 type Server struct {
 	Port          string
 	Name          string
@@ -25,7 +26,8 @@ type Server struct {
 	echoInstance  *echo.Echo
 }
 
-func (self *Server) Build() {
+// Build initializes all dependencies required by the API and exits with a nonzero status code if there's a problem
+func (s *Server) Build() {
 	e := echo.New()
 	e.HideBanner = true
 	e.Logger = logrusmiddleware.Logger{Logger: logrus.StandardLogger()}
@@ -33,28 +35,28 @@ func (self *Server) Build() {
 	e.Use(logrusmiddleware.Hook())
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{AllowOrigins: []string{"https://staging.crashtested.co", "https://www.staging.crashtested.co", "https://crashtested.co", "https://www.crashtested.co"}}))
 
-	if self.Configuration == nil {
+	if s.Configuration == nil {
 		logrus.Fatal("Failed to start the API because the app configuration was not specified")
 		os.Exit(-1)
 	}
 
-	err := validation.ValidateStruct(self.Configuration,
-		validation.Field(&self.Configuration.DatabaseConnectionString, validation.Required),
-		validation.Field(&self.Configuration.AppEnvironment, validation.Required),
+	err := validation.ValidateStruct(s.Configuration,
+		validation.Field(&s.Configuration.DatabaseConnectionString, validation.Required),
+		validation.Field(&s.Configuration.AppEnvironment, validation.Required),
 	)
 	if err != nil {
 		logrus.Fatalf("Failed to start the API because the app configuration could not be validated: %s", err.Error())
 		os.Exit(-1)
 	}
 
-	if self.Configuration.LogzioToken != "" {
+	if s.Configuration.LogzioToken != "" {
 		logContext := logrus.Fields{
-			"BuildNumber":    self.BuildNumber,
-			"Version":        self.Version,
-			"CommitHash":     self.CommitHash,
-			"AppEnvironment": self.Configuration.AppEnvironment,
+			"BuildNumber":    s.BuildNumber,
+			"Version":        s.Version,
+			"CommitHash":     s.CommitHash,
+			"AppEnvironment": s.Configuration.AppEnvironment,
 		}
-		logzioHook, err := logruzio.New(self.Configuration.LogzioToken, fmt.Sprintf("%s-%s", self.Name, self.Configuration.AppEnvironment), logContext)
+		logzioHook, err := logruzio.New(s.Configuration.LogzioToken, fmt.Sprintf("%s-%s", s.Name, s.Configuration.AppEnvironment), logContext)
 		if err != nil {
 			logrus.Fatalf("Failed to start the API because the logger could not be initialized: %s", err.Error())
 			os.Exit(-1)
@@ -64,28 +66,30 @@ func (self *Server) Build() {
 		logrus.Warn("LOGZIO_TOKEN was not set, so all application logs are going to stdout")
 	}
 
-	err = helpers.RunMigrations(self.Configuration.DatabaseConnectionString, "persistence/migrations")
+	err = helpers.RunMigrations(s.Configuration.DatabaseConnectionString, "persistence/migrations")
 	if err != nil {
 		logrus.Errorf("Failed to run migrations, but starting the app anyway: %s", err.Error())
 	}
 
-	healthCheckHandler := &HealthCheckHandler{Name: self.Name, Version: self.Version, BuildNumber: self.BuildNumber, CommitHash: self.CommitHash, MigrationsRepository: &repositories.MigrationsRepository{ConnectionString: self.Configuration.DatabaseConnectionString}}
-	productsHandler := &ProductHandler{Repository: &repositories.ProductRepository{ConnectionString: self.Configuration.DatabaseConnectionString}}
+	healthCheckHandler := &HealthCheckHandler{Name: s.Name, Version: s.Version, BuildNumber: s.BuildNumber, CommitHash: s.CommitHash, MigrationsRepository: &repositories.MigrationsRepository{ConnectionString: s.Configuration.DatabaseConnectionString}}
+	productsHandler := &ProductHandler{Repository: &repositories.ProductRepository{ConnectionString: s.Configuration.DatabaseConnectionString}}
 
 	e.GET("/", healthCheckHandler.Healthcheck)
 	e.HEAD("/", healthCheckHandler.Healthcheck)
 	e.POST("/v1/products/filter", productsHandler.FilterProducts)
 
-	self.echoInstance = e
+	s.echoInstance = e
 }
 
-func (self *Server) StartAndBlock() {
-	self.Build()
-	logrus.Infof("-> http server started on %s%s", "http://localhost", self.Port)
-	err := self.echoInstance.Start(self.Port)
+// StartAndBlock first initializes the server, then starts it up and blocks
+func (s *Server) StartAndBlock() {
+	s.Build()
+	logrus.Infof("-> http server started on %s%s", "http://localhost", s.Port)
+	err := s.echoInstance.Start(s.Port)
 	logrus.Fatalf("Failed to start the server: %s", err.Error())
 }
 
-func (self *Server) Stop() {
-	self.echoInstance.Close()
+// Stop just ensures that the echoInstance is closed
+func (s *Server) Stop() {
+	s.echoInstance.Close()
 }

@@ -6,21 +6,22 @@ import (
 	"crashtested-backend/seeds"
 	"database/sql"
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"net/http"
 	"os"
 	"testing"
 	"time"
 
+	"github.com/sirupsen/logrus"
+
 	_ "github.com/lib/pq"
 	"github.com/rubenv/sql-migrate"
 )
 
-const ApiBaseUrl string = "http://localhost:5001"
+const APIBaseURL string = "http://localhost:5001"
 const IntegrationTestDatabaseName string = "crashtested"
 const DatabaseServerConnectionString string = "postgres://postgres:password@localhost:5432/?sslmode=disable"
 
-var DatabaseConnectionString string = fmt.Sprintf("postgres://postgres:password@localhost:5432/%s?sslmode=disable", IntegrationTestDatabaseName)
+var DatabaseConnectionString = fmt.Sprintf("postgres://postgres:password@localhost:5432/%s?sslmode=disable", IntegrationTestDatabaseName)
 
 func WaitFor(label string, isRunningFunc func() (bool, error)) bool {
 	const MaxTimeToWait time.Duration = 10 * time.Second
@@ -44,9 +45,9 @@ func WaitFor(label string, isRunningFunc func() (bool, error)) bool {
 	return isRunning
 }
 
-func WaitForApi() bool {
+func WaitForAPI() bool {
 	return WaitFor("api", func() (bool, error) {
-		resp, err := http.Get(ApiBaseUrl)
+		resp, err := http.Get(APIBaseURL)
 		if err != nil {
 			return false, err
 		}
@@ -78,10 +79,10 @@ func WaitForMigrations() bool {
 		}
 		logrus.Info("Running seeds...")
 
-		productSeedsSql := seeds.GetProductSeedsSqlStatements()
+		productSeedsSQL := seeds.GetProductSeedsSQLStatements()
 		seedMigrationsSource := &migrate.MemoryMigrationSource{
 			Migrations: []*migrate.Migration{
-				&migrate.Migration{Up: productSeedsSql, Down: []string{"select 1;"}, Id: "0-seeds"}, // NOTE: using 0-seeds because of strange sorting rules present in sql-migrate. this allows the seeds to run after all other migrations
+				&migrate.Migration{Up: productSeedsSQL, Down: []string{"select 1;"}, Id: "0-seeds"}, // NOTE: using 0-seeds because of strange sorting rules present in sql-migrate. this allows the seeds to run after all other migrations
 			},
 		}
 
@@ -105,7 +106,7 @@ func TestMain(m *testing.M) {
 	server := Server{Port: ":5001", Name: "crashtested-api", Version: "integration-tests-version", BuildNumber: "integration-tests-build", CommitHash: "integration-tests-commit", Configuration: defaultConfiguration}
 	go server.StartAndBlock()
 
-	apiStarted := WaitForApi()
+	apiStarted := WaitForAPI()
 
 	statusCode := -1
 	if apiStarted && migrationsRan {

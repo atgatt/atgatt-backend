@@ -10,7 +10,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func MakeJsonPOSTRequest(url string, request interface{}, response interface{}) (*http.Response, error) {
+// MakeJSONPOSTRequest makes a request to url and maps the JSON response to the given interface type
+func MakeJSONPOSTRequest(url string, request interface{}, response interface{}) (*http.Response, error) {
 	requestBytes, marshalErr := json.Marshal(request)
 	if marshalErr != nil {
 		return nil, marshalErr
@@ -28,6 +29,7 @@ func MakeJsonPOSTRequest(url string, request interface{}, response interface{}) 
 	return resp, nil
 }
 
+// MakeFormPOSTRequest makes a request to the given url with a supplied set of urlencoded form values and returns the response body as a string.
 func MakeFormPOSTRequest(url string, formValues url.Values) (string, error) {
 	logrus.WithField("formValues", formValues).Info("Making JSON POST form request")
 	resp, postErr := http.PostForm(url, formValues)

@@ -4,6 +4,7 @@ import (
 	"crashtested-backend/persistence/repositories"
 	"crashtested-backend/worker/configuration"
 	"crashtested-backend/worker/jobs"
+
 	"github.com/ngs/go-amazon-product-advertising-api/amazon"
 	"github.com/sirupsen/logrus"
 )

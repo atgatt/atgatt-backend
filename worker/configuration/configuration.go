@@ -4,6 +4,7 @@ import (
 	"os"
 )
 
+// Configuration contains all of the environment variables needed to start background workers
 type Configuration struct {
 	DatabaseConnectionString string
 	LogzioToken              string
@@ -17,6 +18,7 @@ type amazonAssociatesConfiguration struct {
 	AssociateID string
 }
 
+// GetDefaultConfiguration returns a configuration struct, initialized using environment variables
 func GetDefaultConfiguration() *Configuration {
 	return &Configuration{
 		AppEnvironment:           os.Getenv("APP_ENVIRONMENT"),

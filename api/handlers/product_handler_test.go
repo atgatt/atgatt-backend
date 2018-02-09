@@ -20,7 +20,7 @@ func Test_FilterProducts_should_return_all_of_the_products_data_when_the_limit_i
 	request.Order.Field = "created_at_utc"
 
 	responseBody := &[]*entities.ProductDocument{}
-	resp, err := helpers.MakeJsonPOSTRequest(fmt.Sprintf("%s/v1/products/filter", ApiBaseUrl), request, responseBody)
+	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
 
 	Expect(err).To(BeNil())
 	Expect(resp.StatusCode).To(Equal(http.StatusOK))
@@ -36,7 +36,7 @@ func Test_FilterProducts_should_return_all_of_the_products_that_have_the_given_s
 	request.Subtypes = []string{"full"}
 
 	responseBody := &[]*entities.ProductDocument{}
-	resp, err := helpers.MakeJsonPOSTRequest(fmt.Sprintf("%s/v1/products/filter", ApiBaseUrl), request, responseBody)
+	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
 
 	Expect(err).To(BeNil())
 	Expect(resp.StatusCode).To(Equal(http.StatusOK))
@@ -55,7 +55,7 @@ func Test_FilterProducts_should_return_all_of_the_products_that_have_the_given_s
 	request.Subtypes = []string{"full", "modular"}
 
 	responseBody := &[]*entities.ProductDocument{}
-	resp, err := helpers.MakeJsonPOSTRequest(fmt.Sprintf("%s/v1/products/filter", ApiBaseUrl), request, responseBody)
+	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
 
 	Expect(err).To(BeNil())
 	Expect(resp.StatusCode).To(Equal(http.StatusOK))
@@ -74,7 +74,7 @@ func Test_FilterProducts_should_return_the_products_in_the_given_price_range_whe
 	request.Order.Field = "created_at_utc"
 
 	responseBody := &[]*entities.ProductDocument{}
-	resp, err := helpers.MakeJsonPOSTRequest(fmt.Sprintf("%s/v1/products/filter", ApiBaseUrl), request, responseBody)
+	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
 
 	Expect(err).To(BeNil())
 	Expect(resp.StatusCode).To(Equal(http.StatusOK))
@@ -93,7 +93,7 @@ func Test_FilterProducts_should_return_bad_request_when_the_low_price_is_greater
 	request.Order.Field = "created_at_utc"
 
 	responseBody := &[]*entities.ProductDocument{}
-	resp, err := helpers.MakeJsonPOSTRequest(fmt.Sprintf("%s/v1/products/filter", ApiBaseUrl), request, responseBody)
+	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
 
 	Expect(err).To(BeNil())
 	Expect(resp.StatusCode).To(Equal(http.StatusBadRequest))
@@ -105,7 +105,7 @@ func Test_FilterProducts_should_return_bad_request_when_the_low_price_is_negativ
 	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{-1, 1000000}}
 
 	responseBody := &[]*entities.ProductDocument{}
-	resp, err := helpers.MakeJsonPOSTRequest(fmt.Sprintf("%s/v1/products/filter", ApiBaseUrl), request, responseBody)
+	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
 
 	Expect(err).To(BeNil())
 	Expect(resp.StatusCode).To(Equal(http.StatusBadRequest))
@@ -118,7 +118,7 @@ func Test_FilterProducts_should_return_bad_request_when_the_high_price_is_negati
 	request.Order.Field = "created_at_utc"
 
 	responseBody := &[]*entities.ProductDocument{}
-	resp, err := helpers.MakeJsonPOSTRequest(fmt.Sprintf("%s/v1/products/filter", ApiBaseUrl), request, responseBody)
+	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
 
 	Expect(err).To(BeNil())
 	Expect(resp.StatusCode).To(Equal(http.StatusBadRequest))
@@ -131,7 +131,7 @@ func Test_FilterProducts_should_return_bad_request_when_the_high_price_is_zero(t
 	request.Order.Field = "created_at_utc"
 
 	responseBody := &[]*entities.ProductDocument{}
-	resp, err := helpers.MakeJsonPOSTRequest(fmt.Sprintf("%s/v1/products/filter", ApiBaseUrl), request, responseBody)
+	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
 
 	Expect(err).To(BeNil())
 	Expect(resp.StatusCode).To(Equal(http.StatusBadRequest))
@@ -144,7 +144,7 @@ func Test_FilterProducts_should_return_bad_request_when_there_are_too_many_price
 	request.Order.Field = "created_at_utc"
 
 	responseBody := &[]*entities.ProductDocument{}
-	resp, err := helpers.MakeJsonPOSTRequest(fmt.Sprintf("%s/v1/products/filter", ApiBaseUrl), request, responseBody)
+	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
 
 	Expect(err).To(BeNil())
 	Expect(resp.StatusCode).To(Equal(http.StatusBadRequest))
@@ -157,7 +157,7 @@ func Test_FilterProducts_should_return_the_products_in_the_given_price_range_whe
 	request.Order.Field = "created_at_utc"
 
 	responseBody := &[]*entities.ProductDocument{}
-	resp, err := helpers.MakeJsonPOSTRequest(fmt.Sprintf("%s/v1/products/filter", ApiBaseUrl), request, responseBody)
+	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
 
 	Expect(err).To(BeNil())
 	Expect(resp.StatusCode).To(Equal(http.StatusOK))
@@ -176,7 +176,7 @@ func Test_FilterProducts_should_return_products_whose_models_or_aliases_start_wi
 	request.Order.Field = "created_at_utc"
 
 	responseBody := &[]*entities.ProductDocument{}
-	resp, err := helpers.MakeJsonPOSTRequest(fmt.Sprintf("%s/v1/products/filter", ApiBaseUrl), request, responseBody)
+	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
 
 	Expect(err).To(BeNil())
 	Expect(resp.StatusCode).To(Equal(http.StatusOK))
@@ -197,7 +197,7 @@ func Test_FilterProducts_should_return_products_whose_manufacturers_start_with_t
 	request.Order.Field = "created_at_utc"
 
 	responseBody := &[]*entities.ProductDocument{}
-	resp, err := helpers.MakeJsonPOSTRequest(fmt.Sprintf("%s/v1/products/filter", ApiBaseUrl), request, responseBody)
+	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
 
 	Expect(err).To(BeNil())
 	Expect(resp.StatusCode).To(Equal(http.StatusOK))
@@ -216,7 +216,7 @@ func Test_FilterProducts_should_return_products_with_SNELL_certifications(t *tes
 	request.Certifications.SNELL = true
 
 	responseBody := &[]*entities.ProductDocument{}
-	resp, err := helpers.MakeJsonPOSTRequest(fmt.Sprintf("%s/v1/products/filter", ApiBaseUrl), request, responseBody)
+	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
 
 	Expect(err).To(BeNil())
 	Expect(resp.StatusCode).To(Equal(http.StatusOK))
@@ -235,7 +235,7 @@ func Test_FilterProducts_should_return_products_with_ECE_certifications(t *testi
 	request.Certifications.ECE = true
 
 	responseBody := &[]*entities.ProductDocument{}
-	resp, err := helpers.MakeJsonPOSTRequest(fmt.Sprintf("%s/v1/products/filter", ApiBaseUrl), request, responseBody)
+	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
 
 	Expect(err).To(BeNil())
 	Expect(resp.StatusCode).To(Equal(http.StatusOK))
@@ -254,7 +254,7 @@ func Test_FilterProducts_should_return_products_with_DOT_certifications(t *testi
 	request.Certifications.DOT = true
 
 	responseBody := &[]*entities.ProductDocument{}
-	resp, err := helpers.MakeJsonPOSTRequest(fmt.Sprintf("%s/v1/products/filter", ApiBaseUrl), request, responseBody)
+	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
 
 	Expect(err).To(BeNil())
 	Expect(resp.StatusCode).To(Equal(http.StatusOK))
@@ -273,7 +273,7 @@ func Test_FilterProducts_should_return_products_with_SHARP_certifications(t *tes
 	request.Certifications.SHARP = &queries.SHARPCertificationQueryParams{}
 
 	responseBody := &[]*entities.ProductDocument{}
-	resp, err := helpers.MakeJsonPOSTRequest(fmt.Sprintf("%s/v1/products/filter", ApiBaseUrl), request, responseBody)
+	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
 
 	Expect(err).To(BeNil())
 	Expect(resp.StatusCode).To(Equal(http.StatusOK))
@@ -297,7 +297,7 @@ func Test_FilterProducts_should_return_products_with_SHARP_certifications_and_mi
 	request.Certifications.SHARP.ImpactZoneMinimums.Top.Rear = 3
 
 	responseBody := &[]*entities.ProductDocument{}
-	resp, err := helpers.MakeJsonPOSTRequest(fmt.Sprintf("%s/v1/products/filter", ApiBaseUrl), request, responseBody)
+	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
 
 	Expect(err).To(BeNil())
 	Expect(resp.StatusCode).To(Equal(http.StatusOK))
@@ -321,7 +321,7 @@ func Test_FilterProducts_should_return_products_with_SHARP_certifications_and_mi
 	request.Certifications.SHARP = &queries.SHARPCertificationQueryParams{Stars: 3}
 
 	responseBody := &[]*entities.ProductDocument{}
-	resp, err := helpers.MakeJsonPOSTRequest(fmt.Sprintf("%s/v1/products/filter", ApiBaseUrl), request, responseBody)
+	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
 
 	Expect(err).To(BeNil())
 	Expect(resp.StatusCode).To(Equal(http.StatusOK))
@@ -342,7 +342,7 @@ func Test_FilterProducts_should_correctly_page_through_the_resultset_when_start_
 	seeds := seeds.GetProductSeeds()
 	for i := 0; i < len(seeds)+1; i++ {
 		responseBody := &[]*entities.ProductDocument{}
-		resp, err := helpers.MakeJsonPOSTRequest(fmt.Sprintf("%s/v1/products/filter", ApiBaseUrl), request, responseBody)
+		resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
 
 		Expect(err).To(BeNil())
 		Expect(resp.StatusCode).To(Equal(http.StatusOK))
@@ -364,7 +364,7 @@ func Test_FilterProducts_should_return_bad_request_when_the_limit_is_too_large(t
 	request.Order.Field = "created_at_utc"
 
 	responseBody := &[]*entities.ProductDocument{}
-	resp, err := helpers.MakeJsonPOSTRequest(fmt.Sprintf("%s/v1/products/filter", ApiBaseUrl), request, responseBody)
+	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
 
 	Expect(err).To(BeNil())
 	Expect(resp.StatusCode).To(Equal(http.StatusBadRequest))
@@ -377,7 +377,7 @@ func Test_FilterProducts_should_return_bad_request_when_the_limit_is_too_small(t
 	request.Order.Field = "created_at_utc"
 
 	responseBody := &[]*entities.ProductDocument{}
-	resp, err := helpers.MakeJsonPOSTRequest(fmt.Sprintf("%s/v1/products/filter", ApiBaseUrl), request, responseBody)
+	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
 
 	Expect(err).To(BeNil())
 	Expect(resp.StatusCode).To(Equal(http.StatusBadRequest))

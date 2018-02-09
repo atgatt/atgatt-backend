@@ -9,15 +9,21 @@ import (
 	"strings"
 )
 
+// SNELLHelmetRepository contains functions used to retrieve SNELL's helmet data via their JSON API
 type SNELLHelmetRepository struct {
 }
 
+// SNELLHelmetsResponse represents the data returned from SNELL's JSON API
 type SNELLHelmetsResponse struct {
-	// {"manufacturer":"First Line Industrial Inc.","model":"Fcarbon-17","size":"M, XL","standard":"B-90A","helmettype":"BIKE","faceconfig":"Full Face"}
 	Data []*entities.SNELLHelmet `json:"data"`
 }
 
-func (self *SNELLHelmetRepository) GetAllByCertification(standard string) ([]*entities.SNELLHelmet, error) {
+// GetAllByCertification returns the list of SNELL helmets that are certified to the given standard.
+func (r *SNELLHelmetRepository) GetAllByCertification(standard string) ([]*entities.SNELLHelmet, error) {
+	if standard == "" {
+		return nil, errors.New("The standard cannot be empty")
+	}
+
 	resp, err := http.Get("http://snell.us.com/codefolder/datatable.php")
 	if err != nil {
 		return nil, err
