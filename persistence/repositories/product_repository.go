@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/sirupsen/logrus"
 	// Importing the PQ driver because we need to run queries!
 	_ "github.com/lib/pq"
 )
@@ -206,7 +207,8 @@ func (r *ProductRepository) FilterProducts(query *queries.FilterProductsQuery) (
 	productDocuments := make([]entities.ProductDocument, 0)
 	originalSQLQueryString := fmt.Sprintf(`select document from products
 											%s
-											order by %s %s
+											order by %s %s,
+													 id asc
 											offset :start limit :limit`, whereCriteria, orderByExpression, orderByDirection)
 
 	// Converts :arguments to ? arguments so that we can preprocess the query
@@ -223,6 +225,7 @@ func (r *ProductRepository) FilterProducts(query *queries.FilterProductsQuery) (
 
 	// Converts ? arguments back to positional ($0, $1, $2, etc) arguments so that they can be executed in the DB.
 	preProcessedSQLQueryString = db.Rebind(preProcessedSQLQueryString)
+	logrus.Infof("Running query: %s", preProcessedSQLQueryString)
 	rows, err := db.Query(preProcessedSQLQueryString, args...)
 	if err != nil {
 		return nil, err
