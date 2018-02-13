@@ -53,7 +53,7 @@ func (j *ImportHelmetsJob) Run() error {
 			Materials:           sharpHelmet.Materials,
 			Model:               sharpHelmet.Model,
 			ModelAlias:          "",
-			PriceInUsdMultiple:  0,
+			PriceInUSDMultiple:  0,
 			RetentionSystem:     sharpHelmet.RetentionSystem,
 			Sizes:               sharpHelmet.Sizes,
 			Subtype:             sharpHelmet.Subtype,

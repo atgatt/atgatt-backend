@@ -2,7 +2,9 @@ package jobs
 
 import (
 	"crashtested-backend/persistence/repositories"
-	"fmt"
+	"math"
+	"strconv"
+	"time"
 
 	"github.com/ngs/go-amazon-product-advertising-api/amazon"
 	"github.com/sirupsen/logrus"
@@ -25,38 +27,82 @@ func (j *SyncAmazonDataJob) Run() error {
 
 	for len(currProducts) > 0 {
 		for _, product := range currProducts {
+			productLogger := logrus.WithFields(
+				logrus.Fields{
+					"productUUID":  product.UUID,
+					"manufacturer": product.Manufacturer,
+					"model":        product.Model,
+				})
 			itemSearchRequest := j.AmazonClient.ItemSearch(amazon.ItemSearchParameters{
-				SearchIndex:  amazon.SearchIndexAll,
-				Keywords:     fmt.Sprintf("%s %s", product.Manufacturer, product.Model),
-				MinimumPrice: 50,
+				SearchIndex:  amazon.SearchIndexAutomotive,
+				Keywords:     product.Model,
+				Manufacturer: product.Manufacturer,
+				MinimumPrice: 5000, // This is the same as $50.00
 			})
 
-			var resp *amazon.ItemSearchResponse
-			var doErr error
-			if resp, doErr = itemSearchRequest.Do(); doErr != nil {
-				return doErr
+			var searchResp *amazon.ItemSearchResponse
+			var doSearchErr error
+			url := ""
+			priceInUsdMultiple := 0
+
+			time.Sleep(1 * time.Second)
+			if searchResp, doSearchErr = itemSearchRequest.Do(); doSearchErr != nil {
+				productLogger.WithField("error", doSearchErr).Warn("Encountered an error while searching for the product, continuing to the next product")
+				continue
 			}
 
-			if respErr := resp.Error(); respErr != nil {
-				return respErr
+			if searchRespErr := searchResp.Error(); searchRespErr != nil {
+				productLogger.WithField("error", searchRespErr).Warn("Encountered an error while searching for the product, continuing to the next product")
+				continue
 			}
 
-			if resp.Items.TotalResults > 0 {
-				bestResult := resp.Items.Item[0]
+			if searchResp.Items.TotalResults > 0 {
+				bestResult := searchResp.Items.Item[0]
 				itemLookupRequest := j.AmazonClient.ItemLookup(amazon.ItemLookupParameters{
 					IDType:         amazon.IDTypeASIN,
 					ResponseGroups: []amazon.ItemLookupResponseGroup{amazon.ItemLookupResponseGroupOffers},
 					ItemIDs:        []string{bestResult.ASIN},
 				})
 
-				resp, err := itemLookupRequest.Do()
+				time.Sleep(1 * time.Second)
+				lookupResp, lookupErr := itemLookupRequest.Do()
+				if lookupErr != nil {
+					productLogger.WithField("error", lookupErr).Error("Encountered an error while getting item details, continuing to the next product")
+					continue
+				}
+
+				if lookupRespErr := lookupResp.Error(); lookupRespErr != nil {
+					productLogger.WithField("error", lookupRespErr).Error("Encountered an error while getting item details, continuing to the next product")
+					continue
+				}
+
+				if len(lookupResp.Items.Item) > 0 && len(lookupResp.Items.Item[0].Offers.Offer) > 0 {
+					firstItem := lookupResp.Items.Item[0]
+					lowestNewPriceAmount, _ := strconv.Atoi(firstItem.OfferSummary.LowestNewPrice.Amount)
+					lowestUsedPriceAmount, _ := strconv.Atoi(firstItem.OfferSummary.LowestUsedPrice.Amount)
+
+					if lowestNewPriceAmount > 0 && lowestUsedPriceAmount > 0 {
+						priceInUsdMultiple = int(math.Min(float64(lowestUsedPriceAmount), float64(lowestNewPriceAmount)))
+					} else {
+						priceInUsdMultiple = int(math.Max(float64(lowestUsedPriceAmount), float64(lowestNewPriceAmount)))
+					}
+					url = bestResult.DetailPageURL
+				}
+			}
+
+			if url == "" || priceInUsdMultiple == 0 {
+				productLogger.Error("Got Amazon data for the product, but it was empty. Skipping.")
+			} else {
+				productLogger.Infof("Successfully got Amazon data - URL: %s, Price: %d", url, priceInUsdMultiple)
+
+				(&product).PriceInUSDMultiple = priceInUsdMultiple
+				(&product).BuyURL = url
+
+				err := j.ProductRepository.UpdateProduct(&product)
 				if err != nil {
 					return err
 				}
-
-				logrus.Info(resp)
 			}
-			logrus.Info(resp)
 		}
 
 		start += limit

@@ -13,7 +13,8 @@ type ProductDocument struct {
 	Model               string    `json:"model"`
 	ModelAlias          string    `json:"modelAlias"`
 	ImageURL            string    `json:"imageUrl"`
-	PriceInUsdMultiple  int       `json:"priceInUsdMultiple"`
+	BuyURL              string    `json:"buyUrl"`
+	PriceInUSDMultiple  int       `json:"priceInUsdMultiple"`
 	LatchPercentage     int       `json:"latchPercentage"`
 	WeightInLbsMultiple int       `json:"weightInLbsMultiple"`
 	Sizes               []string  `json:"sizes"`

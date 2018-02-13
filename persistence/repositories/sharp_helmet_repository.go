@@ -5,6 +5,7 @@ import (
 	"crashtested-backend/persistence/entities"
 	"errors"
 	"fmt"
+	"math"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -162,6 +163,16 @@ func parseSHARPHelmetByURL(pooledHTTPClient *http.Client, httpRequestsSemaphore 
 	}
 
 	model := findDetailsTextByHeader(helmetDetailsDoc, "model")
+	if model == "" {
+		result.err = errors.New("Encountered an empty model")
+		helmetResultsChannel <- result
+		return
+	}
+
+	priceFrom := findDetailsTextByHeader(helmetDetailsDoc, "price from")
+	priceFromItems := strings.Split(priceFrom, "£")
+	approximateMSRPInUsd, _ := strconv.ParseFloat(priceFromItems[1], 64)
+	approximateMSRPInUsdMultiple := int(math.Trunc(approximateMSRPInUsd * 100))
 
 	starsSelection := findDetailsSelectionByHeader(helmetDetailsDoc, "helmet rating")
 	starsImageURL, _ := starsSelection.ChildrenFiltered("img").First().Attr("src")
@@ -227,17 +238,18 @@ func parseSHARPHelmetByURL(pooledHTTPClient *http.Client, httpRequestsSemaphore 
 	isECERated := strings.Contains(otherStandardsText, "ECE")
 
 	helmet := &entities.SHARPHelmet{
-		Subtype:             subtype,
-		Model:               model,
-		Manufacturer:        manufacturer,
-		ImageURL:            productImageURL,
-		LatchPercentage:     latchPercentage,
-		WeightInLbsMultiple: weightInLbsMultiple,
-		Sizes:               sizes,
-		RetentionSystem:     retentionSystem,
-		Materials:           materials,
-		IsECECertified:      isECERated,
-		Certifications:      &entities.SHARPCertificationDocument{Stars: starsValue, ImpactZoneRatings: impactZoneRatings},
+		Subtype:                       subtype,
+		Model:                         model,
+		Manufacturer:                  manufacturer,
+		ImageURL:                      productImageURL,
+		LatchPercentage:               latchPercentage,
+		WeightInLbsMultiple:           weightInLbsMultiple,
+		Sizes:                         sizes,
+		RetentionSystem:               retentionSystem,
+		Materials:                     materials,
+		IsECECertified:                isECERated,
+		Certifications:                &entities.SHARPCertificationDocument{Stars: starsValue, ImpactZoneRatings: impactZoneRatings},
+		ApproximatePriceInUsdMultiple: approximateMSRPInUsdMultiple,
 	}
 
 	result.helmet = helmet

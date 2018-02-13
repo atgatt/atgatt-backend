@@ -81,8 +81,8 @@ func Test_FilterProducts_should_return_the_products_in_the_given_price_range_whe
 
 	Expect(*responseBody).ToNot(BeEmpty())
 	for _, item := range *responseBody {
-		Expect(item.PriceInUsdMultiple).To(BeNumerically("<=", 40000))
-		Expect(item.PriceInUsdMultiple).To(BeNumerically(">=", 29900))
+		Expect(item.PriceInUSDMultiple).To(BeNumerically("<=", 40000))
+		Expect(item.PriceInUSDMultiple).To(BeNumerically(">=", 29900))
 	}
 }
 
@@ -164,7 +164,7 @@ func Test_FilterProducts_should_return_the_products_in_the_given_price_range_whe
 
 	Expect(*responseBody).ToNot(BeEmpty())
 	for _, item := range *responseBody {
-		Expect(item.PriceInUsdMultiple).To(Equal(29900))
+		Expect(item.PriceInUSDMultiple).To(Equal(29900))
 	}
 }
 
