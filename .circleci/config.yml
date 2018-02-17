@@ -2,7 +2,7 @@ version: 2
 jobs:
   deploy_staging:
     docker:
-      - image: circleci/golang:1.9
+      - image: circleci/golang:1.10rc2
         environment:
           DATABASE_CONNECTION_STRING: postgres://postgres:password@localhost:5432/crashtested?sslmode=disable
           APP_ENVIRONMENT: circleci
@@ -24,7 +24,7 @@ jobs:
       - run: echo 'export PATH=$PATH:~/.local/bin' >> $BASH_ENV
       - run: source ~/.bashrc
       - run: chmod +x ./deploy/setup_aws_credentials.sh && ./deploy/setup_aws_credentials.sh
-      - run: curl -L -o /go/bin/dep https://github.com/golang/dep/releases/download/v0.3.2/dep-linux-amd64
+      - run: curl -L -o /go/bin/dep https://github.com/golang/dep/releases/download/v0.4.1/dep-linux-amd64
       - run: chmod +x /go/bin/dep
       - run: dep ensure
       - save_cache:

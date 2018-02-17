@@ -26,12 +26,6 @@
   revision = "b0b294934396cec7a3292f694193f73cb9ddd71f"
 
 [[projects]]
-  name = "github.com/dgrijalva/jwt-go"
-  packages = ["."]
-  revision = "dbeaa9332f19a944acb5736b4456cfcc02140e29"
-  version = "v3.1.0"
-
-[[projects]]
   name = "github.com/go-ozzo/ozzo-validation"
   packages = ["."]
   revision = "85dcd8368eba387e65a03488b003e233994e87e9"
@@ -60,12 +54,6 @@
   packages = [".","middleware"]
   revision = "0473c51f1dbd83487effce00702571d19033a6e5"
   version = "3.2.5"
-
-[[projects]]
-  name = "github.com/labstack/gommon"
-  packages = ["bytes","color","log","random"]
-  revision = "57409ada9da0f2afad6664c49502f8c50fbd8476"
-  version = "0.2.3"
 
 [[projects]]
   branch = "master"
