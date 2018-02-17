@@ -34,6 +34,7 @@ jobs:
       - run: sed -i "s/{LOCAL-DEV-BUILD}/${CIRCLE_BUILD_NUM}/g" ./api/main.go
       - run: sed -i "s/{LOCAL-DEV-COMMIT}/${CIRCLE_SHA1}/g" ./api/main.go
       - run: go build -o crashtested-api ./api
+      - run: go build -o crashtested-worker ./worker
       - run: go test -v ./...
       - run: zip -r artifacts.zip crashtested-api Procfile ./persistence/migrations/
       - run: eb deploy --label api-${CIRCLE_SHA1} --process --verbose
