@@ -8,7 +8,6 @@ import (
 	"fmt"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/sirupsen/logrus"
 	// Importing the PQ driver because we need to run queries!
 	_ "github.com/lib/pq"
 )
@@ -39,9 +38,9 @@ func (r *ProductRepository) GetByModel(manufacturer string, model string) (*enti
 	return &filteredProducts[0], nil
 }
 
-// GetAllPaged queries the database for all products without any filters, within the range of start and limit. This function is useful for calling functions that to do batch operations on all products in the DB.
-func (r *ProductRepository) GetAllPaged(start int, limit int) ([]entities.ProductDocument, error) {
-	query := &queries.FilterProductsQuery{Start: start, Limit: limit}
+// GetAllWithoutPricePaged queries the database for all products without prices, within the range of start and limit.
+func (r *ProductRepository) GetAllWithoutPricePaged(start int, limit int) ([]entities.ProductDocument, error) {
+	query := &queries.FilterProductsQuery{Start: start, Limit: limit, UsdPriceRange: []int{0, 0}}
 	query.Order.Field = "id"
 
 	filteredProducts, err := r.FilterProducts(query)
@@ -225,7 +224,6 @@ func (r *ProductRepository) FilterProducts(query *queries.FilterProductsQuery) (
 
 	// Converts ? arguments back to positional ($0, $1, $2, etc) arguments so that they can be executed in the DB.
 	preProcessedSQLQueryString = db.Rebind(preProcessedSQLQueryString)
-	logrus.Infof("Running query: %s", preProcessedSQLQueryString)
 	rows, err := db.Query(preProcessedSQLQueryString, args...)
 	if err != nil {
 		return nil, err

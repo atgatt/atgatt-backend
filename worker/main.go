@@ -14,7 +14,7 @@ func main() {
 
 	amazonClient, err := amazon.New(config.AmazonAssociates.AccessKey, config.AmazonAssociates.SecretKey, config.AmazonAssociates.AssociateID, amazon.RegionUS)
 	if err != nil {
-		logrus.Errorf("Encountered an error while creating an Amazon Client: %s", err.Error())
+		logrus.WithError(err).Error("Encountered an error while creating an Amazon Client")
 		return
 	}
 
@@ -28,16 +28,17 @@ func main() {
 		ManufacturerRepository: &repositories.ManufacturerRepository{ConnectionString: config.DatabaseConnectionString},
 	}
 
-	err = syncAmazonDataJob.Run()
-	if err != nil {
-		logrus.Errorf("Amazon Sync Job completed with errors: %s", err.Error())
-	} else {
-		logrus.Info("Amazon Sync Job completed successfully")
-	}
 	err = importHelmetsJob.Run()
 	if err != nil {
-		logrus.Errorf("Import Helmets Job completed with errors: %s", err.Error())
+		logrus.WithError(err).Error("Import Helmets Job completed with errors")
 	} else {
 		logrus.Info("Import Helmets Job completed successfully")
+	}
+
+	err = syncAmazonDataJob.Run()
+	if err != nil {
+		logrus.WithError(err).Error("Amazon Sync Job completed with errors")
+	} else {
+		logrus.Info("Amazon Sync Job completed successfully")
 	}
 }

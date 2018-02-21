@@ -20,7 +20,7 @@ type SyncAmazonDataJob struct {
 func (j *SyncAmazonDataJob) Run() error {
 	start := 0
 	limit := 25
-	currProducts, err := j.ProductRepository.GetAllPaged(start, limit)
+	currProducts, err := j.ProductRepository.GetAllWithoutPricePaged(start, limit)
 	if err != nil {
 		return err
 	}
@@ -106,7 +106,7 @@ func (j *SyncAmazonDataJob) Run() error {
 		}
 
 		start += limit
-		currProducts, err = j.ProductRepository.GetAllPaged(start, limit)
+		currProducts, err = j.ProductRepository.GetAllWithoutPricePaged(start, limit)
 		if err != nil {
 			return err
 		}

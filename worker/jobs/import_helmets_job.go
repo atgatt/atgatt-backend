@@ -45,7 +45,6 @@ func (j *ImportHelmetsJob) Run() error {
 			jobCompletedWithWarnings = true
 		}
 		sharpHelmet.Manufacturer = cleanedManufacturer
-
 		product := &entities.ProductDocument{
 			ImageURL:            sharpHelmet.ImageURL,
 			LatchPercentage:     sharpHelmet.LatchPercentage,
@@ -53,7 +52,7 @@ func (j *ImportHelmetsJob) Run() error {
 			Materials:           sharpHelmet.Materials,
 			Model:               sharpHelmet.Model,
 			ModelAlias:          "",
-			PriceInUSDMultiple:  0,
+			PriceInUSDMultiple:  sharpHelmet.ApproximatePriceInUsdMultiple,
 			RetentionSystem:     sharpHelmet.RetentionSystem,
 			Sizes:               sharpHelmet.Sizes,
 			Subtype:             sharpHelmet.Subtype,
@@ -105,6 +104,17 @@ func (j *ImportHelmetsJob) Run() error {
 
 	combinedProductsList := append(sharpProducts, snellProducts...)
 	for _, product := range combinedProductsList {
+		validator := &entities.ProductDocumentValidator{Product: product}
+		validationErr := validator.Validate()
+		if validationErr != nil {
+			logrus.WithFields(logrus.Fields{
+				"manufacturer":    product.Manufacturer,
+				"model":           product.Model,
+				"validationError": validationErr,
+			}).Warning("Validation failed, continuing to the next helmet")
+			continue
+		}
+
 		existingProduct, err := j.ProductRepository.GetByModel(product.Manufacturer, product.Model)
 		if err != nil {
 			return err

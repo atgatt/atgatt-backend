@@ -127,9 +127,9 @@ type parseHelmetResult struct {
 func parseSHARPHelmetByURL(pooledHTTPClient *http.Client, httpRequestsSemaphore chan struct{}, helmetURL string, helmetResultsChannel chan *parseHelmetResult, weightRegexp *regexp.Regexp, starsRegexp *regexp.Regexp, topImpactZoneRegexp *regexp.Regexp, leftImpactZoneRegexp *regexp.Regexp, rightImpactZoneRegexp *regexp.Regexp, rearImpactZoneRegexp *regexp.Regexp) {
 	helmetLogger := logrus.WithField("helmetUrl", helmetURL)
 	helmetLogger.Info("Starting to parse helmet data")
-	var emptyItem struct{}
 
 	// increment while we're waiting for the request to finish
+	var emptyItem struct{}
 	httpRequestsSemaphore <- emptyItem
 	resp, err := pooledHTTPClient.Get(helmetURL)
 	result := &parseHelmetResult{helmetURL: helmetURL}
@@ -164,15 +164,18 @@ func parseSHARPHelmetByURL(pooledHTTPClient *http.Client, httpRequestsSemaphore 
 
 	model := findDetailsTextByHeader(helmetDetailsDoc, "model")
 	if model == "" {
-		result.err = errors.New("Encountered an empty model")
-		helmetResultsChannel <- result
-		return
+		helmetLogger.Warn("The model of the helmet was missing")
 	}
 
 	priceFrom := findDetailsTextByHeader(helmetDetailsDoc, "price from")
 	priceFromItems := strings.Split(priceFrom, "£")
-	approximateMSRPInUsd, _ := strconv.ParseFloat(priceFromItems[1], 64)
-	approximateMSRPInUsdMultiple := int(math.Trunc(approximateMSRPInUsd * 100))
+	approximateMSRPInUsdMultiple := 0
+	if len(priceFromItems) > 1 {
+		approximateMSRPInUsd, _ := strconv.ParseFloat(priceFromItems[1], 64)
+		approximateMSRPInUsdMultiple = int(math.Trunc(approximateMSRPInUsd * 100))
+	} else {
+		helmetLogger.Warning("The price of the helmet was missing")
+	}
 
 	starsSelection := findDetailsSelectionByHeader(helmetDetailsDoc, "helmet rating")
 	starsImageURL, _ := starsSelection.ChildrenFiltered("img").First().Attr("src")
@@ -197,12 +200,11 @@ func parseSHARPHelmetByURL(pooledHTTPClient *http.Client, httpRequestsSemaphore 
 	if len(weightMatches) > 1 {
 		weightText := weightMatches[1]
 		weightInKg, err := strconv.ParseFloat(weightText, 64)
-		if err != nil {
-			result.err = err
-			helmetResultsChannel <- result
-			return
+		if err == nil {
+			weightInLbsMultiple = int(float64(2.20462) * weightInKg * 100)
+		} else {
+			helmetLogger.WithError(err).Warning("The weight was in an unexpected format")
 		}
-		weightInLbsMultiple = int(float64(2.20462) * weightInKg * 100)
 	} else {
 		helmetLogger.Warning("An unexpected weight was encountered, setting weight to -1 lbs")
 	}
@@ -224,9 +226,8 @@ func parseSHARPHelmetByURL(pooledHTTPClient *http.Client, httpRequestsSemaphore 
 		var err error
 		latchPercentage, err = strconv.Atoi(latchPercentageArray[0])
 		if err != nil {
-			result.err = err
-			helmetResultsChannel <- result
-			return
+			helmetLogger.WithError(err).Warning("The latch percentage was in an unexpected format")
+			latchPercentage = -1
 		}
 	} else if subtype == "modular" {
 		helmetLogger.Warn("Encountered a modular helmet with a latch percentage array that did not contain at least 2 elements, assuming empty latch percentage")
