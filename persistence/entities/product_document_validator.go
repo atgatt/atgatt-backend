@@ -7,6 +7,7 @@ type ProductDocumentValidator struct {
 	Product *ProductDocument
 }
 
+// Validate checks that the manufacturer and model are defined for the given product
 func (v *ProductDocumentValidator) Validate() error {
 	err := validation.ValidateStruct(v.Product,
 		validation.Field(&v.Product.Manufacturer,

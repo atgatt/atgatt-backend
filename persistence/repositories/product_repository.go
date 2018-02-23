@@ -51,6 +51,40 @@ func (r *ProductRepository) GetAllWithoutPricePaged(start int, limit int) ([]ent
 	return filteredProducts, nil
 }
 
+// GetAllModelAliases returns all the model aliases in the database
+func (r *ProductRepository) GetAllModelAliases() ([]entities.ProductModelAlias, error) {
+	db, err := sqlx.Open("postgres", r.ConnectionString)
+	defer db.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	productModelAliases := []entities.ProductModelAlias{}
+	err = db.Select(&productModelAliases, "select manufacturer, model, model_alias as modelalias from product_model_aliases")
+	if err != nil {
+		return nil, err
+	}
+
+	return productModelAliases, nil
+}
+
+// GetAllManufacturerAliases returns all the manufacturer aliases in the database
+func (r *ProductRepository) GetAllManufacturerAliases() ([]entities.ProductManufacturerAlias, error) {
+	db, err := sqlx.Open("postgres", r.ConnectionString)
+	defer db.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	productManufacturerAliases := []entities.ProductManufacturerAlias{}
+	err = db.Select(&productManufacturerAliases, "select manufacturer, manufacturer_alias as manufactureralias from product_manufacturer_aliases")
+	if err != nil {
+		return nil, err
+	}
+
+	return productManufacturerAliases, nil
+}
+
 // UpdateProduct replaces the product in the DB with the supplied product, where the product's UUID matches the one supplied
 func (r *ProductRepository) UpdateProduct(product *entities.ProductDocument) error {
 	db, err := sqlx.Open("postgres", r.ConnectionString)

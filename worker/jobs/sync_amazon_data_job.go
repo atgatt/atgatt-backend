@@ -2,6 +2,7 @@ package jobs
 
 import (
 	"crashtested-backend/persistence/repositories"
+	"fmt"
 	"math"
 	"strconv"
 	"time"
@@ -35,9 +36,9 @@ func (j *SyncAmazonDataJob) Run() error {
 				})
 			itemSearchRequest := j.AmazonClient.ItemSearch(amazon.ItemSearchParameters{
 				SearchIndex:  amazon.SearchIndexAutomotive,
-				Keywords:     product.Model,
+				Keywords:     fmt.Sprintf("%s -shield", product.Model),
 				Manufacturer: product.Manufacturer,
-				MinimumPrice: 5000, // This is the same as $50.00
+				MinimumPrice: 10000, // This is the same as $100.00
 			})
 
 			var searchResp *amazon.ItemSearchResponse

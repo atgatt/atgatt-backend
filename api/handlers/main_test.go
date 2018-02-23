@@ -20,11 +20,11 @@ import (
 const APIBaseURL string = "http://localhost:5001"
 const IntegrationTestDatabaseName string = "crashtested"
 const DatabaseServerConnectionString string = "postgres://postgres:password@localhost:5432/?sslmode=disable"
+const MaxTimeToWait time.Duration = 10 * time.Second
 
 var DatabaseConnectionString = fmt.Sprintf("postgres://postgres:password@localhost:5432/%s?sslmode=disable", IntegrationTestDatabaseName)
 
 func WaitFor(label string, isRunningFunc func() (bool, error)) bool {
-	const MaxTimeToWait time.Duration = 10 * time.Second
 
 	var isRunning bool
 	var err error

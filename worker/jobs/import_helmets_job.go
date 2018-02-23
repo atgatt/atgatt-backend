@@ -4,6 +4,7 @@ import (
 	"crashtested-backend/persistence/entities"
 	"crashtested-backend/persistence/repositories"
 	"fmt"
+	"math"
 	"sort"
 	"strings"
 
@@ -32,6 +33,21 @@ func (j *ImportHelmetsJob) Run() error {
 		return err
 	}
 
+	manufacturerAliases, err := j.ProductRepository.GetAllManufacturerAliases()
+	if err != nil {
+		return err
+	}
+
+	manufacturerAliasesMap := make(map[string]string)
+	for _, manufacturerAlias := range manufacturerAliases {
+		manufacturerAliasesMap[manufacturerAlias.Manufacturer] = manufacturerAlias.ManufacturerAlias
+	}
+
+	modelAliases, err := j.ProductRepository.GetAllModelAliases()
+	if err != nil {
+		return err
+	}
+
 	// NOTE: This call blocks for about a minute on average as we need to fetch 400+ HTML files and scrape them for data.
 	sharpHelmets, err := j.SHARPHelmetRepository.GetAll()
 	if err != nil {
@@ -40,15 +56,12 @@ func (j *ImportHelmetsJob) Run() error {
 
 	var jobCompletedWithWarnings bool
 	for _, sharpHelmet := range sharpHelmets {
-		cleanedManufacturer, success := findCleanedManufacturer(sharpHelmet.Manufacturer, manufacturers)
-		if !jobCompletedWithWarnings && !success {
-			jobCompletedWithWarnings = true
-		}
-		sharpHelmet.Manufacturer = cleanedManufacturer
+		cleanedManufacturer := findCleanedManufacturer(sharpHelmet.Manufacturer, manufacturers, manufacturerAliasesMap)
+		modelAlias := findAliasForModel(modelAliases, cleanedManufacturer, sharpHelmet.Model)
 		product := &entities.ProductDocument{
 			ImageURL:            sharpHelmet.ImageURL,
 			LatchPercentage:     sharpHelmet.LatchPercentage,
-			Manufacturer:        sharpHelmet.Manufacturer,
+			Manufacturer:        cleanedManufacturer,
 			Materials:           sharpHelmet.Materials,
 			Model:               sharpHelmet.Model,
 			ModelAlias:          "",
@@ -59,6 +72,15 @@ func (j *ImportHelmetsJob) Run() error {
 			Type:                helmetType,
 			UUID:                uuid.New(),
 			WeightInLbsMultiple: sharpHelmet.WeightInLbsMultiple,
+		}
+
+		if modelAlias != "" {
+			logrus.WithFields(logrus.Fields{
+				"model":      product.Model,
+				"modelAlias": modelAlias,
+			}).Info("Replacing model with an alias")
+			product.ModelAlias = product.Model
+			product.Model = modelAlias
 		}
 
 		product.Certifications.SHARP = sharpHelmet.Certifications
@@ -72,10 +94,7 @@ func (j *ImportHelmetsJob) Run() error {
 	}
 
 	for _, snellHelmet := range snellHelmets {
-		cleanedManufacturer, success := findCleanedManufacturer(snellHelmet.Manufacturer, manufacturers)
-		if !jobCompletedWithWarnings && !success {
-			jobCompletedWithWarnings = true
-		}
+		cleanedManufacturer := findCleanedManufacturer(snellHelmet.Manufacturer, manufacturers, manufacturerAliasesMap)
 		matchingSHARPProduct, success := findMatchingSHARPProduct(cleanedManufacturer, snellHelmet.Model, sharpProducts)
 		if !jobCompletedWithWarnings && !success {
 			jobCompletedWithWarnings = true
@@ -137,6 +156,15 @@ func (j *ImportHelmetsJob) Run() error {
 	return nil
 }
 
+func findAliasForModel(aliases []entities.ProductModelAlias, manufacturer string, model string) string {
+	for _, alias := range aliases {
+		if strings.EqualFold(alias.Manufacturer, manufacturer) && strings.EqualFold(alias.Model, model) {
+			return alias.ModelAlias
+		}
+	}
+	return ""
+}
+
 const boostThreshold float64 = 0.7
 const prefixSize int = 4
 
@@ -166,26 +194,33 @@ func findMatchingSHARPProduct(cleanedSNELLManufacturer string, rawSNELLModel str
 		lowercaseFirstSHARPModel := strings.ToLower(firstSHARPHelmet.Model)
 		lowercaseSecondSHARPModel := strings.ToLower(secondSHARPHelmet.Model)
 
+		lowercaseFirstSHARPModelAlias := strings.ToLower(firstSHARPHelmet.ModelAlias)
+		lowercaseSecondSHARPModelAlias := strings.ToLower(secondSHARPHelmet.ModelAlias)
+
 		firstModelMatchConfidence := smetrics.JaroWinkler(lowercaseRawSNELLModel, lowercaseFirstSHARPModel, boostThreshold, prefixSize)
 		secondModelMatchConfidence := smetrics.JaroWinkler(lowercaseRawSNELLModel, lowercaseSecondSHARPModel, boostThreshold, prefixSize)
 
+		firstModelAliasMatchConfidence := smetrics.JaroWinkler(lowercaseRawSNELLModel, lowercaseFirstSHARPModelAlias, boostThreshold, prefixSize)
+		secondModelAliasMatchConfidence := smetrics.JaroWinkler(lowercaseRawSNELLModel, lowercaseSecondSHARPModelAlias, boostThreshold, prefixSize)
+
 		if _, exists := confidenceMap[firstSHARPHelmet.Model]; !exists {
-			confidenceMap[firstSHARPHelmet.Model] = firstModelMatchConfidence
+			confidenceMap[firstSHARPHelmet.Model] = math.Max(firstModelMatchConfidence, firstModelAliasMatchConfidence)
 		}
 
 		if _, exists := confidenceMap[secondSHARPHelmet.Model]; !exists {
-			confidenceMap[secondSHARPHelmet.Model] = secondModelMatchConfidence
+			confidenceMap[secondSHARPHelmet.Model] = math.Max(secondModelMatchConfidence, secondModelAliasMatchConfidence)
 		}
 
-		return firstModelMatchConfidence > secondModelMatchConfidence
+		return (firstModelMatchConfidence + firstModelAliasMatchConfidence) > (secondModelMatchConfidence + secondModelAliasMatchConfidence)
 	})
 
 	mostLikelySHARPHelmet := possibleSHARPHelmets[0]
 	confidence := confidenceMap[mostLikelySHARPHelmet.Model]
 	logEntry := logrus.WithFields(logrus.Fields{
-		"rawSNELLModel":        rawSNELLModel,
-		"mostLikelySHARPModel": mostLikelySHARPHelmet.Model,
-		"confidence":           confidence,
+		"rawSNELLModel":             rawSNELLModel,
+		"mostLikelySHARPModel":      mostLikelySHARPHelmet.Model,
+		"mostLikelySHARPModelAlias": mostLikelySHARPHelmet.ModelAlias,
+		"confidence":                confidence,
 	})
 
 	// if we're 90% confident that the model matches, use the value
@@ -198,7 +233,7 @@ func findMatchingSHARPProduct(cleanedSNELLManufacturer string, rawSNELLModel str
 	return nil, false
 }
 
-func findCleanedManufacturer(rawManufacturer string, cleanedManufacturers []string) (string, bool) {
+func findCleanedManufacturer(rawManufacturer string, cleanedManufacturers []string, manufacturerAliasesMap map[string]string) string {
 	mostLikelyManufacturers := make([]string, len(cleanedManufacturers))
 	copy(mostLikelyManufacturers, cleanedManufacturers)
 
@@ -235,26 +270,41 @@ func findCleanedManufacturer(rawManufacturer string, cleanedManufacturers []stri
 		"confidence":          confidence,
 	})
 
-	// if we're 70% confident that the manufacturer matches, use the value
+	manufacturerToReturn := ""
+
+	// if we're 70% confident that the manufacturer matches, use the cleaned value
 	if confidence >= 0.7 {
 		logEntry.Info("High confidence: replaced raw manufacturer with cleaned manufacturer using Jaro-Winkler algorithm")
-		return mostLikelyManufacturer, true
-	}
+		manufacturerToReturn = mostLikelyManufacturer
+	} else {
+		foundCleanedManufacturer := false
+		// Otherwise, do a stupider contains search to try to clean up the manufacturer
+		for _, cleanedManufacturer := range cleanedManufacturers {
+			lowercaseCleanedManufacturer := strings.ToLower(cleanedManufacturer)
+			lowercaseRawManufacturer := strings.ToLower(rawManufacturer)
 
-	// Otherwise, do a stupider contains search to try to clean up the manufacturer
-	for _, cleanedManufacturer := range cleanedManufacturers {
-		lowercaseCleanedManufacturer := strings.ToLower(cleanedManufacturer)
-		lowercaseRawManufacturer := strings.ToLower(rawManufacturer)
+			if strings.HasPrefix(lowercaseRawManufacturer, lowercaseCleanedManufacturer) || strings.Contains(lowercaseRawManufacturer, fmt.Sprintf(" %s", lowercaseCleanedManufacturer)) {
+				logrus.WithFields(logrus.Fields{
+					"rawManufacturer":     rawManufacturer,
+					"cleanedManufacturer": cleanedManufacturer,
+				}).Warn("Low confidence: Replaced raw manufacturer with cleaned manufacturer by contains search")
+				manufacturerToReturn = cleanedManufacturer
+				foundCleanedManufacturer = true
+				break
+			}
+		}
 
-		if strings.HasPrefix(lowercaseRawManufacturer, lowercaseCleanedManufacturer) || strings.Contains(lowercaseRawManufacturer, fmt.Sprintf(" %s", lowercaseCleanedManufacturer)) {
-			logrus.WithFields(logrus.Fields{
-				"rawManufacturer":     rawManufacturer,
-				"cleanedManufacturer": cleanedManufacturer,
-			}).Warn("Low confidence: Replaced raw manufacturer with cleaned manufacturer by contains search")
-			return cleanedManufacturer, true
+		if !foundCleanedManufacturer {
+			// Worst case, use the raw value
+			logrus.WithFields(logrus.Fields{"rawManufacturer": rawManufacturer}).Error("Could not find an appropriate match for the given raw manufacturer, using the value as-is")
+			manufacturerToReturn = rawManufacturer
 		}
 	}
-	// Worst case, return the raw value
-	logrus.WithFields(logrus.Fields{"rawManufacturer": rawManufacturer}).Error("Could not find an appropriate match for the given raw manufacturer, using the value as-is")
-	return rawManufacturer, false
+
+	if alias, exists := manufacturerAliasesMap[manufacturerToReturn]; exists {
+		logrus.WithFields(logrus.Fields{"manufacturerToReturn": manufacturerToReturn, "manufacturerAlias": alias}).Info("Returning an alias for the given manufacturer")
+		return alias
+	}
+
+	return manufacturerToReturn
 }
