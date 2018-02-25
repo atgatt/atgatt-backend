@@ -14,6 +14,39 @@
   revision = "349dd0209470eabd9514242c688c403c0926d266"
 
 [[projects]]
+  name = "github.com/aws/aws-sdk-go"
+  packages = [
+    "aws",
+    "aws/awserr",
+    "aws/awsutil",
+    "aws/client",
+    "aws/client/metadata",
+    "aws/corehandlers",
+    "aws/credentials",
+    "aws/credentials/ec2rolecreds",
+    "aws/credentials/endpointcreds",
+    "aws/credentials/stscreds",
+    "aws/defaults",
+    "aws/ec2metadata",
+    "aws/endpoints",
+    "aws/request",
+    "aws/session",
+    "aws/signer/v4",
+    "internal/sdkrand",
+    "internal/shareddefaults",
+    "private/protocol",
+    "private/protocol/query",
+    "private/protocol/query/queryutil",
+    "private/protocol/rest",
+    "private/protocol/restxml",
+    "private/protocol/xml/xmlutil",
+    "service/s3",
+    "service/sts"
+  ]
+  revision = "f7f1ee9550cc76ceea731d99c8dbe00a0c39f66d"
+  version = "v1.13.4"
+
+[[projects]]
   branch = "master"
   name = "github.com/bakatz/echo-logrusmiddleware"
   packages = ["."]
@@ -32,6 +65,12 @@
   version = "v3.1.0"
 
 [[projects]]
+  name = "github.com/go-ini/ini"
+  packages = ["."]
+  revision = "32e4c1e6bc4e7d0d8451aa6b75200d19e37a536a"
+  version = "v1.32.0"
+
+[[projects]]
   name = "github.com/go-ozzo/ozzo-validation"
   packages = ["."]
   revision = "85dcd8368eba387e65a03488b003e233994e87e9"
@@ -48,6 +87,11 @@
   name = "github.com/hashicorp/go-cleanhttp"
   packages = ["."]
   revision = "d5fe4b57a186c716b0e00b8c301cbd9b4182694d"
+
+[[projects]]
+  name = "github.com/jmespath/go-jmespath"
+  packages = ["."]
+  revision = "0b12d6b5"
 
 [[projects]]
   branch = "master"
@@ -225,6 +269,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "0c70e7fb4af8ff7171ec59d7c4c9b322aa03b8bf2da32e82d591a57cdfec1a31"
+  inputs-digest = "fc8b1fcb85dda9864004713635425511159cadb5ea59f9e2ae7538f45b1a7da3"
   solver-name = "gps-cdcl"
   solver-version = 1

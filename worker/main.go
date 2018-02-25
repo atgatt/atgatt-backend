@@ -5,6 +5,10 @@ import (
 	"crashtested-backend/worker/configuration"
 	"crashtested-backend/worker/jobs"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/ngs/go-amazon-product-advertising-api/amazon"
 	"github.com/sirupsen/logrus"
 )
@@ -12,9 +16,16 @@ import (
 func main() {
 	config := configuration.GetDefaultConfiguration()
 
+	sess := session.Must(session.NewSession(&aws.Config{
+		Region:      aws.String("us-west-2"),
+		Credentials: credentials.NewEnvCredentials(),
+	}))
+
+	s3Uploader := s3manager.NewUploader(sess)
+
 	amazonClient, err := amazon.New(config.AmazonAssociates.AccessKey, config.AmazonAssociates.SecretKey, config.AmazonAssociates.AssociateID, amazon.RegionUS)
 	if err != nil {
-		logrus.WithError(err).Error("Encountered an error while creating an Amazon Client")
+		logrus.WithError(err).Error("Encountered an error while creating an Amazon Product Advertising Client")
 		return
 	}
 
@@ -26,6 +37,8 @@ func main() {
 		SHARPHelmetRepository:  &repositories.SHARPHelmetRepository{Limit: -1},
 		SNELLHelmetRepository:  &repositories.SNELLHelmetRepository{},
 		ManufacturerRepository: &repositories.ManufacturerRepository{ConnectionString: config.DatabaseConnectionString},
+		S3Uploader:             s3Uploader,
+		S3Bucket:               config.AWS.S3Bucket,
 	}
 
 	err = importHelmetsJob.Run()

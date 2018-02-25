@@ -5,9 +5,13 @@ import (
 	"crashtested-backend/persistence/repositories"
 	"fmt"
 	"math"
+	"net/http"
+	"path"
 	"sort"
 	"strings"
 
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager/s3manageriface"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"github.com/xrash/smetrics"
@@ -19,6 +23,8 @@ type ImportHelmetsJob struct {
 	SNELLHelmetRepository  *repositories.SNELLHelmetRepository
 	SHARPHelmetRepository  *repositories.SHARPHelmetRepository
 	ManufacturerRepository *repositories.ManufacturerRepository
+	S3Uploader             s3manageriface.UploaderAPI
+	S3Bucket               string
 }
 
 const helmetType string = "helmet"
@@ -123,20 +129,45 @@ func (j *ImportHelmetsJob) Run() error {
 
 	combinedProductsList := append(sharpProducts, snellProducts...)
 	for _, product := range combinedProductsList {
+		productLogger := logrus.WithFields(logrus.Fields{
+			"manufacturer": product.Manufacturer,
+			"model":        product.Model,
+		})
+		productLogger.Info("Starting to upsert the product into the database")
 		validator := &entities.ProductDocumentValidator{Product: product}
 		validationErr := validator.Validate()
 		if validationErr != nil {
-			logrus.WithFields(logrus.Fields{
-				"manufacturer":    product.Manufacturer,
-				"model":           product.Model,
-				"validationError": validationErr,
-			}).Warning("Validation failed, continuing to the next helmet")
+			productLogger.WithField("validationError", validationErr).Warning("Validation failed, continuing to the next helmet")
 			continue
 		}
 
 		existingProduct, err := j.ProductRepository.GetByModel(product.Manufacturer, product.Model)
 		if err != nil {
 			return err
+		}
+
+		if product.ImageURL != "" {
+			resp, err := http.Get(product.ImageURL)
+			if err != nil {
+				productLogger.WithField("imageURL", product.ImageURL).WithError(err).Warning("Could not download the product image from the image URL specified, saving the product to the DB anyway")
+			} else {
+				key := fmt.Sprintf("static/img/products/%s", path.Base(product.ImageURL))
+				s3Logger := productLogger.WithField("s3Key", key)
+				s3Logger.Info("Uploading product image to S3")
+				s3Resp, err := j.S3Uploader.Upload(&s3manager.UploadInput{
+					Bucket: &j.S3Bucket,
+					Key:    &key,
+					Body:   resp.Body,
+				})
+				if err != nil {
+					s3Logger.WithError(err).Warning("Could not upload the product image to S3, saving the product to the DB anyway")
+				}
+
+				product.ImageURL = fmt.Sprintf("/%s", key)
+				s3Logger.WithField("s3UploadLocation", s3Resp.Location).Info("Finished uploading product image to S3")
+			}
+		} else {
+			productLogger.Warn("No image found, not uploading anything to S3, saving the product to the DB anyway")
 		}
 
 		if existingProduct == nil {
@@ -151,6 +182,8 @@ func (j *ImportHelmetsJob) Run() error {
 				return err
 			}
 		}
+
+		productLogger.Info("Successfully finished upserting the product")
 	}
 
 	return nil
