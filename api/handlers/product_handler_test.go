@@ -382,3 +382,116 @@ func Test_FilterProducts_should_return_bad_request_when_the_limit_is_too_small(t
 	Expect(err).To(BeNil())
 	Expect(resp.StatusCode).To(Equal(http.StatusBadRequest))
 }
+
+func Test_FilterProducts_should_return_bad_request_when_ordering_by_an_unknown_field(t *testing.T) {
+	RegisterTestingT(t)
+
+	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 2000000}}
+	request.Order.Field = "yolo swag"
+
+	responseBody := &[]*entities.ProductDocument{}
+	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
+
+	Expect(err).To(BeNil())
+	Expect(resp.StatusCode).To(Equal(http.StatusBadRequest))
+}
+
+func Test_FilterProducts_should_be_able_to_order_by_the_price_in_USD(t *testing.T) {
+	RegisterTestingT(t)
+
+	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 2000000}}
+	request.Order.Field = "document->>'priceInUsdMultiple'"
+	request.Order.Descending = true
+
+	responseBody := &[]*entities.ProductDocument{}
+	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
+
+	Expect(err).To(BeNil())
+	Expect(resp.StatusCode).To(Equal(http.StatusOK))
+}
+
+func Test_FilterProducts_should_be_able_to_order_by_the_manufacturer(t *testing.T) {
+	RegisterTestingT(t)
+
+	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 2000000}}
+	request.Order.Field = "document->>'manufacturer'"
+	request.Order.Descending = true
+
+	responseBody := &[]*entities.ProductDocument{}
+	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
+
+	Expect(err).To(BeNil())
+	Expect(resp.StatusCode).To(Equal(http.StatusOK))
+}
+
+func Test_FilterProducts_should_be_able_to_order_by_the_model(t *testing.T) {
+	RegisterTestingT(t)
+
+	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 2000000}}
+	request.Order.Field = "document->>'manufacturer'"
+	request.Order.Descending = true
+
+	responseBody := &[]*entities.ProductDocument{}
+	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
+
+	Expect(err).To(BeNil())
+	Expect(resp.StatusCode).To(Equal(http.StatusOK))
+}
+
+func Test_FilterProducts_should_be_able_to_order_by_the_safety_percentage(t *testing.T) {
+	RegisterTestingT(t)
+
+	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 2000000}}
+	request.Order.Field = "document->>'safetyPercentage'"
+	request.Order.Descending = true
+
+	responseBody := &[]*entities.ProductDocument{}
+	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
+
+	Expect(err).To(BeNil())
+	Expect(resp.StatusCode).To(Equal(http.StatusOK))
+
+	Expect((*responseBody)[0].SafetyPercentage).To(Equal(100))
+}
+
+func Test_FilterProducts_should_be_able_to_order_by_the_utc_created_date(t *testing.T) {
+	RegisterTestingT(t)
+
+	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 2000000}}
+	request.Order.Field = "created_at_utc"
+	request.Order.Descending = true
+
+	responseBody := &[]*entities.ProductDocument{}
+	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
+
+	Expect(err).To(BeNil())
+	Expect(resp.StatusCode).To(Equal(http.StatusOK))
+}
+
+func Test_FilterProducts_should_be_able_to_order_by_the_utc_updated_date(t *testing.T) {
+	RegisterTestingT(t)
+
+	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 2000000}}
+	request.Order.Field = "updated_at_utc"
+	request.Order.Descending = true
+
+	responseBody := &[]*entities.ProductDocument{}
+	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
+
+	Expect(err).To(BeNil())
+	Expect(resp.StatusCode).To(Equal(http.StatusOK))
+}
+
+func Test_FilterProducts_should_be_able_to_order_by_id(t *testing.T) {
+	RegisterTestingT(t)
+
+	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 2000000}}
+	request.Order.Field = "id"
+	request.Order.Descending = true
+
+	responseBody := &[]*entities.ProductDocument{}
+	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
+
+	Expect(err).To(BeNil())
+	Expect(resp.StatusCode).To(Equal(http.StatusOK))
+}

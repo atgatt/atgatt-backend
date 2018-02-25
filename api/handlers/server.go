@@ -58,7 +58,7 @@ func (s *Server) Build() {
 		}
 		logzioHook, err := logruzio.New(s.Configuration.LogzioToken, fmt.Sprintf("%s-%s", s.Name, s.Configuration.AppEnvironment), logContext)
 		if err != nil {
-			logrus.Fatalf("Failed to start the API because the logger could not be initialized: %s", err.Error())
+			logrus.WithError(err).Fatal("Failed to start the API because the logger could not be initialized")
 			os.Exit(-1)
 		}
 		logrus.AddHook(logzioHook)
@@ -68,11 +68,20 @@ func (s *Server) Build() {
 
 	err = helpers.RunMigrations(s.Configuration.DatabaseConnectionString, "persistence/migrations")
 	if err != nil {
-		logrus.Errorf("Failed to run migrations, but starting the app anyway: %s", err.Error())
+		logrus.WithError(err).Error("Failed to run migrations, but starting the app anyway: %s")
 	}
 
 	healthCheckHandler := &HealthCheckHandler{Name: s.Name, Version: s.Version, BuildNumber: s.BuildNumber, CommitHash: s.CommitHash, MigrationsRepository: &repositories.MigrationsRepository{ConnectionString: s.Configuration.DatabaseConnectionString}}
-	productsHandler := &ProductHandler{Repository: &repositories.ProductRepository{ConnectionString: s.Configuration.DatabaseConnectionString}}
+
+	allowedOrderFields := make(map[string]bool)
+	allowedOrderFields["document->>'priceInUsdMultiple'"] = true
+	allowedOrderFields["document->>'manufacturer'"] = true
+	allowedOrderFields["document->>'model'"] = true
+	allowedOrderFields["document->>'safetyPercentage'"] = true
+	allowedOrderFields["created_at_utc"] = true
+	allowedOrderFields["updated_at_utc"] = true
+	allowedOrderFields["id"] = true
+	productsHandler := &ProductHandler{Repository: &repositories.ProductRepository{ConnectionString: s.Configuration.DatabaseConnectionString}, AllowedOrderFields: allowedOrderFields}
 
 	e.GET("/", healthCheckHandler.Healthcheck)
 	e.HEAD("/", healthCheckHandler.Healthcheck)

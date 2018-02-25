@@ -12,6 +12,7 @@ type ProductDocument struct {
 	Manufacturer        string    `json:"manufacturer"`
 	Model               string    `json:"model"`
 	ModelAlias          string    `json:"modelAlias"`
+	SafetyPercentage    int       `json:"safetyPercentage"`
 	ImageURL            string    `json:"imageUrl"`
 	BuyURL              string    `json:"buyUrl"`
 	PriceInUSDMultiple  int       `json:"priceInUsdMultiple"`

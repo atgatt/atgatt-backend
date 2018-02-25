@@ -10,7 +10,8 @@ import (
 
 // ProductHandler contains functions related to filtering and updating Products
 type ProductHandler struct {
-	Repository *repositories.ProductRepository
+	Repository         *repositories.ProductRepository
+	AllowedOrderFields map[string]bool
 }
 
 // FilterProducts returns a subset of products from the database based off a user-supplied query, where all parameters are AND'd together
@@ -20,7 +21,7 @@ func (p *ProductHandler) FilterProducts(context echo.Context) (err error) {
 		return err
 	}
 
-	err = (&queries.FilterProductsQueryValidator{Query: query}).Validate()
+	err = (&queries.FilterProductsQueryValidator{Query: query, AllowedOrderFields: p.AllowedOrderFields}).Validate()
 	if err != nil {
 		return context.JSON(http.StatusBadRequest, err)
 	}

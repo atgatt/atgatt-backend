@@ -8,7 +8,8 @@ import (
 
 // FilterProductsQueryValidator is responsible for validating (or returning an error) for a single FilterProductsQuery
 type FilterProductsQueryValidator struct {
-	Query *FilterProductsQuery
+	Query              *FilterProductsQuery
+	AllowedOrderFields map[string]bool
 }
 
 // Validate returns an error if validation failed, or nil if it was successful
@@ -32,7 +33,7 @@ func (v *FilterProductsQueryValidator) Validate() error {
 		return err
 	}
 
-	err = validation.Validate(v.Query.Order.Field, validation.Required, validation.By(OrderByField))
+	err = validation.Validate(v.Query.Order.Field, validation.Required, validation.By(v.OrderByField))
 	if err != nil {
 		validationErrors := validation.Errors{}
 		validationErrors["order.field"] = errors.New("Ordering is not allowed by this field")
@@ -43,17 +44,10 @@ func (v *FilterProductsQueryValidator) Validate() error {
 }
 
 // OrderByField ensures that the user only orders by one of the allowed values and not a random DB column
-func OrderByField(value interface{}) error {
+func (v *FilterProductsQueryValidator) OrderByField(value interface{}) error {
 	orderByField := value.(string)
-	allowedOrderFields := make(map[string]bool)
-	allowedOrderFields["document->>'priceInUsdMultiple'"] = true
-	allowedOrderFields["document->>'manufacturer'"] = true
-	allowedOrderFields["document->>'model'"] = true
-	allowedOrderFields["created_at_utc"] = true
-	allowedOrderFields["updated_at_utc"] = true
-	allowedOrderFields["id"] = true
 
-	if _, exists := allowedOrderFields[orderByField]; !exists {
+	if _, exists := v.AllowedOrderFields[orderByField]; !exists {
 		return errors.New("The order field that was specified is not allowed to be used")
 	}
 	return nil

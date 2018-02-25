@@ -159,6 +159,10 @@ func (r *ProductRepository) FilterProducts(query *queries.FilterProductsQuery) (
 	if orderByExpression == "document->>'priceInUsdMultiple'" {
 		orderByExpression = "cast((document->>'priceInUsdMultiple') as int)"
 	}
+
+	if orderByExpression == "document->>'safetyPercentage'" {
+		orderByExpression = "cast((document->>'safetyPercentage') as int)"
+	}
 	queryParams["order_by"] = query.Order.Field
 
 	var orderByDirection string
