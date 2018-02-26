@@ -17,7 +17,7 @@ import (
 	"github.com/xrash/smetrics"
 )
 
-// ImportHelmetsJob imports all helmet data from SHARP and SNELL into the database. It tries to normalize helmet models and manufacturers while doing this in order to have a clean data set.
+// ImportHelmetsJob imports all helmet data from SHARP and SNELL into the database. It tries to normalize helmet models and manufacturers while doing this in order to have a clean data set. TODO: Refactor to not upsert if the product already exists, write tests
 type ImportHelmetsJob struct {
 	ProductRepository      *repositories.ProductRepository
 	SNELLHelmetRepository  *repositories.SNELLHelmetRepository
@@ -169,6 +169,8 @@ func (j *ImportHelmetsJob) Run() error {
 		} else {
 			productLogger.Warn("No image found, not uploading anything to S3, saving the product to the DB anyway")
 		}
+
+		product.SafetyPercentage = product.CalculateSafetyPercentage()
 
 		if existingProduct == nil {
 			err := j.ProductRepository.CreateProduct(product)
