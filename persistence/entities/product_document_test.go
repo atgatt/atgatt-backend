@@ -97,6 +97,17 @@ func Test_CalculateSafetyPercentage_should_return_5_when_the_product_has_nonexis
 	Expect(productDocument.CalculateSafetyPercentage()).To(Equal(5))
 }
 
+func Test_CalculateSafetyPercentage_should_return_5_when_the_product_has_nonexistent_impact_ratings_and_a_ece_certification(t *testing.T) {
+	RegisterTestingT(t)
+	productDocument := &ProductDocument{ImageURL: "google.com/lol.png", Manufacturer: "Manufacturer5", Model: "RF-SR3", PriceInUSDMultiple: 70099, Type: "helmet", Subtype: "full", SafetyPercentage: -1234}
+	productDocument.Certifications.ECE = true
+	productDocument.Certifications.DOT = false
+	productDocument.Certifications.SHARP = nil
+	productDocument.Certifications.SNELL = false
+
+	Expect(productDocument.CalculateSafetyPercentage()).To(Equal(15))
+}
+
 func Test_CalculateSafetyPercentage_should_return_76_when_the_product_has_partial_impact_ratings_and_all_other_certifications(t *testing.T) {
 	RegisterTestingT(t)
 	productDocument := &ProductDocument{ImageURL: "google.com/lol.png", Manufacturer: "Manufacturer5", Model: "RF-SR3", PriceInUSDMultiple: 70099, Type: "helmet", Subtype: "full", SafetyPercentage: -1234}
