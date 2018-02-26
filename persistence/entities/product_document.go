@@ -35,7 +35,7 @@ const sharpImpactWeight float64 = 0.2
 const sharpImpactMaxValue float64 = 5.0
 
 // CalculateSafetyPercentage calculates how safe a helmet is based on a weighted average of all of its certifications, rounded up to the nearest integer
-// Formula: 0.10 * SNELL + 0.08 * ECE + 0.02 * DOT + 0.7 * (SHARP-Left-Percentage * 0.20 + SHARP-Right-Percentage * 0.20 + SHARP-TopFront-Percentage * 0.20 + SHARP-TopRear-Percentage * 0.20 + SHARP-Rear-Percentage * 0.20)
+// Formula: 0.10 * SNELL + 0.08 * ECE + 0.02 * DOT + 0.8 * (SHARP-Left-Percentage * 0.20 + SHARP-Right-Percentage * 0.20 + SHARP-TopFront-Percentage * 0.20 + SHARP-TopRear-Percentage * 0.20 + SHARP-Rear-Percentage * 0.20)
 // SHARP Percentages are calculated by dividing the raw score by the maximum score (i.e. Raw-Score / 5)
 // TODO: Make this support multiple product types once gloves, boots, jackets, etc are added
 func (p ProductDocument) CalculateSafetyPercentage() int {
