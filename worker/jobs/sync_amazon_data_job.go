@@ -101,6 +101,9 @@ func (j *SyncAmazonDataJob) Run() error {
 						if doc, err := goquery.NewDocumentFromResponse(resp); err == nil {
 							detailsText := doc.Find("#prodDetails").Text()
 							productDescription += detailsText
+
+							featuresText := doc.Find("#feature-bullets").Text()
+							productDescription += featuresText
 						}
 					}
 
