@@ -38,9 +38,9 @@ func (r *ProductRepository) GetByModel(manufacturer string, model string) (*enti
 	return &filteredProducts[0], nil
 }
 
-// GetAllWithoutPricePaged queries the database for all products without prices, within the range of start and limit.
-func (r *ProductRepository) GetAllWithoutPricePaged(start int, limit int) ([]entities.ProductDocument, error) {
-	query := &queries.FilterProductsQuery{Start: start, Limit: limit, UsdPriceRange: []int{0, 0}}
+// GetAllPaged queries the database for all products without prices, within the range of start and limit.
+func (r *ProductRepository) GetAllPaged(start int, limit int) ([]entities.ProductDocument, error) {
+	query := &queries.FilterProductsQuery{Start: start, Limit: limit}
 	query.Order.Field = "id"
 
 	filteredProducts, err := r.FilterProducts(query)

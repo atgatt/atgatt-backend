@@ -79,4 +79,4 @@
 
 [[constraint]]
   branch = "master"
-  name = "github.com/ngs/go-amazon-product-advertising-api"
+  name = "github.com/bakatz/go-amazon-product-advertising-api"

@@ -4,10 +4,14 @@ import (
 	"crashtested-backend/persistence/repositories"
 	"fmt"
 	"math"
+	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
-	"github.com/ngs/go-amazon-product-advertising-api/amazon"
+	"github.com/PuerkitoBio/goquery"
+
+	"github.com/bakatz/go-amazon-product-advertising-api/amazon"
 	"github.com/sirupsen/logrus"
 )
 
@@ -21,7 +25,7 @@ type SyncAmazonDataJob struct {
 func (j *SyncAmazonDataJob) Run() error {
 	start := 0
 	limit := 25
-	currProducts, err := j.ProductRepository.GetAllWithoutPricePaged(start, limit)
+	currProducts, err := j.ProductRepository.GetAllPaged(start, limit)
 	if err != nil {
 		return err
 	}
@@ -35,16 +39,17 @@ func (j *SyncAmazonDataJob) Run() error {
 					"model":        product.Model,
 				})
 			itemSearchRequest := j.AmazonClient.ItemSearch(amazon.ItemSearchParameters{
-				SearchIndex:  amazon.SearchIndexAutomotive,
-				Keywords:     fmt.Sprintf("%s -shield", product.Model),
-				Manufacturer: product.Manufacturer,
-				MinimumPrice: 10000, // This is the same as $100.00
+				SearchIndex:  amazon.SearchIndexAll,
+				Keywords:     fmt.Sprintf("%s %s helmet -shield", product.Manufacturer, product.Model),
+				MinimumPrice: 20000, // This is the same as $200.00
 			})
 
 			var searchResp *amazon.ItemSearchResponse
 			var doSearchErr error
 			url := ""
 			priceInUsdMultiple := 0
+			hasNewDOTCertification := false
+			hasNewECECertification := false
 
 			time.Sleep(1 * time.Second)
 			if searchResp, doSearchErr = itemSearchRequest.Do(); doSearchErr != nil {
@@ -61,7 +66,7 @@ func (j *SyncAmazonDataJob) Run() error {
 				bestResult := searchResp.Items.Item[0]
 				itemLookupRequest := j.AmazonClient.ItemLookup(amazon.ItemLookupParameters{
 					IDType:         amazon.IDTypeASIN,
-					ResponseGroups: []amazon.ItemLookupResponseGroup{amazon.ItemLookupResponseGroupOffers},
+					ResponseGroups: []amazon.ItemLookupResponseGroup{amazon.ItemLookupResponseGroupOffers, amazon.ItemLookupResponseGroupEditorialReview},
 					ItemIDs:        []string{bestResult.ASIN},
 				})
 
@@ -77,29 +82,76 @@ func (j *SyncAmazonDataJob) Run() error {
 					continue
 				}
 
-				if len(lookupResp.Items.Item) > 0 && len(lookupResp.Items.Item[0].Offers.Offer) > 0 {
-					firstItem := lookupResp.Items.Item[0]
-					lowestNewPriceAmount, _ := strconv.Atoi(firstItem.OfferSummary.LowestNewPrice.Amount)
-					lowestUsedPriceAmount, _ := strconv.Atoi(firstItem.OfferSummary.LowestUsedPrice.Amount)
+				if len(lookupResp.Items.Item) > 0 {
+					productDescription := ""
+					if len(lookupResp.Items.Item[0].Offers.Offer) > 0 {
+						firstItem := lookupResp.Items.Item[0]
+						lowestNewPriceAmount, _ := strconv.Atoi(firstItem.OfferSummary.LowestNewPrice.Amount)
+						lowestUsedPriceAmount, _ := strconv.Atoi(firstItem.OfferSummary.LowestUsedPrice.Amount)
 
-					if lowestNewPriceAmount > 0 && lowestUsedPriceAmount > 0 {
-						priceInUsdMultiple = int(math.Min(float64(lowestUsedPriceAmount), float64(lowestNewPriceAmount)))
-					} else {
-						priceInUsdMultiple = int(math.Max(float64(lowestUsedPriceAmount), float64(lowestNewPriceAmount)))
+						if lowestNewPriceAmount > 0 && lowestUsedPriceAmount > 0 {
+							priceInUsdMultiple = int(math.Min(float64(lowestUsedPriceAmount), float64(lowestNewPriceAmount)))
+						} else {
+							priceInUsdMultiple = int(math.Max(float64(lowestUsedPriceAmount), float64(lowestNewPriceAmount)))
+						}
+						url = bestResult.DetailPageURL
+
+						if resp, err := http.Get(url); err == nil {
+							if doc, err := goquery.NewDocumentFromResponse(resp); err == nil {
+								detailsText := doc.Find("#prodDetails").Text()
+								productDescription += detailsText
+							}
+						}
 					}
-					url = bestResult.DetailPageURL
+
+					reviewContent := lookupResp.Items.Item[0].EditorialReviews.EditorialReview.Content
+					productDescription += reviewContent
+
+					lowerDescription := strings.ToLower(productDescription)
+					containsDOT := strings.Contains(productDescription, "DOT")
+					containsECE := strings.Contains(productDescription, "ECE") || strings.Contains(productDescription, "22/05") || strings.Contains(productDescription, "22.05")
+					containsSNELL := strings.Contains(lowerDescription, "snell") || strings.Contains(lowerDescription, "m2010") || strings.Contains(lowerDescription, "m2015")
+
+					if !product.Certifications.DOT && (containsDOT || containsSNELL) {
+						hasNewDOTCertification = true
+					}
+
+					if !product.Certifications.ECE && containsECE {
+						hasNewECECertification = true
+					}
 				}
 			}
 
-			if url == "" || priceInUsdMultiple == 0 {
-				productLogger.Error("Got Amazon data for the product, but it was empty. Skipping.")
+			if url == "" && priceInUsdMultiple <= 0 && !hasNewDOTCertification && !hasNewECECertification {
+				productLogger.Warning("Got Amazon data for the product, but it was empty. Skipping.")
 			} else {
-				productLogger.Infof("Successfully got Amazon data - URL: %s, Price: %d", url, priceInUsdMultiple)
+				commitLogger := productLogger.WithFields(logrus.Fields{
+					"buyUrl":             url,
+					"priceInUsdMultiple": priceInUsdMultiple,
+					"hasNewDOTRating":    hasNewDOTCertification,
+				})
 
-				(&product).PriceInUSDMultiple = priceInUsdMultiple
-				(&product).BuyURL = url
+				if priceInUsdMultiple > 0 {
+					commitLogger.Info("Saving new price")
+					(&product).PriceInUSDMultiple = priceInUsdMultiple
+				}
 
-				err := j.ProductRepository.UpdateProduct(&product)
+				if url != "" {
+					commitLogger.Info("Saving new url")
+					(&product).BuyURL = url
+				}
+
+				if hasNewDOTCertification {
+					commitLogger.Info("Saving new DOT certification")
+					(&product).Certifications.DOT = true
+				}
+
+				if hasNewECECertification {
+					commitLogger.Info("Saving new ECE certification")
+					(&product).Certifications.ECE = true
+				}
+
+				err = j.ProductRepository.UpdateProduct(&product)
 				if err != nil {
 					return err
 				}
@@ -107,7 +159,7 @@ func (j *SyncAmazonDataJob) Run() error {
 		}
 
 		start += limit
-		currProducts, err = j.ProductRepository.GetAllWithoutPricePaged(start, limit)
+		currProducts, err = j.ProductRepository.GetAllPaged(start, limit)
 		if err != nil {
 			return err
 		}

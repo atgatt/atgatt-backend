@@ -41,6 +41,9 @@
     "private/protocol/restxml",
     "private/protocol/xml/xmlutil",
     "service/s3",
+    "service/s3/s3iface",
+    "service/s3/s3manager",
+    "service/s3/s3manager/s3manageriface",
     "service/sts"
   ]
   revision = "f7f1ee9550cc76ceea731d99c8dbe00a0c39f66d"
@@ -51,6 +54,12 @@
   name = "github.com/bakatz/echo-logrusmiddleware"
   packages = ["."]
   revision = "b8a7ac7b02e85c3de534e743376f8a593ba45794"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/bakatz/go-amazon-product-advertising-api"
+  packages = ["amazon"]
+  revision = "6e338c800e320646aed9ae98bcf92a0e0b96f83f"
 
 [[projects]]
   branch = "master"
@@ -269,6 +278,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "fc8b1fcb85dda9864004713635425511159cadb5ea59f9e2ae7538f45b1a7da3"
+  inputs-digest = "6fce5c85b6aa3d46f6841b733b5985061693a72097179d9e80df125d0045251f"
   solver-name = "gps-cdcl"
   solver-version = 1
