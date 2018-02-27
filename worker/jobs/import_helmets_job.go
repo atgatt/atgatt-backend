@@ -238,15 +238,17 @@ func findMatchingSHARPProduct(cleanedSNELLManufacturer string, rawSNELLModel str
 		firstModelAliasMatchConfidence := smetrics.JaroWinkler(lowercaseRawSNELLModel, lowercaseFirstSHARPModelAlias, boostThreshold, prefixSize)
 		secondModelAliasMatchConfidence := smetrics.JaroWinkler(lowercaseRawSNELLModel, lowercaseSecondSHARPModelAlias, boostThreshold, prefixSize)
 
+		firstOverallConfidence := math.Max(firstModelMatchConfidence, firstModelAliasMatchConfidence)
+		secondOverallConfidence := math.Max(secondModelMatchConfidence, secondModelAliasMatchConfidence)
 		if _, exists := confidenceMap[firstSHARPHelmet.Model]; !exists {
-			confidenceMap[firstSHARPHelmet.Model] = math.Max(firstModelMatchConfidence, firstModelAliasMatchConfidence)
+			confidenceMap[firstSHARPHelmet.Model] = firstOverallConfidence
 		}
 
 		if _, exists := confidenceMap[secondSHARPHelmet.Model]; !exists {
-			confidenceMap[secondSHARPHelmet.Model] = math.Max(secondModelMatchConfidence, secondModelAliasMatchConfidence)
+			confidenceMap[secondSHARPHelmet.Model] = secondOverallConfidence
 		}
 
-		return (firstModelMatchConfidence + firstModelAliasMatchConfidence) > (secondModelMatchConfidence + secondModelAliasMatchConfidence)
+		return firstOverallConfidence > secondOverallConfidence
 	})
 
 	mostLikelySHARPHelmet := possibleSHARPHelmets[0]

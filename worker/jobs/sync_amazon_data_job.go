@@ -95,12 +95,12 @@ func (j *SyncAmazonDataJob) Run() error {
 							priceInUsdMultiple = int(math.Max(float64(lowestUsedPriceAmount), float64(lowestNewPriceAmount)))
 						}
 						url = bestResult.DetailPageURL
+					}
 
-						if resp, err := http.Get(url); err == nil {
-							if doc, err := goquery.NewDocumentFromResponse(resp); err == nil {
-								detailsText := doc.Find("#prodDetails").Text()
-								productDescription += detailsText
-							}
+					if resp, err := http.Get(bestResult.DetailPageURL); err == nil {
+						if doc, err := goquery.NewDocumentFromResponse(resp); err == nil {
+							detailsText := doc.Find("#prodDetails").Text()
+							productDescription += detailsText
 						}
 					}
 
@@ -108,7 +108,7 @@ func (j *SyncAmazonDataJob) Run() error {
 					productDescription += reviewContent
 
 					lowerDescription := strings.ToLower(productDescription)
-					containsDOT := strings.Contains(productDescription, "DOT")
+					containsDOT := strings.Contains(productDescription, "DOT") || strings.Contains(productDescription, "D.O.T")
 					containsECE := strings.Contains(productDescription, "ECE") || strings.Contains(productDescription, "22/05") || strings.Contains(productDescription, "22.05")
 					containsSNELL := strings.Contains(lowerDescription, "snell") || strings.Contains(lowerDescription, "m2010") || strings.Contains(lowerDescription, "m2015")
 
