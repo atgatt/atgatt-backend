@@ -61,7 +61,7 @@ func Test_CalculateSafetyPercentage_should_return_correctly_when_the_product_has
 	productDocument.Certifications.SHARP = nil
 	productDocument.Certifications.SNELL = true
 
-	Expect(productDocument.CalculateSafetyPercentage()).To(Equal(10))
+	Expect(productDocument.CalculateSafetyPercentage()).To(Equal(65))
 }
 
 func Test_CalculateSafetyPercentage_should_return_correctly_when_the_product_has_nonexistent_impact_ratings_and_snell_dot_certifications(t *testing.T) {
@@ -72,10 +72,10 @@ func Test_CalculateSafetyPercentage_should_return_correctly_when_the_product_has
 	productDocument.Certifications.SHARP = nil
 	productDocument.Certifications.SNELL = true
 
-	Expect(productDocument.CalculateSafetyPercentage()).To(Equal(12))
+	Expect(productDocument.CalculateSafetyPercentage()).To(Equal(70))
 }
 
-func Test_CalculateSafetyPercentage_should_return_correctly_when_the_product_has_nonexistent_impact_ratings_and_snell_dot_ece_certifications(t *testing.T) {
+func Test_CalculateSafetyPercentage_should_return_80_when_the_product_has_nonexistent_impact_ratings_but_all_other_certifications(t *testing.T) {
 	RegisterTestingT(t)
 	productDocument := &ProductDocument{ImageURL: "google.com/lol.png", Manufacturer: "Manufacturer5", Model: "RF-SR3", PriceInUSDMultiple: 70099, Type: "helmet", Subtype: "full", SafetyPercentage: -1234}
 	productDocument.Certifications.ECE = true
@@ -83,7 +83,7 @@ func Test_CalculateSafetyPercentage_should_return_correctly_when_the_product_has
 	productDocument.Certifications.SHARP = nil
 	productDocument.Certifications.SNELL = true
 
-	Expect(productDocument.CalculateSafetyPercentage()).To(Equal(20))
+	Expect(productDocument.CalculateSafetyPercentage()).To(Equal(80))
 }
 
 func Test_CalculateSafetyPercentage_should_return_correctly_when_the_product_has_nonexistent_impact_ratings_and_a_dot_certification(t *testing.T) {
@@ -94,7 +94,7 @@ func Test_CalculateSafetyPercentage_should_return_correctly_when_the_product_has
 	productDocument.Certifications.SHARP = nil
 	productDocument.Certifications.SNELL = false
 
-	Expect(productDocument.CalculateSafetyPercentage()).To(Equal(2))
+	Expect(productDocument.CalculateSafetyPercentage()).To(Equal(5))
 }
 
 func Test_CalculateSafetyPercentage_should_return_correctly_when_the_product_has_nonexistent_impact_ratings_and_a_ece_certification(t *testing.T) {
@@ -105,7 +105,7 @@ func Test_CalculateSafetyPercentage_should_return_correctly_when_the_product_has
 	productDocument.Certifications.SHARP = nil
 	productDocument.Certifications.SNELL = false
 
-	Expect(productDocument.CalculateSafetyPercentage()).To(Equal(8))
+	Expect(productDocument.CalculateSafetyPercentage()).To(Equal(10))
 }
 
 func Test_CalculateSafetyPercentage_should_return_correctly_when_the_product_has_partial_impact_ratings_and_all_other_certifications(t *testing.T) {
