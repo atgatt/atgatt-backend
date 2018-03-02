@@ -10,7 +10,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/bakatz/go-amazon-product-advertising-api/amazon"
+	"github.com/jmoiron/sqlx"
 	"github.com/sirupsen/logrus"
+	// Importing the PostgreSQL driver with side effects because we need to call sql.Open() to run queries
+	_ "github.com/lib/pq"
 )
 
 func main() {
@@ -29,14 +32,20 @@ func main() {
 		return
 	}
 
-	productRepository := &repositories.ProductRepository{ConnectionString: config.DatabaseConnectionString}
+	db, err := sqlx.Open("postgres", config.DatabaseConnectionString)
+	if err != nil {
+		logrus.WithError(err).Error("Encountered an error while opening a database connection")
+		return
+	}
+
+	productRepository := &repositories.ProductRepository{DB: db}
 
 	syncAmazonDataJob := &jobs.SyncAmazonDataJob{AmazonClient: amazonClient, ProductRepository: productRepository}
 	importHelmetsJob := &jobs.ImportHelmetsJob{
 		ProductRepository:      productRepository,
 		SHARPHelmetRepository:  &repositories.SHARPHelmetRepository{Limit: -1},
 		SNELLHelmetRepository:  &repositories.SNELLHelmetRepository{},
-		ManufacturerRepository: &repositories.ManufacturerRepository{ConnectionString: config.DatabaseConnectionString},
+		ManufacturerRepository: &repositories.ManufacturerRepository{DB: db},
 		S3Uploader:             s3Uploader,
 		S3Bucket:               config.AWS.S3Bucket,
 	}

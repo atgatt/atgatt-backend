@@ -8,13 +8,11 @@ import (
 	"fmt"
 
 	"github.com/jmoiron/sqlx"
-	// Importing the PQ driver because we need to run queries!
-	_ "github.com/lib/pq"
 )
 
 // ProductRepository contains functions that are used to do CRUD operations on Products in the database
 type ProductRepository struct {
-	ConnectionString string
+	DB *sqlx.DB
 }
 
 // GetByModel returns a single product where the manufacturer and model matches
@@ -53,14 +51,9 @@ func (r *ProductRepository) GetAllPaged(start int, limit int) ([]entities.Produc
 
 // GetAllModelAliases returns all the model aliases in the database
 func (r *ProductRepository) GetAllModelAliases() ([]entities.ProductModelAlias, error) {
-	db, err := sqlx.Open("postgres", r.ConnectionString)
-	defer db.Close()
-	if err != nil {
-		return nil, err
-	}
 
 	productModelAliases := []entities.ProductModelAlias{}
-	err = db.Select(&productModelAliases, "select manufacturer, model, model_alias as modelalias from product_model_aliases")
+	err := r.DB.Select(&productModelAliases, "select manufacturer, model, model_alias as modelalias from product_model_aliases")
 	if err != nil {
 		return nil, err
 	}
@@ -70,14 +63,8 @@ func (r *ProductRepository) GetAllModelAliases() ([]entities.ProductModelAlias, 
 
 // GetAllManufacturerAliases returns all the manufacturer aliases in the database
 func (r *ProductRepository) GetAllManufacturerAliases() ([]entities.ProductManufacturerAlias, error) {
-	db, err := sqlx.Open("postgres", r.ConnectionString)
-	defer db.Close()
-	if err != nil {
-		return nil, err
-	}
-
 	productManufacturerAliases := []entities.ProductManufacturerAlias{}
-	err = db.Select(&productManufacturerAliases, "select manufacturer, manufacturer_alias as manufactureralias from product_manufacturer_aliases")
+	err := r.DB.Select(&productManufacturerAliases, "select manufacturer, manufacturer_alias as manufactureralias from product_manufacturer_aliases")
 	if err != nil {
 		return nil, err
 	}
@@ -87,18 +74,12 @@ func (r *ProductRepository) GetAllManufacturerAliases() ([]entities.ProductManuf
 
 // UpdateProduct replaces the product in the DB with the supplied product, where the product's UUID matches the one supplied
 func (r *ProductRepository) UpdateProduct(product *entities.ProductDocument) error {
-	db, err := sqlx.Open("postgres", r.ConnectionString)
-	defer db.Close()
-	if err != nil {
-		return err
-	}
-
 	productJSONBytes, err := json.Marshal(product)
 	if err != nil {
 		return err
 	}
 
-	_, err = db.NamedExec(`update products set 
+	_, err = r.DB.NamedExec(`update products set 
 								document = :document, 
 								updated_at_utc = (now() at time zone 'utc') 
 							where uuid = :uuid`, map[string]interface{}{
@@ -115,18 +96,12 @@ func (r *ProductRepository) UpdateProduct(product *entities.ProductDocument) err
 
 // CreateProduct creates a product with the given fields by first converting it to json, and then dumping the json into a column in the DB.
 func (r *ProductRepository) CreateProduct(product *entities.ProductDocument) error {
-	db, err := sqlx.Open("postgres", r.ConnectionString)
-	defer db.Close()
-	if err != nil {
-		return err
-	}
-
 	productJSONBytes, err := json.Marshal(product)
 	if err != nil {
 		return err
 	}
 
-	_, err = db.NamedExec("insert into products (uuid, document, created_at_utc, updated_at_utc) values (:uuid, :document, (now() at time zone 'utc'), null);", map[string]interface{}{
+	_, err = r.DB.NamedExec("insert into products (uuid, document, created_at_utc, updated_at_utc) values (:uuid, :document, (now() at time zone 'utc'), null);", map[string]interface{}{
 		"document": string(productJSONBytes),
 		"uuid":     product.UUID,
 	})
@@ -140,13 +115,6 @@ func (r *ProductRepository) CreateProduct(product *entities.ProductDocument) err
 
 // FilterProducts is a method that ANDs a bunch of query parameters together and returns a list of matching products, or an error if there was a problem executing the query.
 func (r *ProductRepository) FilterProducts(query *queries.FilterProductsQuery) ([]entities.ProductDocument, error) {
-	db, err := sqlx.Open("postgres", r.ConnectionString)
-	defer db.Close()
-
-	if err != nil {
-		return nil, err
-	}
-
 	queryParams := make(map[string]interface{})
 	whereCriteria := `where document->>'type' = :type `
 	queryParams["type"] = "helmet" // TODO: this is hardcoded for now
@@ -261,8 +229,9 @@ func (r *ProductRepository) FilterProducts(query *queries.FilterProductsQuery) (
 	}
 
 	// Converts ? arguments back to positional ($0, $1, $2, etc) arguments so that they can be executed in the DB.
-	preProcessedSQLQueryString = db.Rebind(preProcessedSQLQueryString)
-	rows, err := db.Query(preProcessedSQLQueryString, args...)
+	preProcessedSQLQueryString = r.DB.Rebind(preProcessedSQLQueryString)
+	rows, err := r.DB.Query(preProcessedSQLQueryString, args...)
+	defer rows.Close()
 	if err != nil {
 		return nil, err
 	}

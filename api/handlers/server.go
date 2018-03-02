@@ -10,9 +10,13 @@ import (
 	"github.com/bakatz/echo-logrusmiddleware"
 	"github.com/bshuster-repo/logruzio"
 	"github.com/go-ozzo/ozzo-validation"
+	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 	"github.com/sirupsen/logrus"
+
+	// Importing the PostgreSQL driver with side effects because we need to call sql.Open() to run queries
+	_ "github.com/lib/pq"
 )
 
 // Server contains the bootstrapping code for the API
@@ -27,7 +31,7 @@ type Server struct {
 }
 
 // Build initializes all dependencies required by the API and exits with a nonzero status code if there's a problem
-func (s *Server) Build() {
+func (s *Server) Build() *sqlx.DB {
 	e := echo.New()
 	e.HideBanner = true
 	e.Logger = logrusmiddleware.Logger{Logger: logrus.StandardLogger()}
@@ -71,7 +75,13 @@ func (s *Server) Build() {
 		logrus.WithError(err).Error("Failed to run migrations, but starting the app anyway: %s")
 	}
 
-	healthCheckHandler := &HealthCheckHandler{Name: s.Name, Version: s.Version, BuildNumber: s.BuildNumber, CommitHash: s.CommitHash, MigrationsRepository: &repositories.MigrationsRepository{ConnectionString: s.Configuration.DatabaseConnectionString}}
+	db, err := sqlx.Open("postgres", s.Configuration.DatabaseConnectionString)
+	if err != nil {
+		logrus.WithError(err).Fatal("Failed to start the API because the database connection could not be established")
+		os.Exit(-1)
+	}
+
+	healthCheckHandler := &HealthCheckHandler{Name: s.Name, Version: s.Version, BuildNumber: s.BuildNumber, CommitHash: s.CommitHash, MigrationsRepository: &repositories.MigrationsRepository{DB: db}}
 
 	allowedOrderFields := make(map[string]bool)
 	allowedOrderFields["document->>'priceInUsdMultiple'"] = true
@@ -81,8 +91,8 @@ func (s *Server) Build() {
 	allowedOrderFields["created_at_utc"] = true
 	allowedOrderFields["updated_at_utc"] = true
 	allowedOrderFields["id"] = true
-	productsHandler := &ProductHandler{Repository: &repositories.ProductRepository{ConnectionString: s.Configuration.DatabaseConnectionString}, AllowedOrderFields: allowedOrderFields}
-	marketingHandler := &MarketingHandler{Repository: &repositories.MarketingRepository{ConnectionString: s.Configuration.DatabaseConnectionString}}
+	productsHandler := &ProductHandler{Repository: &repositories.ProductRepository{DB: db}, AllowedOrderFields: allowedOrderFields}
+	marketingHandler := &MarketingHandler{Repository: &repositories.MarketingRepository{DB: db}}
 
 	e.GET("/", healthCheckHandler.Healthcheck)
 	e.HEAD("/", healthCheckHandler.Healthcheck)
@@ -90,11 +100,15 @@ func (s *Server) Build() {
 	e.POST("/v1/marketing/email", marketingHandler.CreateMarketingEmail)
 
 	s.echoInstance = e
+
+	return db
 }
 
 // StartAndBlock first initializes the server, then starts it up and blocks
 func (s *Server) StartAndBlock() {
-	s.Build()
+	db := s.Build()
+	defer db.Close()
+
 	logrus.Infof("-> http server started on %s%s", "http://localhost", s.Port)
 	err := s.echoInstance.Start(s.Port)
 	logrus.Fatalf("Failed to start the server: %s", err.Error())
