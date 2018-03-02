@@ -93,6 +93,12 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/goware/emailx"
+  packages = ["."]
+  revision = "0bae9679d4e31a54efa4b1cc61dd78eadda83b1a"
+
+[[projects]]
+  branch = "master"
   name = "github.com/hashicorp/go-cleanhttp"
   packages = ["."]
   revision = "d5fe4b57a186c716b0e00b8c301cbd9b4182694d"
@@ -151,12 +157,6 @@
   packages = ["."]
   revision = "0360b2af4f38e8d38c7fce2a9f4e702702d73a39"
   version = "v0.0.3"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/ngs/go-amazon-product-advertising-api"
-  packages = ["amazon"]
-  revision = "61566202d7a2a0e9cd8b36c4208b6f96b72ccf2b"
 
 [[projects]]
   name = "github.com/onsi/gomega"
@@ -278,6 +278,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "6fce5c85b6aa3d46f6841b733b5985061693a72097179d9e80df125d0045251f"
+  inputs-digest = "28effce370d2356653a32ef787d379c482ad1e8e3451feeac172afb2979de4e1"
   solver-name = "gps-cdcl"
   solver-version = 1

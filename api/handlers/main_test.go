@@ -79,10 +79,10 @@ func WaitForMigrations() bool {
 		}
 		logrus.Info("Running seeds...")
 
-		productSeedsSQL := seeds.GetProductSeedsSQLStatements()
+		seedsSQL := append(seeds.GetProductSeedsSQLStatements(), seeds.GetMarketingEmailSeedsSQLStatements()...)
 		seedMigrationsSource := &migrate.MemoryMigrationSource{
 			Migrations: []*migrate.Migration{
-				&migrate.Migration{Up: productSeedsSQL, Down: []string{"select 1;"}, Id: "0-seeds"}, // NOTE: using 0-seeds because of strange sorting rules present in sql-migrate. this allows the seeds to run after all other migrations
+				&migrate.Migration{Up: seedsSQL, Down: []string{"select 1;"}, Id: "0-seeds"}, // NOTE: using 0-seeds because of strange sorting rules present in sql-migrate. this allows the seeds to run after all other migrations
 			},
 		}
 

@@ -82,10 +82,12 @@ func (s *Server) Build() {
 	allowedOrderFields["updated_at_utc"] = true
 	allowedOrderFields["id"] = true
 	productsHandler := &ProductHandler{Repository: &repositories.ProductRepository{ConnectionString: s.Configuration.DatabaseConnectionString}, AllowedOrderFields: allowedOrderFields}
+	marketingHandler := &MarketingHandler{Repository: &repositories.MarketingRepository{ConnectionString: s.Configuration.DatabaseConnectionString}}
 
 	e.GET("/", healthCheckHandler.Healthcheck)
 	e.HEAD("/", healthCheckHandler.Healthcheck)
 	e.POST("/v1/products/filter", productsHandler.FilterProducts)
+	e.POST("/v1/marketing/email", marketingHandler.CreateMarketingEmail)
 
 	s.echoInstance = e
 }

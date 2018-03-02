@@ -80,3 +80,7 @@
 [[constraint]]
   branch = "master"
   name = "github.com/bakatz/go-amazon-product-advertising-api"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/goware/emailx"
