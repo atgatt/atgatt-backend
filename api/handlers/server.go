@@ -109,9 +109,8 @@ func (s *Server) StartAndBlock() {
 	db := s.Build()
 	defer db.Close()
 
-	logrus.Infof("-> http server started on %s%s", "http://localhost", s.Port)
 	err := s.echoInstance.Start(s.Port)
-	logrus.Fatalf("Failed to start the server: %s", err.Error())
+	logrus.WithError(err).Fatal("Failed to start the server")
 }
 
 // Stop just ensures that the echoInstance is closed

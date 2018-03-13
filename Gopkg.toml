@@ -23,11 +23,6 @@
 # [prune]
 # unused-packages = true
 # go-tests = true
-
-
-[[constraint]]
-  name = "github.com/labstack/echo"
-  version = "3.2.0"
   
 [[constraint]]
   name = "github.com/onsi/gomega"
@@ -84,3 +79,7 @@
 [[constraint]]
   branch = "master"
   name = "github.com/goware/emailx"
+
+[[constraint]]
+  name = "github.com/labstack/echo"
+  version = "3.3.0"
