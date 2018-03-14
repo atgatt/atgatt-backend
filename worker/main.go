@@ -50,6 +50,8 @@ func main() {
 		S3Bucket:               config.AWS.S3Bucket,
 	}
 
+	recaclulateSafetyPercentagesJob := &jobs.RecalculateSafetyPercentagesJob{ProductRepository: productRepository}
+
 	err = importHelmetsJob.Run()
 	if err != nil {
 		logrus.WithError(err).Error("Import Helmets Job completed with errors")
@@ -62,5 +64,12 @@ func main() {
 		logrus.WithError(err).Error("Amazon Sync Job completed with errors")
 	} else {
 		logrus.Info("Amazon Sync Job completed successfully")
+	}
+
+	err = recaclulateSafetyPercentagesJob.Run()
+	if err != nil {
+		logrus.WithError(err).Error("Recalculate Safety Job completed with errors")
+	} else {
+		logrus.Info("Recalculate Safety Job completed successfully")
 	}
 }
