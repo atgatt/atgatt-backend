@@ -74,6 +74,11 @@ func (r *ProductRepository) GetAllManufacturerAliases() ([]entities.ProductManuf
 
 // UpdateProduct replaces the product in the DB with the supplied product, where the product's UUID matches the one supplied
 func (r *ProductRepository) UpdateProduct(product *entities.ProductDocument) error {
+	if product == nil {
+		return errors.New("product must be defined")
+	}
+
+	product.UpdateMinPrice()
 	productJSONBytes, err := json.Marshal(product)
 	if err != nil {
 		return err
@@ -96,6 +101,11 @@ func (r *ProductRepository) UpdateProduct(product *entities.ProductDocument) err
 
 // CreateProduct creates a product with the given fields by first converting it to json, and then dumping the json into a column in the DB.
 func (r *ProductRepository) CreateProduct(product *entities.ProductDocument) error {
+	if product == nil {
+		return errors.New("product must be defined")
+	}
+
+	product.UpdateMinPrice()
 	productJSONBytes, err := json.Marshal(product)
 	if err != nil {
 		return err
@@ -126,11 +136,10 @@ func (r *ProductRepository) FilterProducts(query *queries.FilterProductsQuery) (
 	// TODO: find a cleaner way to do this
 	if orderByExpression == "document->>'priceInUsdMultiple'" {
 		orderByExpression = "cast((document->>'priceInUsdMultiple') as int)"
-	}
-
-	if orderByExpression == "document->>'safetyPercentage'" {
+	} else if orderByExpression == "document->>'safetyPercentage'" {
 		orderByExpression = "cast((document->>'safetyPercentage') as int)"
 	}
+
 	queryParams["order_by"] = query.Order.Field
 
 	var orderByDirection string

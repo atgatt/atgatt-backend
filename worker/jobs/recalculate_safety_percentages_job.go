@@ -15,12 +15,11 @@ type RecalculateSafetyPercentagesJob struct {
 
 // Run executes the job
 func (j *RecalculateSafetyPercentagesJob) Run() error {
-	return helpers.ForEachProduct(j.ProductRepository, func(product *entities.ProductDocument) error {
+	return helpers.ForEachProduct(j.ProductRepository, func(product *entities.ProductDocument, productLogger *logrus.Entry) error {
 		oldSafetyPercentage := product.SafetyPercentage
 		newSafetyPercentage := product.CalculateSafetyPercentage()
-		logrus.WithFields(
+		productLogger.WithFields(
 			logrus.Fields{
-				"productUUID":         product.UUID,
 				"manufacturer":        product.Manufacturer,
 				"model":               product.Model,
 				"oldSafetyPercentage": oldSafetyPercentage,

@@ -11,6 +11,7 @@ type Configuration struct {
 	AppEnvironment           string
 	AmazonAssociates         amazonAssociatesConfiguration
 	AWS                      awsConfiguration
+	CJAPIKey                 string
 }
 
 type awsConfiguration struct {
@@ -41,5 +42,6 @@ func GetDefaultConfiguration() *Configuration {
 			SecretKey: os.Getenv("AWS_SECRET_ACCESS_KEY"),
 			S3Bucket:  os.Getenv("AWS_S3_BUCKET"),
 		},
+		CJAPIKey: os.Getenv("CJ_API_KEY"),
 	}
 }

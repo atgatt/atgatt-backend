@@ -51,6 +51,7 @@ func main() {
 	}
 
 	recaclulateSafetyPercentagesJob := &jobs.RecalculateSafetyPercentagesJob{ProductRepository: productRepository}
+	syncRevzillaDataJob := &jobs.SyncRevzillaDataJob{ProductRepository: productRepository, CJAPIKey: config.CJAPIKey}
 
 	err = importHelmetsJob.Run()
 	if err != nil {
@@ -64,6 +65,13 @@ func main() {
 		logrus.WithError(err).Error("Amazon Sync Job completed with errors")
 	} else {
 		logrus.Info("Amazon Sync Job completed successfully")
+	}
+
+	err = syncRevzillaDataJob.Run()
+	if err != nil {
+		logrus.WithError(err).Error("Sync RevZilla job completed with errors")
+	} else {
+		logrus.Info("Sync RevZilla job completed successfully")
 	}
 
 	err = recaclulateSafetyPercentagesJob.Run()

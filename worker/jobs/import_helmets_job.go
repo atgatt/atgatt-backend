@@ -65,19 +65,19 @@ func (j *ImportHelmetsJob) Run() error {
 		cleanedManufacturer := findCleanedManufacturer(sharpHelmet.Manufacturer, manufacturers, manufacturerAliasesMap)
 		modelAlias := findAliasForModel(modelAliases, cleanedManufacturer, sharpHelmet.Model)
 		product := &entities.ProductDocument{
-			ImageURL:            sharpHelmet.ImageURL,
-			LatchPercentage:     sharpHelmet.LatchPercentage,
-			Manufacturer:        cleanedManufacturer,
-			Materials:           sharpHelmet.Materials,
-			Model:               sharpHelmet.Model,
-			ModelAlias:          "",
-			PriceInUSDMultiple:  sharpHelmet.ApproximatePriceInUsdMultiple,
-			RetentionSystem:     sharpHelmet.RetentionSystem,
-			Sizes:               sharpHelmet.Sizes,
-			Subtype:             sharpHelmet.Subtype,
-			Type:                helmetType,
-			UUID:                uuid.New(),
-			WeightInLbsMultiple: sharpHelmet.WeightInLbsMultiple,
+			ImageURL:                 sharpHelmet.ImageURL,
+			LatchPercentage:          sharpHelmet.LatchPercentage,
+			Manufacturer:             cleanedManufacturer,
+			Materials:                sharpHelmet.Materials,
+			Model:                    sharpHelmet.Model,
+			ModelAlias:               "",
+			AmazonPriceInUSDMultiple: sharpHelmet.ApproximatePriceInUsdMultiple,
+			RetentionSystem:          sharpHelmet.RetentionSystem,
+			Sizes:                    sharpHelmet.Sizes,
+			Subtype:                  sharpHelmet.Subtype,
+			Type:                     helmetType,
+			UUID:                     uuid.New(),
+			WeightInLbsMultiple:      sharpHelmet.WeightInLbsMultiple,
 		}
 
 		if modelAlias != "" {

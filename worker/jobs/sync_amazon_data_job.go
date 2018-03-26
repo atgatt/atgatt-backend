@@ -8,7 +8,6 @@ import (
 	"math"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
@@ -25,13 +24,7 @@ type SyncAmazonDataJob struct {
 
 // Run invokes the job and returns an error if there were any errors encountered while processing the price data
 func (j *SyncAmazonDataJob) Run() error {
-	return helpers.ForEachProduct(j.ProductRepository, func(product *entities.ProductDocument) error {
-		productLogger := logrus.WithFields(
-			logrus.Fields{
-				"productUUID":  product.UUID,
-				"manufacturer": product.Manufacturer,
-				"model":        product.Model,
-			})
+	return helpers.ForEachProduct(j.ProductRepository, func(product *entities.ProductDocument, productLogger *logrus.Entry) error {
 		itemSearchRequest := j.AmazonClient.ItemSearch(amazon.ItemSearchParameters{
 			SearchIndex:  amazon.SearchIndexAll,
 			Keywords:     fmt.Sprintf("%s %s helmet -shield", product.Manufacturer, product.Model),
@@ -103,19 +96,7 @@ func (j *SyncAmazonDataJob) Run() error {
 
 				reviewContent := lookupResp.Items.Item[0].EditorialReviews.EditorialReview.Content
 				productDescription += reviewContent
-
-				lowerDescription := strings.ToLower(productDescription)
-				containsDOT := strings.Contains(productDescription, "DOT") || strings.Contains(productDescription, "D.O.T")
-				containsECE := strings.Contains(productDescription, "ECE") || strings.Contains(productDescription, "22/05") || strings.Contains(productDescription, "22.05")
-				containsSNELL := strings.Contains(lowerDescription, "snell") || strings.Contains(lowerDescription, "m2010") || strings.Contains(lowerDescription, "m2015")
-
-				if !product.Certifications.DOT && (containsDOT || containsSNELL) {
-					hasNewDOTCertification = true
-				}
-
-				if !product.Certifications.ECE && containsECE {
-					hasNewECECertification = true
-				}
+				hasNewDOTCertification, hasNewECECertification = product.UpdateCertificationsByDescription(productDescription)
 			}
 		}
 
@@ -130,12 +111,12 @@ func (j *SyncAmazonDataJob) Run() error {
 
 			if priceInUsdMultiple > 0 {
 				commitLogger.Info("Saving new price")
-				product.PriceInUSDMultiple = priceInUsdMultiple
+				product.AmazonPriceInUSDMultiple = priceInUsdMultiple
 			}
 
 			if url != "" {
 				commitLogger.Info("Saving new url")
-				product.BuyURL = url
+				product.AmazonBuyURL = url
 			}
 
 			if hasNewDOTCertification {
