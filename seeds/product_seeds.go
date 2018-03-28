@@ -59,7 +59,8 @@ func GetProductSeeds() []*entities.ProductDocument {
 	for i := 0; i < len(seeds); i++ {
 		seeds[i].UUID, _ = uuid.Parse(uuids[i])
 		seeds[i].RevzillaPriceInUSDMultiple = seeds[i].AmazonPriceInUSDMultiple + 10000
-		seeds[i].UpdateMinPrice()
+		seeds[i].AmazonBuyURL = fmt.Sprintf("http://www.testdata.com/amazon/%d", i)
+		seeds[i].RevzillaBuyURL = fmt.Sprintf("http://www.testdata.com/revzilla/%d", i)
 		if i%2 == 0 {
 			seeds[i].Certifications.ECE = true
 			seeds[i].Certifications.DOT = true
@@ -89,7 +90,13 @@ func GetProductSeeds() []*entities.ProductDocument {
 			seeds[i].Certifications.DOT = false
 			seeds[i].Certifications.SHARP = nil
 			seeds[i].Certifications.SNELL = false
+			seeds[i].AmazonBuyURL = ""
+			seeds[i].AmazonPriceInUSDMultiple = 0
+			seeds[i].RevzillaBuyURL = ""
+			seeds[i].RevzillaPriceInUSDMultiple = 0
 		}
+
+		seeds[i].UpdateMinPrice()
 	}
 
 	return seeds
