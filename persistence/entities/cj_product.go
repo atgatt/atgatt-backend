@@ -16,7 +16,8 @@ type CJProduct struct {
 	Description string   `xml:"description"`
 }
 
-// IsHelmet returns true when the product has the Motorcycle Helmets category
+// IsHelmet returns true when the product has the Motorcycle Helmets category and does not contain a shield
 func (p *CJProduct) IsHelmet() bool {
-	return strings.HasSuffix(p.Category, "Motorcycle Helmets")
+	lowercaseName := strings.ToLower(p.Name)
+	return strings.HasSuffix(p.Category, "Motorcycle Helmets") && !strings.Contains(lowercaseName, "spoiler") && !strings.Contains(lowercaseName, "shield")
 }
