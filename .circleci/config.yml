@@ -48,7 +48,7 @@ jobs:
           path: artifacts.zip
   promote_staging_to_prod:
     docker:
-      - image: circleci/golang:1.9
+      - image: circleci/golang:1.10
     steps:
       - checkout
       - attach_workspace:
