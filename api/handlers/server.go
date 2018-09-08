@@ -72,7 +72,7 @@ func (s *Server) Build() *sqlx.DB {
 
 	err = helpers.RunMigrations(s.Configuration.DatabaseConnectionString, "persistence/migrations")
 	if err != nil {
-		logrus.WithError(err).Error("Failed to run migrations, but starting the app anyway: %s")
+		logrus.WithError(err).Error("Failed to run migrations, but starting the app anyway")
 	}
 
 	db, err := sqlx.Open("postgres", s.Configuration.DatabaseConnectionString)

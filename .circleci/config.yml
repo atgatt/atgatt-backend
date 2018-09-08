@@ -2,7 +2,7 @@ version: 2
 jobs:
   deploy_staging:
     docker:
-      - image: circleci/golang:1.10
+      - image: circleci/golang:1.11
         environment:
           DATABASE_CONNECTION_STRING: postgres://postgres:password@localhost:5432/crashtested?sslmode=disable
           APP_ENVIRONMENT: circleci
@@ -48,7 +48,7 @@ jobs:
           path: artifacts.zip
   promote_staging_to_prod:
     docker:
-      - image: circleci/golang:1.10
+      - image: circleci/golang:1.11
     steps:
       - checkout
       - attach_workspace:
