@@ -1,4 +1,4 @@
-package handlers
+package controllers_test
 
 import (
 	"crashtested-backend/common/http/helpers"

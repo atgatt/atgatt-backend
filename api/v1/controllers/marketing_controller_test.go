@@ -1,8 +1,8 @@
-package handlers
+package controllers_test
 
 import (
-	"crashtested-backend/api/requests"
-	"crashtested-backend/api/responses"
+	"crashtested-backend/api/v1/requests"
+	"crashtested-backend/api/v1/responses"
 	"crashtested-backend/common/http/helpers"
 	"fmt"
 	"net/http"

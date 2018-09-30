@@ -2,8 +2,8 @@ package main
 
 import (
 	"crashtested-backend/persistence/repositories"
-	"crashtested-backend/worker/configuration"
 	"crashtested-backend/worker/jobs"
+	"crashtested-backend/worker/settings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -17,7 +17,7 @@ import (
 )
 
 func main() {
-	config := configuration.GetDefaultConfiguration()
+	config := settings.GetSettingsFromEnvironment()
 
 	sess := session.Must(session.NewSession(&aws.Config{
 		Region:      aws.String("us-west-2"),

@@ -1,15 +1,15 @@
-package handlers
+package controllers
 
 import (
-	"crashtested-backend/api/responses"
+	"crashtested-backend/api/v1/responses"
 	"crashtested-backend/persistence/repositories"
 	"net/http"
 
 	"github.com/labstack/echo"
 )
 
-// HealthCheckHandler contains methods used for automated healthchecks.
-type HealthCheckHandler struct {
+// HealthCheckController contains methods used for automated healthchecks.
+type HealthCheckController struct {
 	BuildNumber          string
 	CommitHash           string
 	Name                 string
@@ -18,7 +18,7 @@ type HealthCheckHandler struct {
 }
 
 // Healthcheck returns the API's current build number, database migration status, etc.
-func (h *HealthCheckHandler) Healthcheck(context echo.Context) (err error) {
+func (h *HealthCheckController) Healthcheck(context echo.Context) (err error) {
 	if context.Request().Method == http.MethodHead {
 		return context.NoContent(http.StatusOK)
 	}

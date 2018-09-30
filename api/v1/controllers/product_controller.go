@@ -1,4 +1,4 @@
-package handlers
+package controllers
 
 import (
 	"crashtested-backend/persistence/queries"
@@ -8,14 +8,14 @@ import (
 	"github.com/labstack/echo"
 )
 
-// ProductHandler contains functions related to filtering and updating Products
-type ProductHandler struct {
+// ProductController contains functions related to filtering and updating Products
+type ProductController struct {
 	Repository         *repositories.ProductRepository
 	AllowedOrderFields map[string]bool
 }
 
 // FilterProducts returns a subset of products from the database based off a user-supplied query, where all parameters are AND'd together
-func (p *ProductHandler) FilterProducts(context echo.Context) (err error) {
+func (p *ProductController) FilterProducts(context echo.Context) (err error) {
 	query := new(queries.FilterProductsQuery)
 	if err := context.Bind(query); err != nil {
 		return err

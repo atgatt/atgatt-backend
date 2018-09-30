@@ -1,8 +1,8 @@
-package handlers
+package controllers
 
 import (
-	"crashtested-backend/api/requests"
-	"crashtested-backend/api/responses"
+	"crashtested-backend/api/v1/requests"
+	"crashtested-backend/api/v1/responses"
 	"crashtested-backend/persistence/repositories"
 	"net/http"
 	"strings"
@@ -11,14 +11,14 @@ import (
 	"github.com/labstack/echo"
 )
 
-// MarketingHandler contains functions related to filtering and updating Products
-type MarketingHandler struct {
+// MarketingController contains functions related to filtering and updating Products
+type MarketingController struct {
 	Repository         *repositories.MarketingRepository
 	AllowedOrderFields map[string]bool
 }
 
 // CreateMarketingEmail inserts a marketing email address into the database if it has a valid format and hostname, otherwise returns http 400 (bad request)
-func (m *MarketingHandler) CreateMarketingEmail(context echo.Context) (err error) {
+func (m *MarketingController) CreateMarketingEmail(context echo.Context) (err error) {
 	query := new(requests.CreateMarketingEmailRequest)
 	if err := context.Bind(query); err != nil {
 		return err

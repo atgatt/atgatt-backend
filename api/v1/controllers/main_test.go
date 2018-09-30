@@ -1,7 +1,8 @@
-package handlers
+package controllers_test
 
 import (
-	"crashtested-backend/api/configuration"
+	"crashtested-backend/api"
+	"crashtested-backend/api/settings"
 	"crashtested-backend/persistence/helpers"
 	"crashtested-backend/seeds"
 	"database/sql"
@@ -73,7 +74,7 @@ func WaitForMigrations() bool {
 			return false, err
 		}
 
-		err = helpers.RunMigrations(DatabaseConnectionString, "../../persistence/migrations")
+		err = helpers.RunMigrations(DatabaseConnectionString, "../../../persistence/migrations")
 		if err != nil {
 			return false, err
 		}
@@ -101,9 +102,9 @@ func WaitForMigrations() bool {
 func TestMain(m *testing.M) {
 	logrus.Info("Starting server and database migrations...")
 	migrationsRan := WaitForMigrations()
-	defaultConfiguration := configuration.GetDefaultConfiguration()
-	defaultConfiguration.AppEnvironment = "integration-tests"
-	server := Server{Port: ":5001", Name: "crashtested-api", Version: "integration-tests-version", BuildNumber: "integration-tests-build", CommitHash: "integration-tests-commit", Configuration: defaultConfiguration}
+	defaultSettings := settings.GetSettingsFromEnvironment()
+	defaultSettings.AppEnvironment = "integration-tests"
+	server := api.Server{Port: ":5001", Name: "crashtested-api", Version: "integration-tests-version", BuildNumber: "integration-tests-build", CommitHash: "integration-tests-commit", Settings: defaultSettings}
 	go server.StartAndBlock()
 
 	apiStarted := WaitForAPI()

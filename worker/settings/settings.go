@@ -1,11 +1,11 @@
-package configuration
+package settings
 
 import (
 	"os"
 )
 
-// Configuration contains all of the environment variables needed to start background workers
-type Configuration struct {
+// Settings contains all of the environment variables needed to start background workers
+type Settings struct {
 	DatabaseConnectionString string
 	LogzioToken              string
 	AppEnvironment           string
@@ -19,9 +19,9 @@ type awsConfiguration struct {
 	S3Bucket  string
 }
 
-// GetDefaultConfiguration returns a configuration struct, initialized using environment variables
-func GetDefaultConfiguration() *Configuration {
-	return &Configuration{
+// GetSettingsFromEnvironment returns a configuration struct, initialized using environment variables
+func GetSettingsFromEnvironment() *Settings {
+	return &Settings{
 		AppEnvironment:           os.Getenv("APP_ENVIRONMENT"),
 		DatabaseConnectionString: os.Getenv("DATABASE_CONNECTION_STRING"),
 		LogzioToken:              os.Getenv("LOGZIO_TOKEN"),

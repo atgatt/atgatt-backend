@@ -1,7 +1,7 @@
-package handlers
+package controllers_test
 
 import (
-	"crashtested-backend/api/responses"
+	"crashtested-backend/api/v1/responses"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
