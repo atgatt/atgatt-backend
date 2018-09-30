@@ -21,6 +21,8 @@ func RunMigrations(connectionString string, migrationsDirectory string) error {
 
 	logrus.Info("Running migrations...")
 	_, err = migrate.Exec(dbConn, "postgres", migrationsSource, migrate.Up)
-	logrus.Info("Successfully ran migrations.")
+	if err == nil {
+		logrus.Info("Successfully ran migrations.")
+	}
 	return err
 }

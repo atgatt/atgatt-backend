@@ -16,7 +16,10 @@ func Test_Healthcheck_should_return_the_name_and_version_of_the_app_when_a_GET_r
 	resp, _ := http.Get(APIBaseURL)
 	Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
-	responseBodyBytes, _ := ioutil.ReadAll(resp.Body)
+	responseBodyBytes, err := ioutil.ReadAll(resp.Body)
+	if err == nil {
+		defer resp.Body.Close()
+	}
 	healthCheckResponse := new(responses.HealthCheckResponse)
 	json.Unmarshal(responseBodyBytes, healthCheckResponse)
 
@@ -35,5 +38,8 @@ func Test_Healthcheck_should_return_an_empty_body_when_a_HEAD_request_is_sent(t 
 	Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
 	responseBodyBytes, _ := ioutil.ReadAll(resp.Body)
+	if err == nil {
+		defer resp.Body.Close()
+	}
 	Expect(responseBodyBytes).To(HaveLen(0))
 }

@@ -32,6 +32,7 @@ func (r *SNELLHelmetRepository) GetAllByCertification(standard string) ([]*entit
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
 
 	snellHelmetsResponse := &SNELLHelmetsResponse{}
 	err = json.Unmarshal(respBytes, snellHelmetsResponse)

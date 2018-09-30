@@ -9,14 +9,13 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"sort"
 	"strings"
 	"time"
 
-	"github.com/xrash/smetrics"
-
+	golinq "github.com/ahmetb/go-linq"
 	"github.com/hashicorp/go-cleanhttp"
 	"github.com/sirupsen/logrus"
+	"github.com/xrash/smetrics"
 )
 
 // SyncRevzillaDataJob syncs revzilla price and buy urls by calling the CJ Affiliate API and pointing it at RevZilla's advertiser ID
@@ -42,6 +41,11 @@ func (j *SyncRevzillaDataJob) Run() error {
 		if err != nil {
 			return err
 		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusOK {
+			return fmt.Errorf("CJ API returned a status code of %d but expected 200", resp.StatusCode)
+		}
 
 		responseBodyBytes, _ := ioutil.ReadAll(resp.Body)
 		cjResp := &entities.CJProductsResponseWrapper{}
@@ -49,53 +53,38 @@ func (j *SyncRevzillaDataJob) Run() error {
 			return err
 		}
 
-		matchingRevzillaProducts := cjResp.Products.Data
-		if len(matchingRevzillaProducts) > 0 {
-			expectedProductName := strings.ToLower(fmt.Sprintf("%s %s helmet", product.Manufacturer, product.Model))
-			confidenceMap := make(map[string]float64)
+		var matchingRevzillaProductsSlice []entities.CJProduct
+		confidenceMap := make(map[string]float64)
+		expectedLowerProductName := strings.ToLower(fmt.Sprintf("%s %s", product.Manufacturer, product.Model))
 
-			sort.Slice(matchingRevzillaProducts, func(i, j int) bool {
-				firstProduct := matchingRevzillaProducts[i]
-				secondProduct := matchingRevzillaProducts[j]
-				firstProductName := strings.ToLower(firstProduct.Name)
-				secondProductName := strings.ToLower(secondProduct.Name)
+		golinq.From(cjResp.Products.Data).WhereT(func(product entities.CJProduct) bool {
+			return product.IsHelmet()
+		}).OrderByDescendingT(func(product entities.CJProduct) interface{} {
+			lowerProductName := strings.ToLower(product.Name)
+			matchConfidence := smetrics.JaroWinkler(lowerProductName, expectedLowerProductName, boostThreshold, prefixSize)
+			if _, exists := confidenceMap[lowerProductName]; !exists {
+				confidenceMap[lowerProductName] = matchConfidence
+			}
 
-				firstProductMatchConfidence := smetrics.JaroWinkler(firstProductName, expectedProductName, boostThreshold, prefixSize)
-				secondProductMatchConfidence := smetrics.JaroWinkler(secondProductName, expectedProductName, boostThreshold, prefixSize)
+			return matchConfidence
+		}).ToSlice(&matchingRevzillaProductsSlice)
 
-				if !firstProduct.IsHelmet() {
-					firstProductMatchConfidence = 0
-				}
-
-				if !secondProduct.IsHelmet() {
-					secondProductMatchConfidence = 0
-				}
-
-				if _, exists := confidenceMap[firstProductName]; !exists {
-					confidenceMap[firstProductName] = firstProductMatchConfidence
-				}
-
-				if _, exists := confidenceMap[secondProductName]; !exists {
-					confidenceMap[secondProductName] = secondProductMatchConfidence
-				}
-
-				return firstProductMatchConfidence > secondProductMatchConfidence
-			})
-
-			matchingRevzillaProduct := &matchingRevzillaProducts[0]
-			matchConfidence := confidenceMap[strings.ToLower(matchingRevzillaProduct.Name)]
-			if matchingRevzillaProduct.IsHelmet() && matchConfidence >= 0.8 {
-				product.RevzillaBuyURL = matchingRevzillaProduct.BuyURL
-				product.RevzillaPriceInUSDMultiple = int(matchingRevzillaProduct.Price * 100)
-				product.UpdateCertificationsByDescription(matchingRevzillaProduct.Description)
+		if len(matchingRevzillaProductsSlice) > 0 {
+			bestMatchRevzillaProduct := &matchingRevzillaProductsSlice[0]
+			bestMatchConfidence := confidenceMap[strings.ToLower(bestMatchRevzillaProduct.Name)]
+			confidenceLogFields := logrus.Fields{
+				"matchConfidence":     bestMatchConfidence,
+				"revzillaProductName": bestMatchRevzillaProduct.Name,
+			}
+			if bestMatchConfidence >= 0.8 {
+				product.RevzillaBuyURL = bestMatchRevzillaProduct.BuyURL
+				product.RevzillaPriceInUSDMultiple = int(bestMatchRevzillaProduct.Price * 100)
+				product.UpdateCertificationsByDescription(bestMatchRevzillaProduct.Description)
 				product.UpdateMinPrice()
-				productLogger.WithFields(logrus.Fields{
-					"matchConfidence":     confidenceMap[strings.ToLower(matchingRevzillaProduct.Name)],
-					"revzillaProductName": matchingRevzillaProduct.Name,
-				}).Info("Set new price and buy URL from RevZilla")
+				productLogger.WithFields(confidenceLogFields).Info("Set new price and buy URL from RevZilla")
 				j.ProductRepository.UpdateProduct(product)
 			} else {
-				productLogger.Info("Could not find a price or buy URL from RevZilla because the best match was not a helmet or had a low confidence score")
+				productLogger.WithFields(confidenceLogFields).Info("Could not find a price or buy URL from RevZilla because the best match was not a helmet or had a low confidence score")
 			}
 		} else {
 			productLogger.Info("Could not find a price or buy URL from RevZilla because no results were returned")

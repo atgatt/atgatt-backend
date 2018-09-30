@@ -23,9 +23,10 @@ func MakeJSONPOSTRequest(url string, request interface{}, response interface{}) 
 	if postErr != nil {
 		return nil, postErr
 	}
+	defer resp.Body.Close()
 	responseBodyBytes, _ := ioutil.ReadAll(resp.Body)
-	json.Unmarshal(responseBodyBytes, response)
 
+	json.Unmarshal(responseBodyBytes, response)
 	return resp, nil
 }
 
@@ -36,6 +37,7 @@ func MakeFormPOSTRequest(url string, formValues url.Values) (string, error) {
 	if postErr != nil {
 		return "", postErr
 	}
+	defer resp.Body.Close()
 	responseBodyBytes, _ := ioutil.ReadAll(resp.Body)
 
 	return string(responseBodyBytes), nil

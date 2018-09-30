@@ -138,10 +138,10 @@ func parseSHARPHelmetByURL(pooledHTTPClient *http.Client, httpRequestsSemaphore 
 		helmetResultsChannel <- result
 		return
 	}
+	helmetDetailsDoc, err := goquery.NewDocumentFromResponse(resp)
 	<-httpRequestsSemaphore
 	// ^ decrement after the request is done
 
-	helmetDetailsDoc, err := goquery.NewDocumentFromResponse(resp)
 	if err != nil {
 		result.err = err
 		helmetResultsChannel <- result
