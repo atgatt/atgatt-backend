@@ -37,7 +37,7 @@ func Test_Healthcheck_should_return_an_empty_body_when_a_HEAD_request_is_sent(t 
 	resp, _ := http.Head(APIBaseURL)
 	Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
-	responseBodyBytes, _ := ioutil.ReadAll(resp.Body)
+	responseBodyBytes, err := ioutil.ReadAll(resp.Body)
 	if err == nil {
 		defer resp.Body.Close()
 	}
