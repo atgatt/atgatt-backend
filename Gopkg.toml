@@ -74,12 +74,12 @@
 
 [[constraint]]
   branch = "master"
-  name = "github.com/bakatz/go-amazon-product-advertising-api"
-
-[[constraint]]
-  branch = "master"
   name = "github.com/goware/emailx"
 
 [[constraint]]
   name = "github.com/labstack/echo"
   version = "3.3.0"
+
+[[constraint]]
+  name = "github.com/ahmetb/go-linq"
+  version = "3.0.0"

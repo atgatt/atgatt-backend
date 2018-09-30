@@ -17,8 +17,6 @@ type ProductDocument struct {
 	ModelAlias                 string    `json:"modelAlias"`
 	SafetyPercentage           int       `json:"safetyPercentage"`
 	ImageURL                   string    `json:"imageUrl"`
-	AmazonBuyURL               string    `json:"amazonBuyURL"`
-	AmazonPriceInUSDMultiple   int       `json:"amazonPriceInUSDMultiple"`
 	RevzillaBuyURL             string    `json:"revzillaBuyURL"`
 	RevzillaPriceInUSDMultiple int       `json:"revzillaPriceInUSDMultiple"`
 	PriceInUSDMultiple         int       `json:"priceInUsdMultiple"`
@@ -42,20 +40,24 @@ const defaultSNELLWeight float64 = 0.10
 const defaultECEWeight float64 = 0.08
 const defaultDOTWeight float64 = 0.02
 
-// UpdateMinPrice sets the minimum price of the product by comparing amazon and revzilla prices and picking the lower of the two, or the higher of the two if one of the prices is <= 0
+// UpdateMinPrice sets the minimum price of the product by comparing MSRPs and revzilla prices and picking the lower of the two, or the higher of the two if one of the prices is <= 0
 func (p *ProductDocument) UpdateMinPrice() {
-	if p.AmazonPriceInUSDMultiple <= 0 || p.RevzillaPriceInUSDMultiple <= 0 {
-		p.PriceInUSDMultiple = int(math.Max(float64(p.AmazonPriceInUSDMultiple), float64(p.RevzillaPriceInUSDMultiple)))
+	if p.PriceInUSDMultiple <= 0 || p.RevzillaPriceInUSDMultiple <= 0 {
+		p.PriceInUSDMultiple = int(math.Max(float64(p.PriceInUSDMultiple), float64(p.RevzillaPriceInUSDMultiple)))
 	} else {
-		p.PriceInUSDMultiple = int(math.Min(float64(p.AmazonPriceInUSDMultiple), float64(p.RevzillaPriceInUSDMultiple)))
+		p.PriceInUSDMultiple = int(math.Min(float64(p.PriceInUSDMultiple), float64(p.RevzillaPriceInUSDMultiple)))
 	}
 }
 
 // UpdateCertificationsByDescription updates the DOT and/or ECE certifications if the given description contains certain keywords indicating that the product has said certifications and returns booleans indicating whether or not updates occurred.
 func (p *ProductDocument) UpdateCertificationsByDescription(productDescription string) (bool, bool) {
 	lowerDescription := strings.ToLower(productDescription)
+
+	// DOT and ECE are only 3 letters and are very common substrings, so it's better to use the real description and compare against that (the lowercase description probably has "dot" and "ece" in various words)
 	containsDOT := strings.Contains(productDescription, "DOT") || strings.Contains(productDescription, "D.O.T")
 	containsECE := strings.Contains(productDescription, "ECE") || strings.Contains(productDescription, "22/05") || strings.Contains(productDescription, "22.05")
+
+	// SNELL is an "uncommon" enough substring that it's better to use the lower description
 	containsSNELL := strings.Contains(lowerDescription, "snell") || strings.Contains(lowerDescription, "m2010") || strings.Contains(lowerDescription, "m2015")
 
 	hasNewDOTCertification := false

@@ -34,32 +34,31 @@ func GetProductSeeds() []*entities.ProductDocument {
 	}
 
 	seeds := []*entities.ProductDocument{
-		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "Shoei2", Model: "RF-8000", AmazonPriceInUSDMultiple: 29900, Type: "helmet", Subtype: "full", SafetyPercentage: 1},
-		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "Shoei", Model: "RF-7000", AmazonPriceInUSDMultiple: 49999, Type: "helmet", Subtype: "modular", SafetyPercentage: 2},
-		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "Arai", Model: "Some Arai Helmet", AmazonPriceInUSDMultiple: 79999, Type: "helmet", Subtype: "open", SafetyPercentage: 3},
-		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "NotAShoei", Model: "Model-RF", AmazonPriceInUSDMultiple: 19999, Type: "helmet", Subtype: "half", SafetyPercentage: 4},
-		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "AGV", Model: "AyyGeeVee", AmazonPriceInUSDMultiple: 29999, Type: "helmet", Subtype: "offroad", SafetyPercentage: 4},
-		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "Manufacturer1", Model: "RF-SR1", AmazonPriceInUSDMultiple: 29899, Type: "helmet", Subtype: "full", SafetyPercentage: 5},
-		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "Manufacturer2", Model: "RF-SR2", AmazonPriceInUSDMultiple: 40012, Type: "helmet", Subtype: "modular", SafetyPercentage: 6},
-		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "Manufacturer3", Model: "RF-SR", AmazonPriceInUSDMultiple: 50099, Type: "helmet", Subtype: "open", SafetyPercentage: 7},
-		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "Manufacturer4", Model: "RF-SR", AmazonPriceInUSDMultiple: 60099, Type: "helmet", Subtype: "half", SafetyPercentage: 8},
-		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "Manufacturer5", Model: "RF-SR3", AmazonPriceInUSDMultiple: 70099, Type: "helmet", Subtype: "full", SafetyPercentage: 100},
-		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "Manufacturer6", Model: "RF-SR4", AmazonPriceInUSDMultiple: 79999, Type: "helmet", Subtype: "modular", SafetyPercentage: 9},
-		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "Manufacturer7", Model: "RF-SR5", AmazonPriceInUSDMultiple: 80099, Type: "helmet", Subtype: "open", SafetyPercentage: 10},
-		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "Manufacturer8", Model: "RF-SR6", AmazonPriceInUSDMultiple: 89999, Type: "helmet", Subtype: "half", SafetyPercentage: 11},
-		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "Manufacturer9", Model: "RF-SR7", AmazonPriceInUSDMultiple: 90099, Type: "helmet", Subtype: "full", SafetyPercentage: 12},
-		&entities.ProductDocument{ImageURL: "", Manufacturer: "Manufacturer10", Model: "RF-SR8", AmazonPriceInUSDMultiple: 0, Type: "helmet", Subtype: "modular", SafetyPercentage: 1},
-		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "Manufacturer11", Model: "RF-SR9", AmazonPriceInUSDMultiple: 100099, Type: "helmet", Subtype: "open", SafetyPercentage: 13},
-		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "Manufacturer12", Model: "RF-SR10", AmazonPriceInUSDMultiple: 100299, Type: "helmet", Subtype: "half", SafetyPercentage: 14},
-		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "Manufacturer13", Model: "RF-SR11", AmazonPriceInUSDMultiple: 110099, Type: "helmet", Subtype: "offroad", SafetyPercentage: 15},
-		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "Manufacturer14", Model: "RF-SR12", AmazonPriceInUSDMultiple: 120099, Type: "helmet", Subtype: "full", SafetyPercentage: 1},
-		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "Manufacturer15", Model: "RF-SR13", AmazonPriceInUSDMultiple: 133001, Type: "helmet", Subtype: "modular", ModelAlias: "RF-1300", SafetyPercentage: 0},
+		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "Shoei2", Model: "RF-8000", PriceInUSDMultiple: 29900, Type: "helmet", Subtype: "full", SafetyPercentage: 1},
+		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "Shoei", Model: "RF-7000", PriceInUSDMultiple: 49999, Type: "helmet", Subtype: "modular", SafetyPercentage: 2},
+		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "Arai", Model: "Some Arai Helmet", PriceInUSDMultiple: 79999, Type: "helmet", Subtype: "open", SafetyPercentage: 3},
+		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "NotAShoei", Model: "Model-RF", PriceInUSDMultiple: 19999, Type: "helmet", Subtype: "half", SafetyPercentage: 4},
+		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "AGV", Model: "AyyGeeVee", PriceInUSDMultiple: 29999, Type: "helmet", Subtype: "offroad", SafetyPercentage: 4},
+		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "Manufacturer1", Model: "RF-SR1", PriceInUSDMultiple: 29899, Type: "helmet", Subtype: "full", SafetyPercentage: 5},
+		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "Manufacturer2", Model: "RF-SR2", PriceInUSDMultiple: 40012, Type: "helmet", Subtype: "modular", SafetyPercentage: 6},
+		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "Manufacturer3", Model: "RF-SR", PriceInUSDMultiple: 50099, Type: "helmet", Subtype: "open", SafetyPercentage: 7},
+		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "Manufacturer4", Model: "RF-SR", PriceInUSDMultiple: 60099, Type: "helmet", Subtype: "half", SafetyPercentage: 8},
+		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "Manufacturer5", Model: "RF-SR3", PriceInUSDMultiple: 70099, Type: "helmet", Subtype: "full", SafetyPercentage: 100},
+		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "Manufacturer6", Model: "RF-SR4", PriceInUSDMultiple: 79999, Type: "helmet", Subtype: "modular", SafetyPercentage: 9},
+		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "Manufacturer7", Model: "RF-SR5", PriceInUSDMultiple: 80099, Type: "helmet", Subtype: "open", SafetyPercentage: 10},
+		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "Manufacturer8", Model: "RF-SR6", PriceInUSDMultiple: 89999, Type: "helmet", Subtype: "half", SafetyPercentage: 11},
+		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "Manufacturer9", Model: "RF-SR7", PriceInUSDMultiple: 90099, Type: "helmet", Subtype: "full", SafetyPercentage: 12},
+		&entities.ProductDocument{ImageURL: "", Manufacturer: "Manufacturer10", Model: "RF-SR8", PriceInUSDMultiple: 0, Type: "helmet", Subtype: "modular", SafetyPercentage: 1},
+		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "Manufacturer11", Model: "RF-SR9", PriceInUSDMultiple: 100099, Type: "helmet", Subtype: "open", SafetyPercentage: 13},
+		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "Manufacturer12", Model: "RF-SR10", PriceInUSDMultiple: 100299, Type: "helmet", Subtype: "half", SafetyPercentage: 14},
+		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "Manufacturer13", Model: "RF-SR11", PriceInUSDMultiple: 110099, Type: "helmet", Subtype: "offroad", SafetyPercentage: 15},
+		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "Manufacturer14", Model: "RF-SR12", PriceInUSDMultiple: 120099, Type: "helmet", Subtype: "full", SafetyPercentage: 1},
+		&entities.ProductDocument{ImageURL: mockHelmetImageURL, Manufacturer: "Manufacturer15", Model: "RF-SR13", PriceInUSDMultiple: 133001, Type: "helmet", Subtype: "modular", ModelAlias: "RF-1300", SafetyPercentage: 0},
 	}
 
 	for i := 0; i < len(seeds); i++ {
 		seeds[i].UUID, _ = uuid.Parse(uuids[i])
-		seeds[i].RevzillaPriceInUSDMultiple = seeds[i].AmazonPriceInUSDMultiple + 10000
-		seeds[i].AmazonBuyURL = fmt.Sprintf("http://www.testdata.com/amazon/%d", i)
+		seeds[i].RevzillaPriceInUSDMultiple = seeds[i].PriceInUSDMultiple + 10000
 		seeds[i].RevzillaBuyURL = fmt.Sprintf("http://www.testdata.com/revzilla/%d", i)
 		if i%2 == 0 {
 			seeds[i].Certifications.ECE = true
@@ -90,8 +89,6 @@ func GetProductSeeds() []*entities.ProductDocument {
 			seeds[i].Certifications.DOT = false
 			seeds[i].Certifications.SHARP = nil
 			seeds[i].Certifications.SNELL = false
-			seeds[i].AmazonBuyURL = ""
-			seeds[i].AmazonPriceInUSDMultiple = 0
 			seeds[i].RevzillaBuyURL = ""
 			seeds[i].RevzillaPriceInUSDMultiple = 0
 		}

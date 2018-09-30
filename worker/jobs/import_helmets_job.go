@@ -65,19 +65,19 @@ func (j *ImportHelmetsJob) Run() error {
 		cleanedManufacturer := findCleanedManufacturer(sharpHelmet.Manufacturer, manufacturers, manufacturerAliasesMap)
 		modelAlias := findAliasForModel(modelAliases, cleanedManufacturer, sharpHelmet.Model)
 		product := &entities.ProductDocument{
-			ImageURL:                 sharpHelmet.ImageURL,
-			LatchPercentage:          sharpHelmet.LatchPercentage,
-			Manufacturer:             cleanedManufacturer,
-			Materials:                sharpHelmet.Materials,
-			Model:                    sharpHelmet.Model,
-			ModelAlias:               "",
-			AmazonPriceInUSDMultiple: sharpHelmet.ApproximatePriceInUsdMultiple,
-			RetentionSystem:          sharpHelmet.RetentionSystem,
-			Sizes:                    sharpHelmet.Sizes,
-			Subtype:                  sharpHelmet.Subtype,
-			Type:                     helmetType,
-			UUID:                     uuid.New(),
-			WeightInLbsMultiple:      sharpHelmet.WeightInLbsMultiple,
+			ImageURL:            sharpHelmet.ImageURL,
+			LatchPercentage:     sharpHelmet.LatchPercentage,
+			Manufacturer:        cleanedManufacturer,
+			Materials:           sharpHelmet.Materials,
+			Model:               sharpHelmet.Model,
+			ModelAlias:          "",
+			PriceInUSDMultiple:  sharpHelmet.ApproximatePriceInUsdMultiple,
+			RetentionSystem:     sharpHelmet.RetentionSystem,
+			Sizes:               sharpHelmet.Sizes,
+			Subtype:             sharpHelmet.Subtype,
+			Type:                helmetType,
+			UUID:                uuid.New(),
+			WeightInLbsMultiple: sharpHelmet.WeightInLbsMultiple,
 		}
 
 		if modelAlias != "" {
@@ -151,7 +151,8 @@ func (j *ImportHelmetsJob) Run() error {
 			if err != nil {
 				productLogger.WithField("imageURL", product.ImageURL).WithError(err).Warning("Could not download the product image from the image URL specified, saving the product to the DB anyway")
 			} else {
-				key := fmt.Sprintf("static/img/products/%s", path.Base(product.ImageURL))
+				defer resp.Body.Close()
+				key := fmt.Sprintf("img/products/%s", path.Base(product.ImageURL))
 				s3Logger := productLogger.WithField("s3Key", key)
 				s3Logger.Info("Uploading product image to S3")
 				s3Resp, err := j.S3Uploader.Upload(&s3manager.UploadInput{
