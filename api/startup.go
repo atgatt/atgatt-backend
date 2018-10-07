@@ -38,7 +38,7 @@ func (s *Server) Build() *sqlx.DB {
 	e.Logger = logrusmiddleware.Logger{Logger: logrus.StandardLogger()}
 	e.Use(middleware.RequestID())
 	e.Use(logrusmiddleware.Hook())
-	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{AllowOrigins: []string{"https://staging.crashtested.co", "https://www.staging.crashtested.co", "https://crashtested.co", "https://www.crashtested.co"}}))
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{AllowOrigins: []string{"https://master.crashtested.co", "https://www.master.crashtested.co", "https://crashtested.co", "https://www.crashtested.co"}}))
 
 	if s.Settings == nil {
 		logrus.Fatal("Failed to start the API because the app configuration was not specified")
