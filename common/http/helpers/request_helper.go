@@ -10,6 +10,21 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// GetContentsAtURL makes a request to url and returns the response content as a string
+func GetContentsAtURL(url string) (string, error) {
+	resp, err := http.Get(url)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	responseBodyBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	return string(responseBodyBytes), nil
+}
+
 // MakeJSONPOSTRequest makes a request to url and maps the JSON response to the given interface type
 func MakeJSONPOSTRequest(url string, request interface{}, response interface{}) (*http.Response, error) {
 	requestBytes, marshalErr := json.Marshal(request)

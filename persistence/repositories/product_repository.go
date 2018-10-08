@@ -78,7 +78,7 @@ func (r *ProductRepository) UpdateProduct(product *entities.ProductDocument) err
 		return errors.New("product must be defined")
 	}
 
-	product.UpdateMinPrice()
+	product.UpdateSearchPrice()
 	productJSONBytes, err := json.Marshal(product)
 	if err != nil {
 		return err
@@ -105,7 +105,7 @@ func (r *ProductRepository) CreateProduct(product *entities.ProductDocument) err
 		return errors.New("product must be defined")
 	}
 
-	product.UpdateMinPrice()
+	product.UpdateSearchPrice()
 	productJSONBytes, err := json.Marshal(product)
 	if err != nil {
 		return err
@@ -134,8 +134,8 @@ func (r *ProductRepository) FilterProducts(query *queries.FilterProductsQuery) (
 	orderByExpression := query.Order.Field
 
 	// TODO: find a cleaner way to do this
-	if orderByExpression == "document->>'priceInUsdMultiple'" {
-		orderByExpression = "cast((document->>'priceInUsdMultiple') as int)"
+	if orderByExpression == "document->>'searchPriceCents'" {
+		orderByExpression = "cast((document->>'searchPriceCents') as int)"
 	} else if orderByExpression == "document->>'safetyPercentage'" {
 		orderByExpression = "cast((document->>'safetyPercentage') as int)"
 	}
@@ -154,7 +154,7 @@ func (r *ProductRepository) FilterProducts(query *queries.FilterProductsQuery) (
 		highPrice := query.UsdPriceRange[1]
 		queryParams["low_price"] = lowPrice
 		queryParams["high_price"] = highPrice
-		whereCriteria += "and cast((document->>'priceInUsdMultiple') as int) between :low_price and :high_price "
+		whereCriteria += "and cast((document->>'searchPriceCents') as int) between :low_price and :high_price "
 	}
 
 	if len(query.Subtypes) > 0 {

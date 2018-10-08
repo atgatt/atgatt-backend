@@ -12,10 +12,17 @@
             "remotePath": "",
             "port": 2345,
             "host": "127.0.0.1",
-            "program": "${workspaceRoot}/api/main.go",
+            "program": "${workspaceRoot}/cmd/api/main.go",
             "env": {},
             "args": [],
-            "showLog": true
+            "showLog": true,
+            "dlvLoadConfig": {
+                "followPointers": true,
+                "maxVariableRecurse": 1,
+                "maxStringLen": 1024,
+                "maxArrayValues": 1024,
+                "maxStructFields": -1
+            }
         },
         {
             "name": "Debug Worker",
@@ -25,10 +32,17 @@
             "remotePath": "",
             "port": 2345,
             "host": "127.0.0.1",
-            "program": "${workspaceRoot}/worker/main.go",
+            "program": "${workspaceRoot}/cmd/worker/main.go",
             "env": {},
             "args": [],
-            "showLog": true
+            "showLog": true,
+            "dlvLoadConfig": {
+                "followPointers": true,
+                "maxVariableRecurse": 1,
+                "maxStringLen": 1024,
+                "maxArrayValues": 1024,
+                "maxStructFields": -1
+            }
         }
     ]
 }

@@ -85,7 +85,7 @@ func (s *Server) Build() *sqlx.DB {
 	healthCheckController := &controllers.HealthCheckController{Name: s.Name, Version: s.Version, BuildNumber: s.BuildNumber, CommitHash: s.CommitHash, MigrationsRepository: &repositories.MigrationsRepository{DB: db}}
 
 	allowedOrderFields := make(map[string]bool)
-	allowedOrderFields["document->>'priceInUsdMultiple'"] = true
+	allowedOrderFields["document->>'searchPriceCents'"] = true
 	allowedOrderFields["document->>'manufacturer'"] = true
 	allowedOrderFields["document->>'model'"] = true
 	allowedOrderFields["document->>'safetyPercentage'"] = true

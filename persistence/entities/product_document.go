@@ -9,28 +9,31 @@ import (
 
 // ProductDocument represents a safety product such as a motorcycle helmet, jacket, etc. It contains the price of the product, certifications, etc.
 type ProductDocument struct {
-	UUID                       uuid.UUID `json:"uuid"`
-	Type                       string    `json:"type"`
-	Subtype                    string    `json:"subtype"`
-	Manufacturer               string    `json:"manufacturer"`
-	Model                      string    `json:"model"`
-	ModelAlias                 string    `json:"modelAlias"`
-	SafetyPercentage           int       `json:"safetyPercentage"`
-	ImageURL                   string    `json:"imageUrl"`
-	RevzillaBuyURL             string    `json:"revzillaBuyURL"`
-	RevzillaPriceInUSDMultiple int       `json:"revzillaPriceInUSDMultiple"`
-	PriceInUSDMultiple         int       `json:"priceInUsdMultiple"`
-	LatchPercentage            int       `json:"latchPercentage"`
-	WeightInLbsMultiple        int       `json:"weightInLbsMultiple"`
-	Sizes                      []string  `json:"sizes"`
-	Materials                  string    `json:"materials"`
-	RetentionSystem            string    `json:"retentionSystem"`
-	Certifications             struct {
+	UUID                uuid.UUID `json:"uuid"`
+	Type                string    `json:"type"`
+	Subtype             string    `json:"subtype"`
+	Manufacturer        string    `json:"manufacturer"`
+	Model               string    `json:"model"`
+	ModelAlias          string    `json:"modelAlias"`
+	SafetyPercentage    int       `json:"safetyPercentage"`
+	OriginalImageURL    string    `json:"originalImageURL"`
+	ImageKey            string    `json:"imageKey"`
+	RevzillaBuyURL      string    `json:"revzillaBuyURL"`
+	RevzillaPriceCents  int       `json:"revzillaPriceCents"`
+	MSRPCents           int       `json:"msrpCents"`
+	SearchPriceCents    int       `json:"searchPriceCents"`
+	LatchPercentage     int       `json:"latchPercentage"`
+	WeightInLbsMultiple int       `json:"weightInLbsMultiple"`
+	Sizes               []string  `json:"sizes"`
+	Materials           string    `json:"materials"`
+	RetentionSystem     string    `json:"retentionSystem"`
+	Certifications      struct {
 		SHARP *SHARPCertificationDocument `json:"SHARP"`
 		SNELL bool                        `json:"SNELL"`
 		ECE   bool                        `json:"ECE"`
 		DOT   bool                        `json:"DOT"`
 	} `json:"certifications"`
+	IsDiscontinued bool `json:"isDiscontinued"`
 }
 
 const sharpImpactWeight float64 = 0.2
@@ -40,12 +43,12 @@ const defaultSNELLWeight float64 = 0.10
 const defaultECEWeight float64 = 0.08
 const defaultDOTWeight float64 = 0.02
 
-// UpdateMinPrice sets the minimum price of the product by comparing MSRPs and revzilla prices and picking the lower of the two, or the higher of the two if one of the prices is <= 0
-func (p *ProductDocument) UpdateMinPrice() {
-	if p.PriceInUSDMultiple <= 0 || p.RevzillaPriceInUSDMultiple <= 0 {
-		p.PriceInUSDMultiple = int(math.Max(float64(p.PriceInUSDMultiple), float64(p.RevzillaPriceInUSDMultiple)))
+// UpdateSearchPrice sets the minimum price of the product by comparing MSRPs and revzilla prices and picking the lower of the two, or the higher of the two if one of the prices is <= 0. This value is searchable via the API.
+func (p *ProductDocument) UpdateSearchPrice() {
+	if p.MSRPCents <= 0 || p.RevzillaPriceCents <= 0 {
+		p.SearchPriceCents = int(math.Max(float64(p.MSRPCents), float64(p.RevzillaPriceCents)))
 	} else {
-		p.PriceInUSDMultiple = int(math.Min(float64(p.PriceInUSDMultiple), float64(p.RevzillaPriceInUSDMultiple)))
+		p.SearchPriceCents = int(math.Min(float64(p.MSRPCents), float64(p.RevzillaPriceCents)))
 	}
 }
 

@@ -169,10 +169,10 @@ func parseSHARPHelmetByURL(pooledHTTPClient *http.Client, httpRequestsSemaphore 
 
 	priceFrom := findDetailsTextByHeader(helmetDetailsDoc, "price from")
 	priceFromItems := strings.Split(priceFrom, "£")
-	approximateMSRPInUsdMultiple := 0
+	approximateMSRPCents := 0
 	if len(priceFromItems) > 1 {
-		approximateMSRPInUsd, _ := strconv.ParseFloat(priceFromItems[1], 64)
-		approximateMSRPInUsdMultiple = int(math.Trunc(approximateMSRPInUsd * 100))
+		approximateMSRPDollars, _ := strconv.ParseFloat(priceFromItems[1], 64)
+		approximateMSRPCents = int(math.Trunc(approximateMSRPDollars * 100))
 	} else {
 		helmetLogger.Warning("The price of the helmet was missing")
 	}
@@ -239,18 +239,18 @@ func parseSHARPHelmetByURL(pooledHTTPClient *http.Client, httpRequestsSemaphore 
 	isECERated := strings.Contains(otherStandardsText, "ECE")
 
 	helmet := &entities.SHARPHelmet{
-		Subtype:                       subtype,
-		Model:                         model,
-		Manufacturer:                  manufacturer,
-		ImageURL:                      productImageURL,
-		LatchPercentage:               latchPercentage,
-		WeightInLbsMultiple:           weightInLbsMultiple,
-		Sizes:                         sizes,
-		RetentionSystem:               retentionSystem,
-		Materials:                     materials,
-		IsECECertified:                isECERated,
-		Certifications:                &entities.SHARPCertificationDocument{Stars: starsValue, ImpactZoneRatings: impactZoneRatings},
-		ApproximatePriceInUsdMultiple: approximateMSRPInUsdMultiple,
+		Subtype:              subtype,
+		Model:                model,
+		Manufacturer:         manufacturer,
+		ImageURL:             productImageURL,
+		LatchPercentage:      latchPercentage,
+		WeightInLbsMultiple:  weightInLbsMultiple,
+		Sizes:                sizes,
+		RetentionSystem:      retentionSystem,
+		Materials:            materials,
+		IsECECertified:       isECERated,
+		Certifications:       &entities.SHARPCertificationDocument{Stars: starsValue, ImpactZoneRatings: impactZoneRatings},
+		ApproximateMSRPCents: approximateMSRPCents,
 	}
 
 	result.helmet = helmet

@@ -65,13 +65,13 @@ func (j *ImportHelmetsJob) Run() error {
 		cleanedManufacturer := findCleanedManufacturer(sharpHelmet.Manufacturer, manufacturers, manufacturerAliasesMap)
 		modelAlias := findAliasForModel(modelAliases, cleanedManufacturer, sharpHelmet.Model)
 		product := &entities.ProductDocument{
-			ImageURL:            sharpHelmet.ImageURL,
+			OriginalImageURL:    sharpHelmet.ImageURL,
 			LatchPercentage:     sharpHelmet.LatchPercentage,
 			Manufacturer:        cleanedManufacturer,
 			Materials:           sharpHelmet.Materials,
 			Model:               sharpHelmet.Model,
 			ModelAlias:          "",
-			PriceInUSDMultiple:  sharpHelmet.ApproximatePriceInUsdMultiple,
+			MSRPCents:           sharpHelmet.ApproximateMSRPCents,
 			RetentionSystem:     sharpHelmet.RetentionSystem,
 			Sizes:               sharpHelmet.Sizes,
 			Subtype:             sharpHelmet.Subtype,
@@ -146,25 +146,25 @@ func (j *ImportHelmetsJob) Run() error {
 			return err
 		}
 
-		if product.ImageURL != "" {
-			resp, err := http.Get(product.ImageURL)
+		if product.OriginalImageURL != "" {
+			resp, err := http.Get(product.OriginalImageURL)
 			if err != nil {
-				productLogger.WithField("imageURL", product.ImageURL).WithError(err).Warning("Could not download the product image from the image URL specified, saving the product to the DB anyway")
+				productLogger.WithField("originalImageURL", product.OriginalImageURL).WithError(err).Warning("Could not download the product image from the image URL specified, saving the product to the DB anyway")
 			} else {
 				defer resp.Body.Close()
-				key := fmt.Sprintf("img/products/%s", path.Base(product.ImageURL))
-				s3Logger := productLogger.WithField("s3Key", key)
+				s3Key := fmt.Sprintf("img/products/%s", path.Base(product.OriginalImageURL))
+				s3Logger := productLogger.WithField("s3Key", s3Key)
 				s3Logger.Info("Uploading product image to S3")
 				s3Resp, err := j.S3Uploader.Upload(&s3manager.UploadInput{
 					Bucket: &j.S3Bucket,
-					Key:    &key,
+					Key:    &s3Key,
 					Body:   resp.Body,
 				})
 				if err != nil {
 					s3Logger.WithError(err).Warning("Could not upload the product image to S3, saving the product to the DB anyway")
 				}
 
-				product.ImageURL = fmt.Sprintf("/%s", key)
+				product.ImageKey = s3Key
 				s3Logger.WithField("s3UploadLocation", s3Resp.Location).Info("Finished uploading product image to S3")
 			}
 		} else {

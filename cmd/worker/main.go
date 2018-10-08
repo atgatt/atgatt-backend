@@ -60,6 +60,7 @@ func main() {
 		logrus.Info("Sync RevZilla job completed successfully")
 	}
 
+	// TODO: figure out why recalc needs to be performed after import is complete
 	err = recaclulateSafetyPercentagesJob.Run()
 	if err != nil {
 		logrus.WithError(err).Error("Recalculate Safety Job completed with errors")

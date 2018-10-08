@@ -81,8 +81,8 @@ func Test_FilterProducts_should_return_the_products_in_the_given_price_range_whe
 
 	Expect(*responseBody).ToNot(BeEmpty())
 	for _, item := range *responseBody {
-		Expect(item.PriceInUSDMultiple).To(BeNumerically("<=", 40000))
-		Expect(item.PriceInUSDMultiple).To(BeNumerically(">=", 29900))
+		Expect(item.MSRPCents).To(BeNumerically("<=", 40000))
+		Expect(item.MSRPCents).To(BeNumerically(">=", 29900))
 	}
 }
 
@@ -164,7 +164,7 @@ func Test_FilterProducts_should_return_the_products_in_the_given_price_range_whe
 
 	Expect(*responseBody).ToNot(BeEmpty())
 	for _, item := range *responseBody {
-		Expect(item.PriceInUSDMultiple).To(Equal(29900))
+		Expect(item.MSRPCents).To(Equal(29900))
 	}
 }
 
@@ -396,11 +396,11 @@ func Test_FilterProducts_should_return_bad_request_when_ordering_by_an_unknown_f
 	Expect(resp.StatusCode).To(Equal(http.StatusBadRequest))
 }
 
-func Test_FilterProducts_should_be_able_to_order_by_the_price_in_USD(t *testing.T) {
+func Test_FilterProducts_should_be_able_to_order_by_the_search_price_cents(t *testing.T) {
 	RegisterTestingT(t)
 
 	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 2000000}}
-	request.Order.Field = "document->>'priceInUsdMultiple'"
+	request.Order.Field = "document->>'searchPriceCents'"
 	request.Order.Descending = true
 
 	responseBody := &[]*entities.ProductDocument{}

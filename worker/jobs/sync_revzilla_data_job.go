@@ -1,6 +1,7 @@
 package jobs
 
 import (
+	httpHelpers "crashtested-backend/common/http/helpers"
 	"crashtested-backend/persistence/entities"
 	"crashtested-backend/persistence/repositories"
 	"crashtested-backend/worker/jobs/helpers"
@@ -72,19 +73,31 @@ func (j *SyncRevzillaDataJob) Run() error {
 		if len(matchingRevzillaProductsSlice) > 0 {
 			bestMatchRevzillaProduct := &matchingRevzillaProductsSlice[0]
 			bestMatchConfidence := confidenceMap[strings.ToLower(bestMatchRevzillaProduct.Name)]
+			buyURLContents, err := httpHelpers.GetContentsAtURL(bestMatchRevzillaProduct.BuyURL)
+			if err != nil {
+				return err
+			}
+
+			isDiscontinued := strings.Contains(buyURLContents, "the item you were searching for has been discontinued")
 			confidenceLogFields := logrus.Fields{
 				"matchConfidence":     bestMatchConfidence,
 				"revzillaProductName": bestMatchRevzillaProduct.Name,
+				"isDiscontinued":      isDiscontinued,
 			}
-			if bestMatchConfidence >= 0.8 {
+
+			if isDiscontinued {
+				productLogger.WithFields(confidenceLogFields).Warning("This product is discontinued, updating the discontinued flag and continuing to the next product")
+				product.IsDiscontinued = true
+				j.ProductRepository.UpdateProduct(product)
+			} else if bestMatchConfidence >= 0.8 {
 				product.RevzillaBuyURL = bestMatchRevzillaProduct.BuyURL
-				product.RevzillaPriceInUSDMultiple = int(bestMatchRevzillaProduct.Price * 100)
+				product.RevzillaPriceCents = int(bestMatchRevzillaProduct.Price * 100)
 				product.UpdateCertificationsByDescription(bestMatchRevzillaProduct.Description)
-				product.UpdateMinPrice()
+				product.UpdateSearchPrice()
 				productLogger.WithFields(confidenceLogFields).Info("Set new price and buy URL from RevZilla")
 				j.ProductRepository.UpdateProduct(product)
 			} else {
-				productLogger.WithFields(confidenceLogFields).Info("Could not find a price or buy URL from RevZilla because the best match was not a helmet or had a low confidence score")
+				productLogger.WithFields(confidenceLogFields).Warning("Could not find a price or buy URL from RevZilla because the best match had a low confidence score")
 			}
 		} else {
 			productLogger.Info("Could not find a price or buy URL from RevZilla because no results were returned")
