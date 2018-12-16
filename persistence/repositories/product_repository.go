@@ -16,28 +16,46 @@ type ProductRepository struct {
 }
 
 // GetByModel returns a single product where the manufacturer and model matches
-func (r *ProductRepository) GetByModel(manufacturer string, model string) (*entities.ProductDocument, error) {
+func (r *ProductRepository) GetByModel(manufacturer string, model string) (*entities.Product, error) {
 	query := &queries.FilterProductsQuery{Start: 0, Limit: 1, Manufacturer: manufacturer, Model: model}
 	query.Order.Field = "id"
-
-	filteredProducts, err := r.FilterProducts(query)
+	rows, err := r.DB.NamedQuery("select document from products where document->>'manufacturer' = :manufacturer and document->>'model' = :model", map[string]interface{}{
+		"manufacturer": manufacturer,
+		"model":        model,
+	})
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
-	if len(filteredProducts) == 0 {
+	productDocuments := []*entities.Product{}
+	for rows.Next() {
+		productJSONBytesPtr := &[]byte{}
+		productDocument := &entities.Product{}
+		err := rows.Scan(productJSONBytesPtr)
+		if err != nil {
+			return nil, err
+		}
+		err = json.Unmarshal(*productJSONBytesPtr, productDocument)
+		if err != nil {
+			return nil, err
+		}
+		productDocuments = append(productDocuments, productDocument)
+	}
+
+	if len(productDocuments) == 0 {
 		return nil, nil
 	}
 
-	if len(filteredProducts) > 1 {
+	if len(productDocuments) > 1 {
 		return nil, errors.New("An unexpected number of products were returned")
 	}
 
-	return &filteredProducts[0], nil
+	return productDocuments[0], nil
 }
 
 // GetAllPaged queries the database for all products without prices, within the range of start and limit.
-func (r *ProductRepository) GetAllPaged(start int, limit int) ([]entities.ProductDocument, error) {
+func (r *ProductRepository) GetAllPaged(start int, limit int) ([]entities.Product, error) {
 	query := &queries.FilterProductsQuery{Start: start, Limit: limit}
 	query.Order.Field = "id"
 
@@ -50,10 +68,10 @@ func (r *ProductRepository) GetAllPaged(start int, limit int) ([]entities.Produc
 }
 
 // GetAllModelAliases returns all the model aliases in the database
-func (r *ProductRepository) GetAllModelAliases() ([]entities.ProductModelAlias, error) {
+func (r *ProductRepository) GetAllModelAliases() ([]*entities.ProductModelAlias, error) {
 
-	productModelAliases := []entities.ProductModelAlias{}
-	err := r.DB.Select(&productModelAliases, "select manufacturer, model, model_alias as modelalias from product_model_aliases")
+	productModelAliases := []*entities.ProductModelAlias{}
+	err := r.DB.Select(&productModelAliases, "select manufacturer, model, model_alias as modelalias, is_for_display as isfordisplay from product_model_aliases")
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +91,7 @@ func (r *ProductRepository) GetAllManufacturerAliases() ([]entities.ProductManuf
 }
 
 // UpdateProduct replaces the product in the DB with the supplied product, where the product's UUID matches the one supplied
-func (r *ProductRepository) UpdateProduct(product *entities.ProductDocument) error {
+func (r *ProductRepository) UpdateProduct(product *entities.Product) error {
 	if product == nil {
 		return errors.New("product must be defined")
 	}
@@ -100,7 +118,7 @@ func (r *ProductRepository) UpdateProduct(product *entities.ProductDocument) err
 }
 
 // CreateProduct creates a product with the given fields by first converting it to json, and then dumping the json into a column in the DB.
-func (r *ProductRepository) CreateProduct(product *entities.ProductDocument) error {
+func (r *ProductRepository) CreateProduct(product *entities.Product) error {
 	if product == nil {
 		return errors.New("product must be defined")
 	}
@@ -124,7 +142,7 @@ func (r *ProductRepository) CreateProduct(product *entities.ProductDocument) err
 }
 
 // FilterProducts is a method that ANDs a bunch of query parameters together and returns a list of matching products, or an error if there was a problem executing the query.
-func (r *ProductRepository) FilterProducts(query *queries.FilterProductsQuery) ([]entities.ProductDocument, error) {
+func (r *ProductRepository) FilterProducts(query *queries.FilterProductsQuery) ([]entities.Product, error) {
 	queryParams := make(map[string]interface{})
 	whereCriteria := `where document->>'type' = :type `
 	queryParams["type"] = "helmet" // TODO: this is hardcoded for now
@@ -167,9 +185,17 @@ func (r *ProductRepository) FilterProducts(query *queries.FilterProductsQuery) (
 		whereCriteria += "and document->>'manufacturer' ilike (:manufacturer || '%') "
 	}
 
+	// TODO: This will not scale for a large number of rows!
+	// This particular query is suboptimal as it selects across multiple columns, and the exists query cannot be indexed.
+	// Need to ETL this entire table to elasticsearch or AWS Search for efficient queries once the table size grows
 	if query.Model != "" {
 		queryParams["model"] = query.Model
-		whereCriteria += "and (document->>'model' ilike (:model || '%') or document->>'modelAlias' ilike (:model || '%')) " // TODO: may need to optimize this query once the dataset grows larger, OR across multiple columns is likely not sargable
+		// Find rows where the model matches, or one of the aliases starts with the model
+		whereCriteria += `and (document->>'model' ilike (:model || '%') or exists(
+			select 1 
+			from jsonb_array_elements(cast(document->>'modelAliases' as jsonb)) elem
+			where elem->>'modelAlias' ilike (:model || '%')
+		))`
 	}
 
 	sharpCert := query.Certifications.SHARP
@@ -218,7 +244,7 @@ func (r *ProductRepository) FilterProducts(query *queries.FilterProductsQuery) (
 		whereCriteria += "and document->'certifications'->>'DOT' = 'true' "
 	}
 
-	productDocuments := make([]entities.ProductDocument, 0)
+	productDocuments := []entities.Product{}
 	originalSQLQueryString := fmt.Sprintf(`select document from products
 											%s
 											order by %s %s,
@@ -240,19 +266,19 @@ func (r *ProductRepository) FilterProducts(query *queries.FilterProductsQuery) (
 	// Converts ? arguments back to positional ($0, $1, $2, etc) arguments so that they can be executed in the DB.
 	preProcessedSQLQueryString = r.DB.Rebind(preProcessedSQLQueryString)
 	rows, err := r.DB.Query(preProcessedSQLQueryString, args...)
-	defer rows.Close()
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
 	for rows.Next() {
-		productJSONString := &[]byte{}
-		productDocument := &entities.ProductDocument{}
-		err := rows.Scan(productJSONString)
+		productJSONBytesPtr := &[]byte{}
+		productDocument := &entities.Product{}
+		err := rows.Scan(productJSONBytesPtr)
 		if err != nil {
 			return nil, err
 		}
-		err = json.Unmarshal(*productJSONString, productDocument)
+		err = json.Unmarshal(*productJSONBytesPtr, productDocument)
 		if err != nil {
 			return nil, err
 		}

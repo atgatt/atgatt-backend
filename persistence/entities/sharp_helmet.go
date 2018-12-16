@@ -7,7 +7,7 @@ type SHARPHelmet struct {
 	Model                string
 	ImageURL             string
 	LatchPercentage      int
-	WeightInLbsMultiple  int
+	WeightInLbs          float64
 	Sizes                []string
 	Materials            string
 	RetentionSystem      string

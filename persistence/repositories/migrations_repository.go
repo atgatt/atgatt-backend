@@ -1,10 +1,11 @@
 package repositories
 
 import (
+	"errors"
 	"sort"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/rubenv/sql-migrate"
+	migrate "github.com/rubenv/sql-migrate"
 )
 
 // MigrationsRepository contains functions used to query the status of database migrations
@@ -31,4 +32,28 @@ func (r *MigrationsRepository) GetLatestMigrationVersion() (string, error) {
 	}
 
 	return migrations[numMigrations-1].Id, nil
+}
+
+// ApplySeeds applies several arbitrary SQL statements to the database as seed data. NOTE: This method is dangerous as it executes arbitrary SQL and should only be used by test code!
+func (r *MigrationsRepository) ApplySeeds(seeds []string) error {
+	if seeds == nil || len(seeds) <= 0 {
+		return errors.New("seeds cannot be empty")
+	}
+
+	tx, err := r.DB.Begin()
+	if err != nil {
+		return err
+	}
+
+	for _, seedSQL := range seeds {
+		_, err := tx.Exec(seedSQL)
+		if err != nil {
+			return err
+		}
+	}
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+	return nil
 }

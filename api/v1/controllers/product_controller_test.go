@@ -10,6 +10,7 @@ import (
 	"strings"
 	"testing"
 
+	golinq "github.com/ahmetb/go-linq"
 	. "github.com/onsi/gomega"
 )
 
@@ -19,7 +20,7 @@ func Test_FilterProducts_should_return_all_of_the_products_data_when_the_limit_i
 	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 2000000}}
 	request.Order.Field = "created_at_utc"
 
-	responseBody := &[]*entities.ProductDocument{}
+	responseBody := &[]*entities.Product{}
 	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
 
 	Expect(err).To(BeNil())
@@ -35,7 +36,7 @@ func Test_FilterProducts_should_return_all_of_the_products_that_have_the_given_s
 	request.Order.Field = "created_at_utc"
 	request.Subtypes = []string{"full"}
 
-	responseBody := &[]*entities.ProductDocument{}
+	responseBody := &[]*entities.Product{}
 	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
 
 	Expect(err).To(BeNil())
@@ -54,7 +55,7 @@ func Test_FilterProducts_should_return_all_of_the_products_that_have_the_given_s
 	request.Order.Field = "created_at_utc"
 	request.Subtypes = []string{"full", "modular"}
 
-	responseBody := &[]*entities.ProductDocument{}
+	responseBody := &[]*entities.Product{}
 	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
 
 	Expect(err).To(BeNil())
@@ -73,7 +74,7 @@ func Test_FilterProducts_should_return_the_products_in_the_given_price_range_whe
 	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{29900, 40000}}
 	request.Order.Field = "created_at_utc"
 
-	responseBody := &[]*entities.ProductDocument{}
+	responseBody := &[]*entities.Product{}
 	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
 
 	Expect(err).To(BeNil())
@@ -81,8 +82,8 @@ func Test_FilterProducts_should_return_the_products_in_the_given_price_range_whe
 
 	Expect(*responseBody).ToNot(BeEmpty())
 	for _, item := range *responseBody {
-		Expect(item.MSRPCents).To(BeNumerically("<=", 40000))
-		Expect(item.MSRPCents).To(BeNumerically(">=", 29900))
+		Expect(item.SearchPriceCents).To(BeNumerically("<=", 40000))
+		Expect(item.SearchPriceCents).To(BeNumerically(">=", 29900))
 	}
 }
 
@@ -92,7 +93,7 @@ func Test_FilterProducts_should_return_bad_request_when_the_low_price_is_greater
 	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{40000, 29900}}
 	request.Order.Field = "created_at_utc"
 
-	responseBody := &[]*entities.ProductDocument{}
+	responseBody := &[]*entities.Product{}
 	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
 
 	Expect(err).To(BeNil())
@@ -104,7 +105,7 @@ func Test_FilterProducts_should_return_bad_request_when_the_low_price_is_negativ
 
 	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{-1, 1000000}}
 
-	responseBody := &[]*entities.ProductDocument{}
+	responseBody := &[]*entities.Product{}
 	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
 
 	Expect(err).To(BeNil())
@@ -117,7 +118,7 @@ func Test_FilterProducts_should_return_bad_request_when_the_high_price_is_negati
 	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, -1000000}}
 	request.Order.Field = "created_at_utc"
 
-	responseBody := &[]*entities.ProductDocument{}
+	responseBody := &[]*entities.Product{}
 	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
 
 	Expect(err).To(BeNil())
@@ -130,7 +131,7 @@ func Test_FilterProducts_should_return_bad_request_when_the_high_price_is_zero(t
 	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 0}}
 	request.Order.Field = "created_at_utc"
 
-	responseBody := &[]*entities.ProductDocument{}
+	responseBody := &[]*entities.Product{}
 	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
 
 	Expect(err).To(BeNil())
@@ -143,7 +144,7 @@ func Test_FilterProducts_should_return_bad_request_when_there_are_too_many_price
 	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 100000, 500000}}
 	request.Order.Field = "created_at_utc"
 
-	responseBody := &[]*entities.ProductDocument{}
+	responseBody := &[]*entities.Product{}
 	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
 
 	Expect(err).To(BeNil())
@@ -153,10 +154,10 @@ func Test_FilterProducts_should_return_bad_request_when_there_are_too_many_price
 func Test_FilterProducts_should_return_the_products_in_the_given_price_range_when_the_low_price_is_equal_to_the_high_price(t *testing.T) {
 	RegisterTestingT(t)
 
-	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{29900, 29900}}
+	expectedExactPrice := 39900
+	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{expectedExactPrice, expectedExactPrice}}
 	request.Order.Field = "created_at_utc"
-
-	responseBody := &[]*entities.ProductDocument{}
+	responseBody := &[]*entities.Product{}
 	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
 
 	Expect(err).To(BeNil())
@@ -164,7 +165,7 @@ func Test_FilterProducts_should_return_the_products_in_the_given_price_range_whe
 
 	Expect(*responseBody).ToNot(BeEmpty())
 	for _, item := range *responseBody {
-		Expect(item.MSRPCents).To(Equal(29900))
+		Expect(item.SearchPriceCents).To(Equal(expectedExactPrice))
 	}
 }
 
@@ -175,7 +176,7 @@ func Test_FilterProducts_should_return_products_whose_models_or_aliases_start_wi
 	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 2000000}, Model: expectedModelPrefix}
 	request.Order.Field = "created_at_utc"
 
-	responseBody := &[]*entities.ProductDocument{}
+	responseBody := &[]*entities.Product{}
 	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
 
 	Expect(err).To(BeNil())
@@ -184,7 +185,10 @@ func Test_FilterProducts_should_return_products_whose_models_or_aliases_start_wi
 	Expect(*responseBody).ToNot(BeEmpty())
 	for _, item := range *responseBody {
 		isModelCorrect := strings.Index(item.Model, expectedModelPrefix) == 0
-		isModelAliasCorrect := strings.Index(item.ModelAlias, expectedModelPrefix) == 0
+		isModelAliasCorrect := golinq.From(item.ModelAliases).AnyWithT(func(alias *entities.ProductModelAlias) bool {
+			return strings.Index(alias.ModelAlias, expectedModelPrefix) == 0
+		})
+
 		Expect(isModelCorrect || isModelAliasCorrect).To(BeTrue()) // Make sure the model or the alias started with the value we expect
 	}
 }
@@ -196,7 +200,7 @@ func Test_FilterProducts_should_return_products_whose_manufacturers_start_with_t
 	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 2000000}, Manufacturer: expectedManufacturerPrefix}
 	request.Order.Field = "created_at_utc"
 
-	responseBody := &[]*entities.ProductDocument{}
+	responseBody := &[]*entities.Product{}
 	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
 
 	Expect(err).To(BeNil())
@@ -215,7 +219,7 @@ func Test_FilterProducts_should_return_products_with_SNELL_certifications(t *tes
 	request.Order.Field = "created_at_utc"
 	request.Certifications.SNELL = true
 
-	responseBody := &[]*entities.ProductDocument{}
+	responseBody := &[]*entities.Product{}
 	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
 
 	Expect(err).To(BeNil())
@@ -234,7 +238,7 @@ func Test_FilterProducts_should_return_products_with_ECE_certifications(t *testi
 	request.Order.Field = "created_at_utc"
 	request.Certifications.ECE = true
 
-	responseBody := &[]*entities.ProductDocument{}
+	responseBody := &[]*entities.Product{}
 	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
 
 	Expect(err).To(BeNil())
@@ -253,7 +257,7 @@ func Test_FilterProducts_should_return_products_with_DOT_certifications(t *testi
 	request.Order.Field = "created_at_utc"
 	request.Certifications.DOT = true
 
-	responseBody := &[]*entities.ProductDocument{}
+	responseBody := &[]*entities.Product{}
 	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
 
 	Expect(err).To(BeNil())
@@ -272,7 +276,7 @@ func Test_FilterProducts_should_return_products_with_SHARP_certifications(t *tes
 	request.Order.Field = "created_at_utc"
 	request.Certifications.SHARP = &queries.SHARPCertificationQueryParams{}
 
-	responseBody := &[]*entities.ProductDocument{}
+	responseBody := &[]*entities.Product{}
 	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
 
 	Expect(err).To(BeNil())
@@ -296,7 +300,7 @@ func Test_FilterProducts_should_return_products_with_SHARP_certifications_and_mi
 	request.Certifications.SHARP.ImpactZoneMinimums.Top.Front = 3
 	request.Certifications.SHARP.ImpactZoneMinimums.Top.Rear = 3
 
-	responseBody := &[]*entities.ProductDocument{}
+	responseBody := &[]*entities.Product{}
 	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
 
 	Expect(err).To(BeNil())
@@ -320,7 +324,7 @@ func Test_FilterProducts_should_return_products_with_SHARP_certifications_and_mi
 	request.Order.Field = "created_at_utc"
 	request.Certifications.SHARP = &queries.SHARPCertificationQueryParams{Stars: 3}
 
-	responseBody := &[]*entities.ProductDocument{}
+	responseBody := &[]*entities.Product{}
 	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
 
 	Expect(err).To(BeNil())
@@ -341,7 +345,7 @@ func Test_FilterProducts_should_correctly_page_through_the_resultset_when_start_
 
 	seeds := seeds.GetProductSeeds()
 	for i := 0; i < len(seeds)+1; i++ {
-		responseBody := &[]*entities.ProductDocument{}
+		responseBody := &[]*entities.Product{}
 		resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
 
 		Expect(err).To(BeNil())
@@ -363,7 +367,7 @@ func Test_FilterProducts_should_return_bad_request_when_the_limit_is_too_large(t
 	request := &queries.FilterProductsQuery{Start: 0, Limit: 26, UsdPriceRange: []int{0, 1000}}
 	request.Order.Field = "created_at_utc"
 
-	responseBody := &[]*entities.ProductDocument{}
+	responseBody := &[]*entities.Product{}
 	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
 
 	Expect(err).To(BeNil())
@@ -376,7 +380,7 @@ func Test_FilterProducts_should_return_bad_request_when_the_limit_is_too_small(t
 	request := &queries.FilterProductsQuery{Start: 0, Limit: -1, UsdPriceRange: []int{0, 1000}}
 	request.Order.Field = "created_at_utc"
 
-	responseBody := &[]*entities.ProductDocument{}
+	responseBody := &[]*entities.Product{}
 	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
 
 	Expect(err).To(BeNil())
@@ -389,7 +393,7 @@ func Test_FilterProducts_should_return_bad_request_when_ordering_by_an_unknown_f
 	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 2000000}}
 	request.Order.Field = "yolo swag"
 
-	responseBody := &[]*entities.ProductDocument{}
+	responseBody := &[]*entities.Product{}
 	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
 
 	Expect(err).To(BeNil())
@@ -403,7 +407,7 @@ func Test_FilterProducts_should_be_able_to_order_by_the_search_price_cents(t *te
 	request.Order.Field = "document->>'searchPriceCents'"
 	request.Order.Descending = true
 
-	responseBody := &[]*entities.ProductDocument{}
+	responseBody := &[]*entities.Product{}
 	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
 
 	Expect(err).To(BeNil())
@@ -417,7 +421,7 @@ func Test_FilterProducts_should_be_able_to_order_by_the_manufacturer(t *testing.
 	request.Order.Field = "document->>'manufacturer'"
 	request.Order.Descending = true
 
-	responseBody := &[]*entities.ProductDocument{}
+	responseBody := &[]*entities.Product{}
 	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
 
 	Expect(err).To(BeNil())
@@ -431,7 +435,7 @@ func Test_FilterProducts_should_be_able_to_order_by_the_model(t *testing.T) {
 	request.Order.Field = "document->>'manufacturer'"
 	request.Order.Descending = true
 
-	responseBody := &[]*entities.ProductDocument{}
+	responseBody := &[]*entities.Product{}
 	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
 
 	Expect(err).To(BeNil())
@@ -445,7 +449,7 @@ func Test_FilterProducts_should_be_able_to_order_by_the_safety_percentage(t *tes
 	request.Order.Field = "document->>'safetyPercentage'"
 	request.Order.Descending = true
 
-	responseBody := &[]*entities.ProductDocument{}
+	responseBody := &[]*entities.Product{}
 	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
 
 	Expect(err).To(BeNil())
@@ -461,7 +465,7 @@ func Test_FilterProducts_should_be_able_to_order_by_the_utc_created_date(t *test
 	request.Order.Field = "created_at_utc"
 	request.Order.Descending = true
 
-	responseBody := &[]*entities.ProductDocument{}
+	responseBody := &[]*entities.Product{}
 	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
 
 	Expect(err).To(BeNil())
@@ -475,7 +479,7 @@ func Test_FilterProducts_should_be_able_to_order_by_the_utc_updated_date(t *test
 	request.Order.Field = "updated_at_utc"
 	request.Order.Descending = true
 
-	responseBody := &[]*entities.ProductDocument{}
+	responseBody := &[]*entities.Product{}
 	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
 
 	Expect(err).To(BeNil())
@@ -489,7 +493,7 @@ func Test_FilterProducts_should_be_able_to_order_by_id(t *testing.T) {
 	request.Order.Field = "id"
 	request.Order.Descending = true
 
-	responseBody := &[]*entities.ProductDocument{}
+	responseBody := &[]*entities.Product{}
 	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
 
 	Expect(err).To(BeNil())

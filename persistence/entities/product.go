@@ -7,27 +7,27 @@ import (
 	"github.com/google/uuid"
 )
 
-// ProductDocument represents a safety product such as a motorcycle helmet, jacket, etc. It contains the price of the product, certifications, etc.
-type ProductDocument struct {
-	UUID                uuid.UUID `json:"uuid"`
-	Type                string    `json:"type"`
-	Subtype             string    `json:"subtype"`
-	Manufacturer        string    `json:"manufacturer"`
-	Model               string    `json:"model"`
-	ModelAlias          string    `json:"modelAlias"`
-	SafetyPercentage    int       `json:"safetyPercentage"`
-	OriginalImageURL    string    `json:"originalImageURL"`
-	ImageKey            string    `json:"imageKey"`
-	RevzillaBuyURL      string    `json:"revzillaBuyURL"`
-	RevzillaPriceCents  int       `json:"revzillaPriceCents"`
-	MSRPCents           int       `json:"msrpCents"`
-	SearchPriceCents    int       `json:"searchPriceCents"`
-	LatchPercentage     int       `json:"latchPercentage"`
-	WeightInLbsMultiple int       `json:"weightInLbsMultiple"`
-	Sizes               []string  `json:"sizes"`
-	Materials           string    `json:"materials"`
-	RetentionSystem     string    `json:"retentionSystem"`
-	Certifications      struct {
+// Product represents a safety product such as a motorcycle helmet, jacket, etc. It contains the price of the product, certifications, etc.
+type Product struct {
+	UUID               uuid.UUID            `json:"uuid"`
+	Type               string               `json:"type"`
+	Subtype            string               `json:"subtype"`
+	Manufacturer       string               `json:"manufacturer"`
+	Model              string               `json:"model"`
+	ModelAliases       []*ProductModelAlias `json:"modelAliases"`
+	SafetyPercentage   int                  `json:"safetyPercentage"`
+	OriginalImageURL   string               `json:"originalImageURL"`
+	ImageKey           string               `json:"imageKey"`
+	RevzillaBuyURL     string               `json:"revzillaBuyURL"`
+	RevzillaPriceCents int                  `json:"revzillaPriceCents"`
+	MSRPCents          int                  `json:"msrpCents"`
+	SearchPriceCents   int                  `json:"searchPriceCents"`
+	LatchPercentage    int                  `json:"latchPercentage"`
+	WeightInLbs        float64              `json:"weightInLbs"`
+	Sizes              []string             `json:"sizes"`
+	Materials          string               `json:"materials"`
+	RetentionSystem    string               `json:"retentionSystem"`
+	Certifications     struct {
 		SHARP *SHARPCertificationDocument `json:"SHARP"`
 		SNELL bool                        `json:"SNELL"`
 		ECE   bool                        `json:"ECE"`
@@ -43,17 +43,17 @@ const defaultSNELLWeight float64 = 0.10
 const defaultECEWeight float64 = 0.08
 const defaultDOTWeight float64 = 0.02
 
-// UpdateSearchPrice sets the minimum price of the product by comparing MSRPs and revzilla prices and picking the lower of the two, or the higher of the two if one of the prices is <= 0. This value is searchable via the API.
-func (p *ProductDocument) UpdateSearchPrice() {
-	if p.MSRPCents <= 0 || p.RevzillaPriceCents <= 0 {
-		p.SearchPriceCents = int(math.Max(float64(p.MSRPCents), float64(p.RevzillaPriceCents)))
+// UpdateSearchPrice sets the search price to the revzilla price if its defined, otherwise uses the MSRP
+func (p *Product) UpdateSearchPrice() {
+	if p.RevzillaPriceCents > 0 {
+		p.SearchPriceCents = p.RevzillaPriceCents
 	} else {
-		p.SearchPriceCents = int(math.Min(float64(p.MSRPCents), float64(p.RevzillaPriceCents)))
+		p.SearchPriceCents = p.MSRPCents
 	}
 }
 
 // UpdateCertificationsByDescription updates the DOT and/or ECE certifications if the given description contains certain keywords indicating that the product has said certifications and returns booleans indicating whether or not updates occurred.
-func (p *ProductDocument) UpdateCertificationsByDescription(productDescription string) (bool, bool) {
+func (p *Product) UpdateCertificationsByDescription(productDescription string) (bool, bool) {
 	lowerDescription := strings.ToLower(productDescription)
 
 	// DOT and ECE are only 3 letters and are very common substrings, so it's better to use the real description and compare against that (the lowercase description probably has "dot" and "ece" in various words)
@@ -80,10 +80,10 @@ func (p *ProductDocument) UpdateCertificationsByDescription(productDescription s
 	return hasNewDOTCertification, hasNewECECertification
 }
 
-// CalculateSafetyPercentage calculates how safe a helmet is based on a weighted average of all of its certifications, rounded up to the nearest integer
+// UpdateSafetyPercentage calculates how safe a helmet is based on a weighted average of all of its certifications, rounded up to the nearest integer.
 // SHARP Percentages are calculated by dividing the raw score by the maximum score (i.e. Raw-Score / 5)
 // TODO: Make this support multiple product types once gloves, boots, jackets, etc are added
-func (p ProductDocument) CalculateSafetyPercentage() int {
+func (p *Product) UpdateSafetyPercentage() {
 	var totalScore float64
 
 	snellWeightToUse := defaultSNELLWeight
@@ -120,5 +120,5 @@ func (p ProductDocument) CalculateSafetyPercentage() int {
 		totalScore += dotWeightToUse
 	}
 
-	return int(math.Round(totalScore * 100))
+	p.SafetyPercentage = int(math.Round(totalScore * 100))
 }

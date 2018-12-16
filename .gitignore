@@ -22,3 +22,5 @@ tmp
 
 !.elasticbeanstalk/*.global.yml
 
+# Goland IDE
+.idea

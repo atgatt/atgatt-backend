@@ -7,9 +7,9 @@ import (
 	"math"
 	"net/http"
 	"path"
-	"sort"
 	"strings"
 
+	golinq "github.com/ahmetb/go-linq"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager/s3manageriface"
 	"github.com/google/uuid"
@@ -31,8 +31,8 @@ const helmetType string = "helmet"
 
 // Run invokes the job and returns an error if any errors occurred while processing the helmet data.
 func (j *ImportHelmetsJob) Run() error {
-	sharpProducts := make([]*entities.ProductDocument, 0)
-	snellProducts := make([]*entities.ProductDocument, 0)
+	sharpProducts := []*entities.Product{}
+	snellOnlyProducts := []*entities.Product{}
 
 	manufacturers, err := j.ManufacturerRepository.GetAll()
 	if err != nil {
@@ -49,7 +49,7 @@ func (j *ImportHelmetsJob) Run() error {
 		manufacturerAliasesMap[manufacturerAlias.Manufacturer] = manufacturerAlias.ManufacturerAlias
 	}
 
-	modelAliases, err := j.ProductRepository.GetAllModelAliases()
+	allModelAliases, err := j.ProductRepository.GetAllModelAliases()
 	if err != nil {
 		return err
 	}
@@ -60,33 +60,31 @@ func (j *ImportHelmetsJob) Run() error {
 		return err
 	}
 
-	var jobCompletedWithWarnings bool
+	matchedAllProducts := true
 	for _, sharpHelmet := range sharpHelmets {
 		cleanedManufacturer := findCleanedManufacturer(sharpHelmet.Manufacturer, manufacturers, manufacturerAliasesMap)
-		modelAlias := findAliasForModel(modelAliases, cleanedManufacturer, sharpHelmet.Model)
-		product := &entities.ProductDocument{
-			OriginalImageURL:    sharpHelmet.ImageURL,
-			LatchPercentage:     sharpHelmet.LatchPercentage,
-			Manufacturer:        cleanedManufacturer,
-			Materials:           sharpHelmet.Materials,
-			Model:               sharpHelmet.Model,
-			ModelAlias:          "",
-			MSRPCents:           sharpHelmet.ApproximateMSRPCents,
-			RetentionSystem:     sharpHelmet.RetentionSystem,
-			Sizes:               sharpHelmet.Sizes,
-			Subtype:             sharpHelmet.Subtype,
-			Type:                helmetType,
-			UUID:                uuid.New(),
-			WeightInLbsMultiple: sharpHelmet.WeightInLbsMultiple,
+		matchingModelAliases := findAliasesForModel(allModelAliases, cleanedManufacturer, sharpHelmet.Model)
+		product := &entities.Product{
+			OriginalImageURL: sharpHelmet.ImageURL,
+			LatchPercentage:  sharpHelmet.LatchPercentage,
+			Manufacturer:     cleanedManufacturer,
+			Materials:        sharpHelmet.Materials,
+			Model:            sharpHelmet.Model,
+			ModelAliases:     matchingModelAliases,
+			MSRPCents:        sharpHelmet.ApproximateMSRPCents,
+			RetentionSystem:  sharpHelmet.RetentionSystem,
+			Sizes:            sharpHelmet.Sizes,
+			Subtype:          sharpHelmet.Subtype,
+			Type:             helmetType,
+			UUID:             uuid.New(),
+			WeightInLbs:      sharpHelmet.WeightInLbs,
 		}
 
-		if modelAlias != "" {
+		if len(matchingModelAliases) > 0 {
 			logrus.WithFields(logrus.Fields{
-				"model":      product.Model,
-				"modelAlias": modelAlias,
-			}).Info("Replacing model with an alias")
-			product.ModelAlias = product.Model
-			product.Model = modelAlias
+				"model":        product.Model,
+				"modelAliases": matchingModelAliases,
+			}).Info("Found some aliases for the given model")
 		}
 
 		product.Certifications.SHARP = sharpHelmet.Certifications
@@ -101,9 +99,9 @@ func (j *ImportHelmetsJob) Run() error {
 
 	for _, snellHelmet := range snellHelmets {
 		cleanedManufacturer := findCleanedManufacturer(snellHelmet.Manufacturer, manufacturers, manufacturerAliasesMap)
-		matchingSHARPProduct, success := findMatchingSHARPProduct(cleanedManufacturer, snellHelmet.Model, sharpProducts)
-		if !jobCompletedWithWarnings && !success {
-			jobCompletedWithWarnings = true
+		matchingSHARPProduct := findMatchingSHARPProduct(cleanedManufacturer, snellHelmet.Model, sharpProducts)
+		if matchedAllProducts && matchingSHARPProduct == nil {
+			matchedAllProducts = false
 		}
 
 		if matchingSHARPProduct != nil {
@@ -120,21 +118,28 @@ func (j *ImportHelmetsJob) Run() error {
 			}).Info("Could not find a matching SHARP helmet, so initializing a helmet with only SNELL and DOT ratings")
 
 			sizes := strings.Split(snellHelmet.Size, ",")
-			snellProduct := &entities.ProductDocument{Manufacturer: cleanedManufacturer, Model: snellHelmet.Model, UUID: uuid.New(), Type: helmetType, Subtype: snellHelmet.FaceConfig, Sizes: sizes}
-			snellProduct.Certifications.SNELL = true
-			snellProduct.Certifications.DOT = true
-			snellProducts = append(snellProducts, snellProduct)
+			snellOnlyProduct := &entities.Product{
+				Manufacturer: cleanedManufacturer,
+				Model:        snellHelmet.Model,
+				UUID:         uuid.New(),
+				Type:         helmetType,
+				Subtype:      snellHelmet.FaceConfig,
+				Sizes:        sizes,
+			}
+			snellOnlyProduct.Certifications.SNELL = true
+			snellOnlyProduct.Certifications.DOT = true
+			snellOnlyProducts = append(snellOnlyProducts, snellOnlyProduct)
 		}
 	}
 
-	combinedProductsList := append(sharpProducts, snellProducts...)
+	combinedProductsList := append(sharpProducts, snellOnlyProducts...)
 	for _, product := range combinedProductsList {
 		productLogger := logrus.WithFields(logrus.Fields{
 			"manufacturer": product.Manufacturer,
 			"model":        product.Model,
 		})
 		productLogger.Info("Starting to upsert the product into the database")
-		validator := &entities.ProductDocumentValidator{Product: product}
+		validator := &entities.ProductValidator{Product: product}
 		validationErr := validator.Validate()
 		if validationErr != nil {
 			productLogger.WithField("validationError", validationErr).Warning("Validation failed, continuing to the next helmet")
@@ -151,7 +156,6 @@ func (j *ImportHelmetsJob) Run() error {
 			if err != nil {
 				productLogger.WithField("originalImageURL", product.OriginalImageURL).WithError(err).Warning("Could not download the product image from the image URL specified, saving the product to the DB anyway")
 			} else {
-				defer resp.Body.Close()
 				s3Key := fmt.Sprintf("img/products/%s", path.Base(product.OriginalImageURL))
 				s3Logger := productLogger.WithField("s3Key", s3Key)
 				s3Logger.Info("Uploading product image to S3")
@@ -166,19 +170,20 @@ func (j *ImportHelmetsJob) Run() error {
 
 				product.ImageKey = s3Key
 				s3Logger.WithField("s3UploadLocation", s3Resp.Location).Info("Finished uploading product image to S3")
+				resp.Body.Close()
 			}
 		} else {
 			productLogger.Warn("No image found, not uploading anything to S3, saving the product to the DB anyway")
 		}
 
-		product.SafetyPercentage = product.CalculateSafetyPercentage()
-
+		product.UpdateSafetyPercentage()
 		if existingProduct == nil {
 			err := j.ProductRepository.CreateProduct(product)
 			if err != nil {
 				return err
 			}
 		} else {
+			productLogger.WithField("existingUUID", existingProduct.UUID).Info("Product already exists, updating it")
 			product.UUID = existingProduct.UUID
 			err := j.ProductRepository.UpdateProduct(product)
 			if err != nil {
@@ -192,20 +197,21 @@ func (j *ImportHelmetsJob) Run() error {
 	return nil
 }
 
-func findAliasForModel(aliases []entities.ProductModelAlias, manufacturer string, model string) string {
-	for _, alias := range aliases {
+func findAliasesForModel(allAliases []*entities.ProductModelAlias, manufacturer string, model string) []*entities.ProductModelAlias {
+	matchingAliases := []*entities.ProductModelAlias{}
+	for _, alias := range allAliases {
 		if strings.EqualFold(alias.Manufacturer, manufacturer) && strings.EqualFold(alias.Model, model) {
-			return alias.ModelAlias
+			matchingAliases = append(matchingAliases, alias)
 		}
 	}
-	return ""
+	return matchingAliases
 }
 
 const boostThreshold float64 = 0.7
 const prefixSize int = 4
 
-func findMatchingSHARPProduct(cleanedSNELLManufacturer string, rawSNELLModel string, sharpProducts []*entities.ProductDocument) (*entities.ProductDocument, bool) {
-	possibleSHARPHelmets := make([]*entities.ProductDocument, 0)
+func findMatchingSHARPProduct(cleanedSNELLManufacturer string, rawSNELLModel string, sharpProducts []*entities.Product) *entities.Product {
+	possibleSHARPHelmets := []*entities.Product{}
 	for _, sharpHelmet := range sharpProducts {
 		if sharpHelmet.Manufacturer == cleanedSNELLManufacturer {
 			possibleSHARPHelmets = append(possibleSHARPHelmets, sharpHelmet)
@@ -217,88 +223,58 @@ func findMatchingSHARPProduct(cleanedSNELLManufacturer string, rawSNELLModel str
 			"manufacturer": cleanedSNELLManufacturer,
 			"model":        rawSNELLModel,
 		}).Warn("No helmets found for the given manufacturer")
-		return nil, false
+		return nil
 	}
 
 	confidenceMap := make(map[string]float64)
-	sort.Slice(possibleSHARPHelmets, func(i int, j int) bool {
-		firstSHARPHelmet := possibleSHARPHelmets[i]
-		secondSHARPHelmet := possibleSHARPHelmets[j]
-
-		lowercaseRawSNELLModel := strings.ToLower(rawSNELLModel)
-
-		lowercaseFirstSHARPModel := strings.ToLower(firstSHARPHelmet.Model)
-		lowercaseSecondSHARPModel := strings.ToLower(secondSHARPHelmet.Model)
-
-		lowercaseFirstSHARPModelAlias := strings.ToLower(firstSHARPHelmet.ModelAlias)
-		lowercaseSecondSHARPModelAlias := strings.ToLower(secondSHARPHelmet.ModelAlias)
-
-		firstModelMatchConfidence := smetrics.JaroWinkler(lowercaseRawSNELLModel, lowercaseFirstSHARPModel, boostThreshold, prefixSize)
-		secondModelMatchConfidence := smetrics.JaroWinkler(lowercaseRawSNELLModel, lowercaseSecondSHARPModel, boostThreshold, prefixSize)
-
-		firstModelAliasMatchConfidence := smetrics.JaroWinkler(lowercaseRawSNELLModel, lowercaseFirstSHARPModelAlias, boostThreshold, prefixSize)
-		secondModelAliasMatchConfidence := smetrics.JaroWinkler(lowercaseRawSNELLModel, lowercaseSecondSHARPModelAlias, boostThreshold, prefixSize)
-
-		firstOverallConfidence := math.Max(firstModelMatchConfidence, firstModelAliasMatchConfidence)
-		secondOverallConfidence := math.Max(secondModelMatchConfidence, secondModelAliasMatchConfidence)
-		if _, exists := confidenceMap[firstSHARPHelmet.Model]; !exists {
-			confidenceMap[firstSHARPHelmet.Model] = firstOverallConfidence
+	orderedSHARPHelmets := []*entities.Product{}
+	lowerSNELLModel := strings.ToLower(rawSNELLModel)
+	golinq.From(possibleSHARPHelmets).OrderByDescendingT(func(helmet *entities.Product) interface{} {
+		var maxConfidence float64
+		for _, alias := range helmet.ModelAliases {
+			lowerAlias := strings.ToLower(alias.ModelAlias)
+			aliasConfidence := smetrics.JaroWinkler(lowerAlias, lowerSNELLModel, boostThreshold, prefixSize)
+			maxConfidence = math.Max(maxConfidence, aliasConfidence)
 		}
 
-		if _, exists := confidenceMap[secondSHARPHelmet.Model]; !exists {
-			confidenceMap[secondSHARPHelmet.Model] = secondOverallConfidence
-		}
+		modelConfidence := smetrics.JaroWinkler(strings.ToLower(helmet.Model), lowerSNELLModel, boostThreshold, prefixSize)
+		maxConfidence = math.Max(maxConfidence, modelConfidence)
+		confidenceMap[helmet.Model] = maxConfidence
+		return maxConfidence
+	}).ToSlice(&orderedSHARPHelmets)
 
-		return firstOverallConfidence > secondOverallConfidence
-	})
-
-	mostLikelySHARPHelmet := possibleSHARPHelmets[0]
+	mostLikelySHARPHelmet := orderedSHARPHelmets[0]
 	confidence := confidenceMap[mostLikelySHARPHelmet.Model]
 	logEntry := logrus.WithFields(logrus.Fields{
-		"rawSNELLModel":             rawSNELLModel,
-		"mostLikelySHARPModel":      mostLikelySHARPHelmet.Model,
-		"mostLikelySHARPModelAlias": mostLikelySHARPHelmet.ModelAlias,
-		"confidence":                confidence,
+		"rawSNELLModel":               rawSNELLModel,
+		"mostLikelySHARPModel":        mostLikelySHARPHelmet.Model,
+		"mostLikelySHARPModelAliases": mostLikelySHARPHelmet.ModelAliases,
+		"confidence":                  confidence,
 	})
 
 	// if we're 90% confident that the model matches, use the value
 	if confidence >= 0.9 {
 		logEntry.Info("High confidence: found matching SHARP model using Jaro-Winkler algorithm")
-		return mostLikelySHARPHelmet, true
+		return mostLikelySHARPHelmet
 	}
 
 	logEntry.Warn("Low confidence: SHARP match found, but confidence too low. Ignoring.")
-	return nil, false
+	return nil
 }
 
 func findCleanedManufacturer(rawManufacturer string, cleanedManufacturers []string, manufacturerAliasesMap map[string]string) string {
 	mostLikelyManufacturers := make([]string, len(cleanedManufacturers))
-	copy(mostLikelyManufacturers, cleanedManufacturers)
-
 	confidenceMap := make(map[string]float64)
+	lowercaseRawManufacturer := strings.ToLower(rawManufacturer)
 
-	sort.Slice(mostLikelyManufacturers, func(i int, j int) bool {
-		firstManufacturer := mostLikelyManufacturers[i]
-		secondManufacturer := mostLikelyManufacturers[j]
-
-		lowercaseRawManufacturer := strings.ToLower(rawManufacturer)
-
-		lowercaseFirstManufacturer := strings.ToLower(mostLikelyManufacturers[i])
-		lowercaseSecondManufacturer := strings.ToLower(mostLikelyManufacturers[j])
-
-		firstManufacturerMatchConfidence := smetrics.JaroWinkler(lowercaseRawManufacturer, lowercaseFirstManufacturer, boostThreshold, prefixSize)
-		secondManufacturerMatchConfidence := smetrics.JaroWinkler(lowercaseRawManufacturer, lowercaseSecondManufacturer, boostThreshold, prefixSize)
-
-		if _, exists := confidenceMap[firstManufacturer]; !exists {
-			confidenceMap[firstManufacturer] = firstManufacturerMatchConfidence
+	golinq.From(cleanedManufacturers).OrderByDescendingT(func(cleanedManufacturer string) interface{} {
+		lowercaseCleanedManufacturer := strings.ToLower(cleanedManufacturer)
+		matchConfidence := smetrics.JaroWinkler(lowercaseRawManufacturer, lowercaseCleanedManufacturer, boostThreshold, prefixSize)
+		if _, exists := confidenceMap[cleanedManufacturer]; !exists {
+			confidenceMap[cleanedManufacturer] = matchConfidence
 		}
-
-		if _, exists := confidenceMap[secondManufacturer]; !exists {
-			confidenceMap[secondManufacturer] = secondManufacturerMatchConfidence
-		}
-
-		return firstManufacturerMatchConfidence > secondManufacturerMatchConfidence
-	})
+		return matchConfidence
+	}).ToSlice(&mostLikelyManufacturers)
 
 	mostLikelyManufacturer := mostLikelyManufacturers[0]
 	confidence := confidenceMap[mostLikelyManufacturer]

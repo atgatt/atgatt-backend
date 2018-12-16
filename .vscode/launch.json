@@ -19,8 +19,8 @@
             "dlvLoadConfig": {
                 "followPointers": true,
                 "maxVariableRecurse": 1,
-                "maxStringLen": 1024,
-                "maxArrayValues": 1024,
+                "maxStringLen": 64,
+                "maxArrayValues": 64,
                 "maxStructFields": -1
             }
         },
@@ -39,8 +39,8 @@
             "dlvLoadConfig": {
                 "followPointers": true,
                 "maxVariableRecurse": 1,
-                "maxStringLen": 1024,
-                "maxArrayValues": 1024,
+                "maxStringLen": 64,
+                "maxArrayValues": 64,
                 "maxStructFields": -1
             }
         }

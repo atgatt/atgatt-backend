@@ -1,7 +1,9 @@
 # crashtested-backend
 The CrashTested backend services (API, background jobs, etc.)
 
-## Build setup
+## First-time setup
+
+## Common tasks
 - Run `dep ensure` to install all dependencies
 - Run `go test ./...` to run all tests (integration and unit)
 - Run `go build -o ./crashtested-api ./api` to build the API

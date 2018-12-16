@@ -4,13 +4,13 @@ jobs:
     docker:
       - image: circleci/golang:1.11
         environment:
-          DATABASE_CONNECTION_STRING: postgres://postgres:password@localhost:5432/crashtested?sslmode=disable
+          DATABASE_CONNECTION_STRING: postgres://postgres:password@localhost:5432/crashtested_integrationtests?sslmode=disable
           APP_ENVIRONMENT: circleci
-      - image: postgres:10.1-alpine
+      - image: postgres:10.6-alpine
         environment:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: password
-          POSTGRES_DB: crashtested
+          POSTGRES_DB: crashtested_integrationtests
     working_directory: /go/src/crashtested-backend
     steps:
       - checkout

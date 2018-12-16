@@ -8,9 +8,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/bakatz/echo-logrusmiddleware"
+	logrusmiddleware "github.com/bakatz/echo-logrusmiddleware"
 	"github.com/bshuster-repo/logruzio"
-	"github.com/go-ozzo/ozzo-validation"
+	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
@@ -111,7 +111,9 @@ func (s *Server) StartAndBlock() {
 	defer db.Close()
 
 	err := s.echoInstance.Start(s.Port)
-	logrus.WithError(err).Fatal("Failed to start the server")
+	if err != nil {
+		logrus.WithError(err).Fatal("Failed to start the server")
+	}
 }
 
 // Stop just ensures that the echoInstance is closed

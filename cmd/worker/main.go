@@ -31,6 +31,7 @@ func main() {
 		logrus.WithError(err).Error("Encountered an error while opening a database connection")
 		return
 	}
+	defer db.Close()
 
 	productRepository := &repositories.ProductRepository{DB: db}
 
@@ -43,7 +44,6 @@ func main() {
 		S3Bucket:               config.AWS.S3Bucket,
 	}
 
-	recaclulateSafetyPercentagesJob := &jobs.RecalculateSafetyPercentagesJob{ProductRepository: productRepository}
 	syncRevzillaDataJob := &jobs.SyncRevzillaDataJob{ProductRepository: productRepository, CJAPIKey: config.CJAPIKey}
 
 	err = importHelmetsJob.Run()
@@ -58,13 +58,5 @@ func main() {
 		logrus.WithError(err).Error("Sync RevZilla job completed with errors")
 	} else {
 		logrus.Info("Sync RevZilla job completed successfully")
-	}
-
-	// TODO: figure out why recalc needs to be performed after import is complete
-	err = recaclulateSafetyPercentagesJob.Run()
-	if err != nil {
-		logrus.WithError(err).Error("Recalculate Safety Job completed with errors")
-	} else {
-		logrus.Info("Recalculate Safety Job completed successfully")
 	}
 }

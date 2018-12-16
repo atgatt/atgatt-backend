@@ -33,6 +33,8 @@ func (r *SHARPHelmetRepository) GetAll() ([]*entities.SHARPHelmet, error) {
 	rightImpactZoneRegexp := regexp.MustCompile(`right-(\d)\.jpg`)
 	rearImpactZoneRegexp := regexp.MustCompile(`rear-(\d)\.jpg`)
 	weightRegexp := regexp.MustCompile(`(\d\.\d\d)`)
+	latchPercentageRegexp := regexp.MustCompile("[0-9]+")
+
 	startTime := time.Now()
 	helmetResultsChannel := make(chan *parseHelmetResult)
 	httpRequestSemaphore := make(chan struct{}, 4) // maximum of 4 concurrent http requests
@@ -48,7 +50,7 @@ func (r *SHARPHelmetRepository) GetAll() ([]*entities.SHARPHelmet, error) {
 
 	pooledHTTPClient := cleanhttp.DefaultPooledClient() // use a pooled http client so that the SSL session is reused between connections
 	for helmetURL := range helmetUrlsMap {
-		go parseSHARPHelmetByURL(pooledHTTPClient, httpRequestSemaphore, helmetURL, helmetResultsChannel, weightRegexp, starsRegexp, topImpactZoneRegexp, leftImpactZoneRegexp, rightImpactZoneRegexp, rearImpactZoneRegexp)
+		go parseSHARPHelmetByURL(pooledHTTPClient, httpRequestSemaphore, helmetURL, helmetResultsChannel, weightRegexp, starsRegexp, topImpactZoneRegexp, leftImpactZoneRegexp, rightImpactZoneRegexp, rearImpactZoneRegexp, latchPercentageRegexp)
 	}
 
 	for index := 0; index < numHelmetUrls; index++ {
@@ -124,7 +126,7 @@ type parseHelmetResult struct {
 	err       error
 }
 
-func parseSHARPHelmetByURL(pooledHTTPClient *http.Client, httpRequestsSemaphore chan struct{}, helmetURL string, helmetResultsChannel chan *parseHelmetResult, weightRegexp *regexp.Regexp, starsRegexp *regexp.Regexp, topImpactZoneRegexp *regexp.Regexp, leftImpactZoneRegexp *regexp.Regexp, rightImpactZoneRegexp *regexp.Regexp, rearImpactZoneRegexp *regexp.Regexp) {
+func parseSHARPHelmetByURL(pooledHTTPClient *http.Client, httpRequestsSemaphore chan struct{}, helmetURL string, helmetResultsChannel chan *parseHelmetResult, weightRegexp *regexp.Regexp, starsRegexp *regexp.Regexp, topImpactZoneRegexp *regexp.Regexp, leftImpactZoneRegexp *regexp.Regexp, rightImpactZoneRegexp *regexp.Regexp, rearImpactZoneRegexp *regexp.Regexp, latchPercentageRegexp *regexp.Regexp) {
 	helmetLogger := logrus.WithField("helmetUrl", helmetURL)
 	helmetLogger.Info("Starting to parse helmet data")
 
@@ -194,14 +196,14 @@ func parseSHARPHelmetByURL(pooledHTTPClient *http.Client, httpRequestsSemaphore 
 
 	manufacturer := findDetailsTextByHeader(helmetDetailsDoc, "manufacturer")
 	rawWeightText := findDetailsTextByHeader(helmetDetailsDoc, "helmet weight")
-	weightInLbsMultiple := -1
+	var weightInLbs float64 = -1
 
 	weightMatches := weightRegexp.FindStringSubmatch(strings.Replace(rawWeightText, ",", ".", -1))
 	if len(weightMatches) > 1 {
 		weightText := weightMatches[1]
 		weightInKg, err := strconv.ParseFloat(weightText, 64)
 		if err == nil {
-			weightInLbsMultiple = int(float64(2.20462) * weightInKg * 100)
+			weightInLbs = float64(2.20462) * weightInKg
 		} else {
 			helmetLogger.WithError(err).Warning("The weight was in an unexpected format")
 		}
@@ -219,12 +221,12 @@ func parseSHARPHelmetByURL(pooledHTTPClient *http.Client, httpRequestsSemaphore 
 	} else if strings.EqualFold(subtypeText, "full face") {
 		subtype = "full"
 	}
-
-	latchPercentageArray := (strings.Split(helmetDetailsDoc.Find(".percentage-overlay").Text(), "%"))
+	latchPercentageString := helmetDetailsDoc.Find(".percentage-overlay").Text()
+	latchPercentageNumberMatches := latchPercentageRegexp.FindAllString(latchPercentageString, -1)
 	latchPercentage := -1
-	if len(latchPercentageArray) >= 2 {
+	if len(latchPercentageNumberMatches) == 1 {
 		var err error
-		latchPercentage, err = strconv.Atoi(latchPercentageArray[0])
+		latchPercentage, err = strconv.Atoi(strings.TrimSpace(latchPercentageNumberMatches[0]))
 		if err != nil {
 			helmetLogger.WithError(err).Warning("The latch percentage was in an unexpected format")
 			latchPercentage = -1
@@ -244,7 +246,7 @@ func parseSHARPHelmetByURL(pooledHTTPClient *http.Client, httpRequestsSemaphore 
 		Manufacturer:         manufacturer,
 		ImageURL:             productImageURL,
 		LatchPercentage:      latchPercentage,
-		WeightInLbsMultiple:  weightInLbsMultiple,
+		WeightInLbs:          weightInLbs,
 		Sizes:                sizes,
 		RetentionSystem:      retentionSystem,
 		Materials:            materials,

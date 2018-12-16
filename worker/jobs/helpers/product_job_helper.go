@@ -8,7 +8,7 @@ import (
 )
 
 // ForEachProduct iterates over all the products in the database and runs the current action on the given product
-func ForEachProduct(productRepository *repositories.ProductRepository, action func(product *entities.ProductDocument, productLogger *logrus.Entry) error) error {
+func ForEachProduct(productRepository *repositories.ProductRepository, action func(product *entities.Product, productLogger *logrus.Entry) error) error {
 	start := 0
 	limit := 25
 	currProducts, err := productRepository.GetAllPaged(start, limit)
