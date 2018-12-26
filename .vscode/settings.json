@@ -1,3 +1,5 @@
 {
-    "go.buildOnSave": "workspace"
+    "go.buildOnSave": "workspace",
+    "go.lintOnSave": "workspace",
+    "go.vetOnSave": "workspace"
 }
