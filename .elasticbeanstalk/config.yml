@@ -19,4 +19,4 @@ global:
   sc: git
   workspace_type: Application
 deploy:
-  artifact: /go/src/crashtested-backend/artifacts.zip
+  artifact: artifacts.zip
