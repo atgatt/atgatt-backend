@@ -27,13 +27,13 @@ jobs:
       - run: go test -v ./...
       - run: zip -r api-artifacts.zip crashtested-api ./api/Procfile ./persistence/migrations/
       - run: zip -r worker-artifacts.zip crashtested-worker ./worker/Procfile ./persistence/migrations/
+      - run: mkdir -p workspace/artifacts
       - run: cp api-artifacts.zip workspace/artifacts
       - run: cp worker-artifacts.zip workspace/artifacts
       - run: mv api-artifacts.zip artifacts.zip
       - run: eb deploy api-staging --label api-${CIRCLE_SHA1} --process --verbose
       - run: rm artifacts.zip && mv worker-artifacts.zip artifacts.zip
       - run: eb deploy worker-staging --label worker-${CIRCLE_SHA1} --process --verbose
-      - run: mkdir -p workspace/artifacts
       - persist_to_workspace:
           root: workspace
           paths:
