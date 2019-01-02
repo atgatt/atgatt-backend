@@ -108,7 +108,7 @@ func TestMain(m *testing.M) {
 	defaultSettings.DatabaseConnectionString = TestDatabaseConnectionString
 	defaultSettings.AppEnvironment = "integration-tests"
 	server := api.Server{Port: ":5001", Name: "crashtested-api", Version: "integration-tests-version", BuildNumber: "integration-tests-build", CommitHash: "integration-tests-commit", Settings: defaultSettings}
-	go server.StartAndBlock()
+	go server.Bootstrap()
 
 	apiErr := WaitForAPI()
 
@@ -118,8 +118,6 @@ func TestMain(m *testing.M) {
 		statusCode = m.Run()
 	}
 
-	logrus.Info("Tests finished. Closing resources...")
-	server.Stop()
-	logrus.Info("Done. Exiting...")
+	logrus.Info("Tests finished. Exiting...")
 	os.Exit(statusCode)
 }

@@ -31,8 +31,8 @@ type Server struct {
 	echoInstance *echo.Echo
 }
 
-// Build initializes all dependencies required by the API and exits with a nonzero status code if there's a problem
-func (s *Server) Build() *sqlx.DB {
+// Bootstrap first initializes the server, then starts it up and blocks
+func (s *Server) Bootstrap() {
 	e := echo.New()
 	e.HideBanner = true
 	e.Logger = logrusmiddleware.Logger{Logger: logrus.StandardLogger()}
@@ -100,23 +100,8 @@ func (s *Server) Build() *sqlx.DB {
 	e.POST("/v1/products/filter", productsController.FilterProducts)
 	e.POST("/v1/marketing/email", marketingController.CreateMarketingEmail)
 
-	s.echoInstance = e
-
-	return db
-}
-
-// StartAndBlock first initializes the server, then starts it up and blocks
-func (s *Server) StartAndBlock() {
-	db := s.Build()
-	defer db.Close()
-
-	err := s.echoInstance.Start(s.Port)
+	err = e.Start(s.Port)
 	if err != nil {
-		logrus.WithError(err).Fatal("Failed to start the server")
+		logrus.WithError(err).Error("Failed to start the server")
 	}
-}
-
-// Stop just ensures that the echoInstance is closed
-func (s *Server) Stop() {
-	s.echoInstance.Close()
 }
