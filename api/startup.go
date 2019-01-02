@@ -37,7 +37,12 @@ func (s *Server) Bootstrap() {
 	e.HideBanner = true
 	e.Logger = logrusmiddleware.Logger{Logger: logrus.StandardLogger()}
 	e.Use(middleware.RequestID())
-	e.Use(logrusmiddleware.Hook())
+
+	config := &logrusmiddleware.Config{
+		IncludeRequestBodies:  true,
+		IncludeResponseBodies: true,
+	}
+	e.Use(logrusmiddleware.HookWithConfig(*config))
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{AllowOrigins: []string{"https://master.crashtested.co", "https://www.master.crashtested.co", "https://crashtested.co", "https://www.crashtested.co"}}))
 
 	if s.Settings == nil {

@@ -12,6 +12,14 @@ github.com/asaskevich/govalidator v0.0.0-20180720115003-f9ffefc3facf/go.mod h1:l
 github.com/aws/aws-sdk-go v1.16.11/go.mod h1:KmX6BPdI08NWTb3/sm4ZGu5ShLoqVDhKgpiN924inxo=
 github.com/bakatz/echo-logrusmiddleware v1.0.0 h1:6wap5Cgd+NOQRyvsFw/3SAyBQXfThvynqnhn7Q7RGrs=
 github.com/bakatz/echo-logrusmiddleware v1.0.0/go.mod h1:076Fh8vIJR2NsQ1XgyBdU0ebtA8SKOipi7kFd7z7Fbs=
+github.com/bakatz/echo-logrusmiddleware v1.0.1-0.20190102051122-e0b255ba88d1 h1:Lj4EnL5ZbSg4hq4OUFkPEf3xmDn2C0dpthnVjtAMsrw=
+github.com/bakatz/echo-logrusmiddleware v1.0.1-0.20190102051122-e0b255ba88d1/go.mod h1:076Fh8vIJR2NsQ1XgyBdU0ebtA8SKOipi7kFd7z7Fbs=
+github.com/bakatz/echo-logrusmiddleware v1.0.1-0.20190102052545-5414717df58d h1:t96Z1/DURkm4RMGjek42IMrhfiCddN4S+8Jp8B8qBLc=
+github.com/bakatz/echo-logrusmiddleware v1.0.1-0.20190102052545-5414717df58d/go.mod h1:076Fh8vIJR2NsQ1XgyBdU0ebtA8SKOipi7kFd7z7Fbs=
+github.com/bakatz/echo-logrusmiddleware v1.0.1-0.20190102053823-d9d6c399cae9 h1:6pWOpZ3lVs9r8+ZupeHvYyczTsycWLe3lS/tWun9FA8=
+github.com/bakatz/echo-logrusmiddleware v1.0.1-0.20190102053823-d9d6c399cae9/go.mod h1:076Fh8vIJR2NsQ1XgyBdU0ebtA8SKOipi7kFd7z7Fbs=
+github.com/bakatz/echo-logrusmiddleware v1.1.0 h1:BoxLYL1K9SYJErF2jmLI35YpeSXpjPKA+J2KQ+5YzCA=
+github.com/bakatz/echo-logrusmiddleware v1.1.0/go.mod h1:076Fh8vIJR2NsQ1XgyBdU0ebtA8SKOipi7kFd7z7Fbs=
 github.com/bshuster-repo/logruzio v0.0.0-20170701214031-b0b294934396/go.mod h1:ocNaQufnFqEQrrLz5hZhT/FoClXwP7GpTN4aVDJzW3Q=
 github.com/cockroachdb/apd v1.1.0/go.mod h1:8Sl8LxpKi29FqWXR16WEFZRNSz3SoPzUzeMeY4+DwBQ=
 github.com/cockroachdb/cockroach-go v0.0.0-20181001143604-e0a95dfd547c/go.mod h1:XGLbWH/ujMcbPbhZq52Nv6UrCghb1yGn//133kEsvDk=
