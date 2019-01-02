@@ -151,7 +151,7 @@ func (j *ImportHelmetsJob) Run() error {
 			return err
 		}
 
-		if product.OriginalImageURL != "" {
+		if product.OriginalImageURL != "" && existingProduct == nil {
 			resp, err := http.Get(product.OriginalImageURL)
 			if err != nil {
 				productLogger.WithField("originalImageURL", product.OriginalImageURL).WithError(err).Warning("Could not download the product image from the image URL specified, saving the product to the DB anyway")
@@ -173,22 +173,18 @@ func (j *ImportHelmetsJob) Run() error {
 				resp.Body.Close()
 			}
 		} else {
-			productLogger.Warn("No image found, not uploading anything to S3, saving the product to the DB anyway")
+			productLogger.Info("Not uploading anything to S3, saving the product to the DB anyway")
 		}
 
 		product.UpdateSafetyPercentage()
+
 		if existingProduct == nil {
 			err := j.ProductRepository.CreateProduct(product)
 			if err != nil {
 				return err
 			}
 		} else {
-			productLogger.WithField("existingUUID", existingProduct.UUID).Info("Product already exists, updating it")
-			product.UUID = existingProduct.UUID
-			err := j.ProductRepository.UpdateProduct(product)
-			if err != nil {
-				return err
-			}
+			productLogger.WithField("existingUUID", existingProduct.UUID).Warning("Product already exists, skipping it")
 		}
 
 		productLogger.Info("Successfully finished upserting the product")

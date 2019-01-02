@@ -15,12 +15,12 @@ Monorepo for all of the CrashTested backend services (API, background jobs, etc.
 NOTE: You don't need to do anything to install dependencies. This project relies on the new Go Modules feature, which means that when you `go build` the API/background worker for the first time, Go will automatically install all deps.
 
 ## Common tasks
-- Run `go build -o ./crashtested-api ./cmd/api` to build the API to a self-contained binary
-- Run `go build -o ./crashtested-worker ./cmd/worker` to build the background worker to a self-contained binary
-- Run `go test ./...` to run all tests (integration and unit)
 - Run `go run ./cmd/api` to run the API (listens on http://localhost:5000)
+- Run `go test ./...` to run all tests (integration and unit)
 - Run `sql-migrate new <name-of-migration>` to generate a new migration
 - Run `sql-migrate up` to run migrations
+- Run `go build -o ./crashtested-api ./cmd/api` to build the API to a self-contained binary
+- Run `go build -o ./crashtested-worker ./cmd/worker` to build the background worker to a self-contained binary
 - If you have Air, type `air` (or `air -c .air.windows.conf` if you're on Windows) to run a live reload server. 
 
 ## Important folders and files
@@ -31,8 +31,14 @@ NOTE: You don't need to do anything to install dependencies. This project relies
 
 ## Deployment
 ### Environments
-- Staging: https://api-staging.crashtested.co/
-- Production: https://api.crashtested.co/
+- Staging: 
+    - API Healthcheck URL: https://api-staging.crashtested.co/
+    - API Elastic Beanstalk Environment Name: `api-staging`
+    - Worker Elastic Beanstalk Environment Name: `worker-staging`
+- Production: 
+    - API Healthcheck URL: https://api.crashtested.co/
+    - API Elastic Beanstalk Environment Name: `api-prod`
+    - Worker Elastic Beanstalk Environment Name: `worker-prod`
 
 ### How to deploy
 - Staging: Just merge your feature branch to master. After it gets merged, it will automatically get deployed to staging.
@@ -40,5 +46,5 @@ NOTE: You don't need to do anything to install dependencies. This project relies
 - Any failures for either of the above steps will be sent to #build-notifications in Slack
 
 ### Notes
-- CrashTested is hosted on AWS using Elastic Beanstalk. `Procfile` controls how the app is started once it's deployed to EB.
-- Elastic Beanstalk expects the app to run on port 5000 by default, so do not change `server.go` to have it point to a different port.
+- CrashTested is hosted on AWS using Elastic Beanstalk using a web role and a worker role. A `Procfile` for each role (two separate files found in ./api and ./worker) controls how the service is started once it's deployed to EB.
+- Elastic Beanstalk expects the API to run on port 5000 by default and the worker to run on port 80 by default, so do not change `server.go` to have it point to a different port.
