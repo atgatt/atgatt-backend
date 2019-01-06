@@ -6,6 +6,7 @@ require (
 	github.com/asaskevich/govalidator v0.0.0-20180720115003-f9ffefc3facf // indirect
 	github.com/aws/aws-sdk-go v1.16.11
 	github.com/bakatz/echo-logrusmiddleware v1.1.0
+	github.com/borderstech/artifex v0.0.0-20181102223847-39e20eb3448b
 	github.com/bshuster-repo/logruzio v0.0.0-20170701214031-b0b294934396
 	github.com/go-ozzo/ozzo-validation v3.5.0+incompatible
 	github.com/go-sql-driver/mysql v1.4.1 // indirect

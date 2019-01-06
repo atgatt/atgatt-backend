@@ -7,7 +7,10 @@ import (
 	"crashtested-backend/worker/settings"
 	"net/http"
 	"os"
+	"runtime"
 	"time"
+
+	"github.com/borderstech/artifex"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -91,7 +94,7 @@ func (s *Server) Bootstrap() {
 
 	productRepository := &repositories.ProductRepository{DB: db}
 
-	_ = &jobs.ImportHelmetsJob{
+	importHelmetsJob := &jobs.ImportHelmetsJob{
 		ProductRepository:      productRepository,
 		SHARPHelmetRepository:  &repositories.SHARPHelmetRepository{Limit: -1},
 		SNELLHelmetRepository:  &repositories.SNELLHelmetRepository{},
@@ -100,26 +103,32 @@ func (s *Server) Bootstrap() {
 		S3Bucket:               config.AWS.S3Bucket,
 	}
 
-	_ = &jobs.SyncRevzillaDataJob{ProductRepository: productRepository, CJAPIKey: config.CJAPIKey}
+	syncRevzillaDataJob := &jobs.SyncRevzillaDataJob{ProductRepository: productRepository, CJAPIKey: config.CJAPIKey}
+
+	// 10 workers, 100 max in job queue
+	jobQueue := artifex.NewDispatcher(runtime.NumCPU(), 100)
+	jobQueue.Start()
 
 	// NOTE: for now, just running both jobs at the same time. Should refactor this to be separate jobs once there are more than two that need to run (it makes sense to group these two together for now)
 	e.POST("/jobs", func(context echo.Context) (err error) {
 		logrus.Info("Got message!")
-		/*
+
+		jobQueue.Dispatch(func() {
 			err = importHelmetsJob.Run()
 			if err != nil {
 				logrus.WithError(err).Error("Import Helmets Job completed with errors")
-				return err
+				return
 			}
 			logrus.Info("Import Helmets Job completed successfully")
 
 			err = syncRevzillaDataJob.Run()
 			if err != nil {
 				logrus.WithError(err).Error("Sync RevZilla job completed with errors")
-				return err
+				return
 			}
 			logrus.Info("Sync RevZilla job completed successfully")
-		*/
+		})
+
 		var emptyResponse struct{}
 		return context.JSON(http.StatusOK, emptyResponse)
 	})
