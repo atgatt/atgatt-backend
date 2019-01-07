@@ -40,6 +40,12 @@ NOTE: You don't need to do anything to install dependencies. This project relies
     - API Elastic Beanstalk Environment Name: `api-prod`
     - Worker Elastic Beanstalk Environment Name: `worker-prod`
 
+Useful commands to monitor deployments:
+- `eb status <environment-name>` will display application health information
+- `eb ssh <environment-name>` will allow you to open a SSH session on the EC2 container(s) that the application is running on
+
+Note that you must have Python 3.6 installed and use `pip install awsebcli` before running any of the above deployment-related commands.
+
 ### How to deploy
 - Staging: Just merge your feature branch to master. After it gets merged, it will automatically get deployed to staging.
 - Production: Select the commit you want to promote to production via https://circleci.com/gh/bakatz/workflows/crashtested-backend, then click on the `hold` step and click `Approve` to promote to production
