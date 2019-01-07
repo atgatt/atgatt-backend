@@ -102,7 +102,6 @@ func (s *Server) Bootstrap() {
 
 	syncRevzillaDataJob := &jobs.SyncRevzillaDataJob{ProductRepository: productRepository, CJAPIKey: config.CJAPIKey}
 
-	// 10 workers, 100 max in job queue
 	numWorkers := runtime.NumCPU()
 	logrus.WithField("numWorkers", numWorkers).Info("Starting job queue")
 	jobQueue := artifex.NewDispatcher(numWorkers, 100)
