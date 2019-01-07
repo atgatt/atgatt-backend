@@ -109,34 +109,31 @@ func (s *Server) Bootstrap() {
 	jobQueue.Start()
 	logrus.Info("Job queue started")
 
-	// NOTE: for now, just running both jobs at the same time. Should refactor this to be separate jobs once there are more than two that need to run (it makes sense to group these two together for now)
-	e.POST("/jobs", func(context echo.Context) (err error) {
-		logrus.Info("Got a message, dispatching work to job queue")
-		jobQueue.Dispatch(func() {
-			logrus.Info("Starting Import Helmets Job")
-			err = importHelmetsJob.Run()
-			if err != nil {
-				logrus.WithError(err).Error("Import Helmets Job completed with errors")
-				return
-			}
-			logrus.Info("Import Helmets Job completed successfully")
-
-			logrus.Info("Starting Revzilla Sync Job")
-			err = syncRevzillaDataJob.Run()
-			if err != nil {
-				logrus.WithError(err).Error("Sync RevZilla job completed with errors")
-				return
-			}
-			logrus.Info("Sync RevZilla job completed successfully")
-		})
-
-		logrus.Info("Finished dispatching work to job queue, returning OK")
-		var emptyResponse struct{}
-		return context.JSON(http.StatusOK, emptyResponse)
-	})
+	registerJob(e, jobQueue, "import_helmets", importHelmetsJob)
+	registerJob(e, jobQueue, "sync_revzilla_data", syncRevzillaDataJob)
 
 	err = e.Start(s.Port)
 	if err != nil {
 		logrus.WithError(err).Error("Failed to start the server")
 	}
+}
+
+func registerJob(e *echo.Echo, jobQueue *artifex.Dispatcher, name string, job jobs.Job) {
+	e.POST("/jobs/"+name, func(context echo.Context) (err error) {
+		jobLogger := logrus.WithField("jobName", name)
+		jobLogger.Info("Triggered, dispatching work to job queue")
+		jobQueue.Dispatch(func() {
+			jobLogger.Info("Starting Job")
+			err = job.Run()
+			if err != nil {
+				jobLogger.WithError(err).Error("Job completed with errors")
+				return
+			}
+			jobLogger.Info("Job completed successfully")
+		})
+
+		jobLogger.Info("Finished dispatching work to job queue, returning OK")
+		var emptyResponse struct{}
+		return context.JSON(http.StatusOK, emptyResponse)
+	})
 }

@@ -1,5 +1,8 @@
 version: 1
 cron:
- - name: "jobs"
-   url: "/jobs"
+ - name: "import_helmets"
+   url: "/jobs/import_helmets"
    schedule: "0 0 * * *"
+ - name: "sync_revzilla_data"
+   url: "/jobs/sync_revzilla_data"
+   schedule: "0 1 * * *"
