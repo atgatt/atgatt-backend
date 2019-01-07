@@ -103,8 +103,11 @@ func (s *Server) Bootstrap() {
 	syncRevzillaDataJob := &jobs.SyncRevzillaDataJob{ProductRepository: productRepository, CJAPIKey: config.CJAPIKey}
 
 	// 10 workers, 100 max in job queue
-	jobQueue := artifex.NewDispatcher(runtime.NumCPU(), 100)
+	numWorkers := runtime.NumCPU()
+	logrus.WithField("numWorkers", numWorkers).Info("Starting job queue")
+	jobQueue := artifex.NewDispatcher(numWorkers, 100)
 	jobQueue.Start()
+	logrus.Info("Job queue started")
 
 	// NOTE: for now, just running both jobs at the same time. Should refactor this to be separate jobs once there are more than two that need to run (it makes sense to group these two together for now)
 	e.POST("/jobs", func(context echo.Context) (err error) {
