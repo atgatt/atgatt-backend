@@ -24,3 +24,6 @@ tmp
 
 # Goland IDE
 .idea
+
+# EB CLI virtualenv
+venv

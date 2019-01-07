@@ -1,6 +1,8 @@
 branch-defaults:
   master:
     environment: api-staging
+deploy:
+  artifact: artifacts.zip
 environment-defaults:
   api-staging:
     branch: null
@@ -18,5 +20,3 @@ global:
   profile: eb-cli
   sc: git
   workspace_type: Application
-deploy:
-  artifact: artifacts.zip
