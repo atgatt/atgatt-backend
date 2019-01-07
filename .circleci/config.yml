@@ -17,7 +17,7 @@ jobs:
       - run: pip install awsebcli --upgrade --user
       - run: echo 'export PATH=$PATH:~/.local/bin' >> $BASH_ENV
       - run: source ~/.bashrc
-      - run: chmod +x ./deploy/setup_aws_credentials.sh && ./deploy/setup_aws_credentials.sh
+      - run: chmod +x ./scripts/setup_aws_credentials.sh && ./scripts/setup_aws_credentials.sh
       - run: sed -i "s/{LOCAL-DEV-BUILD}/${CIRCLE_BUILD_NUM}/g" ./cmd/api/main.go
       - run: sed -i "s/{LOCAL-DEV-COMMIT}/${CIRCLE_SHA1}/g" ./cmd/api/main.go
       - run: sed -i "s/{LOCAL-DEV-BUILD}/${CIRCLE_BUILD_NUM}/g" ./cmd/worker/main.go
@@ -55,7 +55,7 @@ jobs:
       - run: pip install awsebcli --upgrade --user
       - run: echo 'export PATH=$PATH:~/.local/bin' >> $BASH_ENV
       - run: source ~/.bashrc
-      - run: chmod +x ./deploy/setup_aws_credentials.sh && ./deploy/setup_aws_credentials.sh
+      - run: chmod +x ./scripts/setup_aws_credentials.sh && ./scripts/setup_aws_credentials.sh
       - run: cp workspace/artifacts/api-artifacts.zip .
       - run: cp workspace/artifacts/worker-artifacts.zip .
       - run: mv api-artifacts.zip artifacts.zip
