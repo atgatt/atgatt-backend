@@ -12,10 +12,10 @@ type ManufacturerRepository struct {
 // GetAll returns all of the product manufacturer names from the database - this should be refactored to not return everything at once once we have > 100 manufacturers
 func (r *ManufacturerRepository) GetAll() ([]string, error) {
 	rows, err := r.DB.Queryx("select name from manufacturers")
-	defer rows.Close()
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
 	manufacturers := make([]string, 0)
 	for rows.Next() {
