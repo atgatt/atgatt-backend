@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"os"
 	"runtime"
-	"time"
 
 	"github.com/borderstech/artifex"
 
@@ -43,8 +42,6 @@ type Server struct {
 func (s *Server) Bootstrap() {
 	e := echo.New()
 	e.HideBanner = true
-	e.Server.ReadTimeout = 2 * time.Hour // there are long running jobs
-	e.Server.WriteTimeout = 2 * time.Hour
 	e.Logger = logrusmiddleware.Logger{Logger: logrus.StandardLogger()}
 	e.Use(middleware.RequestID())
 
@@ -111,9 +108,9 @@ func (s *Server) Bootstrap() {
 
 	// NOTE: for now, just running both jobs at the same time. Should refactor this to be separate jobs once there are more than two that need to run (it makes sense to group these two together for now)
 	e.POST("/jobs", func(context echo.Context) (err error) {
-		logrus.Info("Got message!")
-
+		logrus.Info("Got a message, dispatching work to job queue")
 		jobQueue.Dispatch(func() {
+			logrus.Info("Starting Import Helmets Job")
 			err = importHelmetsJob.Run()
 			if err != nil {
 				logrus.WithError(err).Error("Import Helmets Job completed with errors")
@@ -121,6 +118,7 @@ func (s *Server) Bootstrap() {
 			}
 			logrus.Info("Import Helmets Job completed successfully")
 
+			logrus.Info("Starting Revzilla Sync Job")
 			err = syncRevzillaDataJob.Run()
 			if err != nil {
 				logrus.WithError(err).Error("Sync RevZilla job completed with errors")
@@ -129,6 +127,7 @@ func (s *Server) Bootstrap() {
 			logrus.Info("Sync RevZilla job completed successfully")
 		})
 
+		logrus.Info("Finished dispatching work to job queue, returning OK")
 		var emptyResponse struct{}
 		return context.JSON(http.StatusOK, emptyResponse)
 	})
