@@ -244,6 +244,12 @@ func (r *ProductRepository) FilterProducts(query *queries.FilterProductsQuery) (
 		whereCriteria += "and document->'certifications'->>'DOT' = 'true' "
 	}
 
+	if query.Discontinued {
+		whereCriteria += "and document->>'isDiscontinued' = 'true' "
+	} else {
+		whereCriteria += "and document->>'isDiscontinued' = 'false' "
+	}
+
 	productDocuments := []entities.Product{}
 	originalSQLQueryString := fmt.Sprintf(`select document from products
 											%s

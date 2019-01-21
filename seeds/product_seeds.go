@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	golinq "github.com/ahmetb/go-linq"
 	"github.com/google/uuid"
 )
 
@@ -27,6 +28,16 @@ func GetProductSeedsSQLStatements() ([]string, error) {
 	return statements, nil
 }
 
+// GetProductSeedsExceptDiscontinued() returns all seeds except for the products that are marked as discontinued (useful for functional tests)
+func GetProductSeedsExceptDiscontinued() []*entities.Product {
+	seedsExceptDiscontinued := []*entities.Product{}
+	golinq.From(GetProductSeeds()).WhereT(func(product *entities.Product) bool {
+		return !product.IsDiscontinued
+	}).ToSlice(&seedsExceptDiscontinued)
+
+	return seedsExceptDiscontinued
+}
+
 // GetProductSeeds returns a sample list of product documents; these documents are used by GetProductSeedsSQLStatements() to seed the database with test data.
 func GetProductSeeds() []*entities.Product {
 	uuids := []string{
@@ -34,6 +45,7 @@ func GetProductSeeds() []*entities.Product {
 		"dbd3b9cb-253b-449d-a72b-ce0d62231d82", "455a8746-7e92-4f42-a2db-f653cce0e2dd", "c79f1957-6403-4316-82bd-e7dd79dc5682", "a1afdbeb-d551-4a1a-873a-8ad16a8800dc", "9a2ad6c7-553f-4a59-957a-c9f875651e99",
 		"f8c57db1-f7f3-42ba-934f-bd30d5d31531", "912fbebc-1e42-46c2-bc1c-10666c724a21", "9f501018-e9c4-448e-89c9-8f48b571baa3", "90c2895c-ed20-483c-8a4e-6c41b6e6498f", "13131da7-fab3-42fe-9cce-7c7903fe5f8a",
 		"ac1ae9ef-22b0-41c0-8401-84f6b3eb5ff7", "9ee16a4a-0dde-4628-83a5-ebecf8978165", "e67730e6-8134-4717-b3ca-21122b9c3c4d", "bbf2d99e-b21b-406b-adb5-200cec4c5766", "47365987-8e22-45dc-804f-58bc68497b62",
+		"9a371660-b21a-43f9-acad-b48309ebacc9",
 	}
 
 	modelAliases := []*entities.ProductModelAlias{
@@ -67,6 +79,7 @@ func GetProductSeeds() []*entities.Product {
 		&entities.Product{ImageKey: mockHelmetImageURL, Manufacturer: "Manufacturer13", Model: "RF-SR11", MSRPCents: 110099, Type: "helmet", Subtype: "offroad", SafetyPercentage: 15},
 		&entities.Product{ImageKey: mockHelmetImageURL, Manufacturer: "Manufacturer14", Model: "RF-SR12", MSRPCents: 120099, Type: "helmet", Subtype: "full", SafetyPercentage: 1},
 		&entities.Product{ImageKey: mockHelmetImageURL, Manufacturer: "Manufacturer15", Model: "RF-SR13", MSRPCents: 133001, Type: "helmet", Subtype: "modular", ModelAliases: modelAliases, SafetyPercentage: 0},
+		&entities.Product{ImageKey: mockHelmetImageURL, Manufacturer: "Manufacturer16", Model: "RF-SR14", MSRPCents: 133002, Type: "helmet", Subtype: "full", ModelAliases: modelAliases, SafetyPercentage: 0, IsDiscontinued: true},
 	}
 
 	for i := 0; i < len(seeds); i++ {
