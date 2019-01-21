@@ -28,7 +28,7 @@ func GetProductSeedsSQLStatements() ([]string, error) {
 	return statements, nil
 }
 
-// GetProductSeedsExceptDiscontinued() returns all seeds except for the products that are marked as discontinued (useful for functional tests)
+// GetProductSeedsExceptDiscontinued returns all seeds except for the products that are marked as discontinued (useful for functional tests)
 func GetProductSeedsExceptDiscontinued() []*entities.Product {
 	seedsExceptDiscontinued := []*entities.Product{}
 	golinq.From(GetProductSeeds()).WhereT(func(product *entities.Product) bool {
