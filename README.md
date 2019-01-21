@@ -22,6 +22,7 @@ NOTE: You don't need to do anything to install dependencies. This project relies
 - Run `go build -o ./crashtested-api ./cmd/api` to build the API to a self-contained binary
 - Run `go build -o ./crashtested-worker ./cmd/worker` to build the background worker to a self-contained binary
 - If you have Air, type `air` (or `air -c .air.windows.conf` if you're on Windows) to run a live reload server. 
+- To trigger a background job manually, send a `POST` request with an empty JSON body to any of the endpoints listed in `cron.yaml`. The job will then be started asynchronously in a goroutine; you can inspect stdout to see the output. Related to this, see `eb ssh` instructions below and use `curl` if you want to trigger a background job on a deployed environment such as `staging` or `prod`.
 
 ## Important folders and files
 - `api` - controllers and request handling logic
@@ -53,4 +54,4 @@ Note that you must have Python 3.6 installed and use `pip install awsebcli` befo
 
 ### Notes
 - CrashTested is hosted on AWS using Elastic Beanstalk using a web role and a worker role. A `Procfile` for each role (two separate files found in ./api and ./worker) controls how the service is started once it's deployed to EB.
-- Elastic Beanstalk expects the API to run on port 5000 by default and the worker to run on port 80 by default, so do not change `server.go` to have it point to a different port.
+- Elastic Beanstalk expects the API and worker to run on port 5000 by default, so do not change `server.go` to have it point to a different port.
