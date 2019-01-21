@@ -106,7 +106,8 @@ func (j *SyncRevzillaDataJob) syncDataForProduct(pooledClient *http.Client, prod
 			return false, err
 		}
 
-		isDiscontinued := strings.Contains(strings.ToLower(buyURLContents), "the item you were searching for has been discontinued")
+		// If we don't have a product summary, it means we couldn't find the product
+		isDiscontinued := !strings.Contains(strings.ToLower(buyURLContents), "product-show-summary")
 		confidenceLogFields := logrus.Fields{
 			"matchConfidence":             bestMatchConfidence,
 			"matchingRevzillaProductName": bestMatchRevzillaProduct.Name,
