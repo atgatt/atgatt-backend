@@ -244,9 +244,7 @@ func (r *ProductRepository) FilterProducts(query *queries.FilterProductsQuery) (
 		whereCriteria += "and document->'certifications'->>'DOT' = 'true' "
 	}
 
-	if query.Discontinued {
-		whereCriteria += "and document->>'isDiscontinued' = 'true' "
-	} else {
+	if !query.Discontinued {
 		whereCriteria += "and document->>'isDiscontinued' = 'false' "
 	}
 

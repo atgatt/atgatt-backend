@@ -270,7 +270,7 @@ func Test_FilterProducts_should_return_products_with_DOT_certifications(t *testi
 	}
 }
 
-func Test_FilterProducts_should_return_discontinued_products_when_requested(t *testing.T) {
+func Test_FilterProducts_should_return_discontinued_and_current_products_when_discontinued_is_true(t *testing.T) {
 	RegisterTestingT(t)
 
 	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 2000000}}
@@ -284,9 +284,18 @@ func Test_FilterProducts_should_return_discontinued_products_when_requested(t *t
 	Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
 	Expect(*responseBody).ToNot(BeEmpty())
+	foundDiscontinued := false
+	foundCurrent := false
 	for _, item := range *responseBody {
-		Expect(item.IsDiscontinued).To(BeTrue())
+		if item.IsDiscontinued {
+			foundDiscontinued = true
+		} else {
+			foundCurrent = true
+		}
 	}
+
+	Expect(foundDiscontinued).To(BeTrue())
+	Expect(foundCurrent).To(BeTrue())
 }
 
 func Test_FilterProducts_should_return_products_with_SHARP_certifications(t *testing.T) {
