@@ -20,12 +20,19 @@ func Test_sync_revzilla_data_should_sync_revzilla_data_for_discontinued_and_acti
 	Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
 	productRepository := &repositories.ProductRepository{DB: sqlx.MustOpen("postgres", TestDatabaseConnectionString)}
-	activeProduct, err := productRepository.GetByModel("Shoei", "X Spirit lll")
+	activeAliasProduct, err := productRepository.GetByModel("Shoei", "X Spirit lll")
 	Expect(err).To(BeNil())
-	Expect(activeProduct).ToNot(BeNil())
-	Expect(activeProduct.SearchPriceCents).To(BeNumerically(">", 0))
-	Expect(activeProduct.RevzillaBuyURL).ToNot(BeEmpty())
-	Expect(activeProduct.IsDiscontinued).To(BeFalse())
+	Expect(activeAliasProduct).ToNot(BeNil())
+	Expect(activeAliasProduct.SearchPriceCents).To(BeNumerically(">", 0))
+	Expect(activeAliasProduct.RevzillaBuyURL).ToNot(BeEmpty())
+	Expect(activeAliasProduct.IsDiscontinued).To(BeFalse())
+
+	activeNormalProduct, err := productRepository.GetByModel("Bell", "Star")
+	Expect(err).To(BeNil())
+	Expect(activeNormalProduct).ToNot(BeNil())
+	Expect(activeNormalProduct.SearchPriceCents).To(BeNumerically(">", 0))
+	Expect(activeNormalProduct.RevzillaBuyURL).ToNot(BeEmpty())
+	Expect(activeNormalProduct.IsDiscontinued).To(BeFalse())
 
 	discontinuedProduct, err := productRepository.GetByModel("Shoei", "X-12")
 	Expect(err).To(BeNil())

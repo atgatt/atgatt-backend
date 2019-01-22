@@ -52,6 +52,7 @@ func GetRealisticProductSeeds() []*entities.Product {
 		"2ef2e322-8b7c-4b11-8432-15d082f49f43",
 		"55e620cb-4eb3-46d7-a612-d8bf55088494",
 		"0e78d74a-da19-4015-a76a-703a37d02503",
+		"7321fc5c-596c-4b63-be0c-0d7af3fd78cc",
 	}
 
 	seeds := []*entities.Product{
@@ -59,6 +60,8 @@ func GetRealisticProductSeeds() []*entities.Product {
 		&entities.Product{ImageKey: mockHelmetImageURL, Manufacturer: "Shoei", Model: "X Spirit lll", MSRPCents: 0, Type: "helmet", Subtype: "full", ModelAliases: x14ModelAliases, SafetyPercentage: 0, IsDiscontinued: false},
 		// This is the Shoei X-12 which is a discontinued helmet where the model matches a Revzilla product, but the aliases don't
 		&entities.Product{ImageKey: mockHelmetImageURL, Manufacturer: "Shoei", Model: "X-12", MSRPCents: 0, Type: "helmet", Subtype: "full", SafetyPercentage: 0, IsDiscontinued: false},
+		// This is the Bell Star which is an active helmet where the model matches a Revzilla product, but the aliases don't
+		&entities.Product{ImageKey: mockHelmetImageURL, Manufacturer: "Bell", Model: "Star", MSRPCents: 0, Type: "helmet", Subtype: "full", SafetyPercentage: 0, IsDiscontinued: false},
 		// This helmet does not exist
 		&entities.Product{ImageKey: mockHelmetImageURL, Manufacturer: "IAMNOTREAL", Model: "IDONOTEXIST", MSRPCents: 0, Type: "helmet", Subtype: "full", SafetyPercentage: 0, IsDiscontinued: false},
 	}

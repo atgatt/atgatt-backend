@@ -30,9 +30,9 @@ func Test_IsHelmet_returns_false_when_the_category_ends_with_Motorcycle_Helmets_
 	Expect(product.IsHelmet()).To(BeFalse())
 }
 
-func Test_IsHelmet_returns_false_when_the_category_does_not_end_with_Motorcycle_Helmets(t *testing.T) {
+func Test_IsHelmet_returns_false_when_the_category_contains_accessories(t *testing.T) {
 	RegisterTestingT(t)
 
-	product := &CJProduct{Category: "jlasdkfjasdf Motorcycle Helmetz"}
+	product := &CJProduct{Category: "jlasdkfjasdf Accessories Motorcycle"}
 	Expect(product.IsHelmet()).To(BeFalse())
 }

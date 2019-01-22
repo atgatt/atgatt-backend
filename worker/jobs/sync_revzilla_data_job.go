@@ -126,6 +126,7 @@ func (j *SyncRevzillaDataJob) syncDataForProduct(pooledClient *http.Client, prod
 		} else if bestMatchConfidence >= bestMatchConfidenceThreshold {
 			product.RevzillaBuyURL = bestMatchRevzillaProduct.BuyURL
 			product.RevzillaPriceCents = int(bestMatchRevzillaProduct.Price * 100)
+			product.IsDiscontinued = false
 			product.UpdateCertificationsByDescription(bestMatchRevzillaProduct.Description)
 			product.UpdateSearchPrice()
 			product.UpdateSafetyPercentage()
