@@ -12,9 +12,7 @@ import (
 const mockHelmetImageURL = "https://sharp.dft.gov.uk/wp-content/uploads/2017/03/shoei-x-spirit-lll.jpg"
 
 // GetProductSeedsSQLStatements returns an array of INSERT statements that target each of the product seed structs. Used to import test data into the database for automated tests, local development.
-func GetProductSeedsSQLStatements() ([]string, error) {
-	productSeeds := GetProductSeeds()
-
+func GetProductSeedsSQLStatements(productSeeds []*entities.Product) ([]string, error) {
 	statements := []string{}
 	for _, product := range productSeeds {
 		documentJSONBytes, err := json.Marshal(product)
@@ -38,13 +36,64 @@ func GetProductSeedsExceptDiscontinued() []*entities.Product {
 	return seedsExceptDiscontinued
 }
 
+// GetRealisticProductSeeds returns a list of products modeled after real helmets. This is useful for integration testing background jobs using a limited, but real set of data.
+func GetRealisticProductSeeds() []*entities.Product {
+	x14ModelAliases := []*entities.ProductModelAlias{
+		&entities.ProductModelAlias{
+			ModelAlias: "X-Fourteen",
+		},
+		&entities.ProductModelAlias{
+			ModelAlias:   "X-14",
+			IsForDisplay: true,
+		},
+	}
+
+	uuids := []string{
+		"2ef2e322-8b7c-4b11-8432-15d082f49f43",
+		"55e620cb-4eb3-46d7-a612-d8bf55088494",
+		"0e78d74a-da19-4015-a76a-703a37d02503",
+	}
+
+	seeds := []*entities.Product{
+		// This is the Shoei X-14 which is an active helmet where the alias matches a Revzilla product, but the model doesn't
+		&entities.Product{ImageKey: mockHelmetImageURL, Manufacturer: "Shoei", Model: "X Spirit lll", MSRPCents: 0, Type: "helmet", Subtype: "full", ModelAliases: x14ModelAliases, SafetyPercentage: 0, IsDiscontinued: false},
+		// This is the Shoei X-12 which is a discontinued helmet where the model matches a Revzilla product, but the aliases don't
+		&entities.Product{ImageKey: mockHelmetImageURL, Manufacturer: "Shoei", Model: "X-12", MSRPCents: 0, Type: "helmet", Subtype: "full", SafetyPercentage: 0, IsDiscontinued: false},
+		// This helmet does not exist
+		&entities.Product{ImageKey: mockHelmetImageURL, Manufacturer: "IAMNOTREAL", Model: "IDONOTEXIST", MSRPCents: 0, Type: "helmet", Subtype: "full", SafetyPercentage: 0, IsDiscontinued: false},
+	}
+
+	for i := 0; i < len(seeds); i++ {
+		seeds[i].UpdateSearchPrice()
+		seeds[i].UUID = uuid.MustParse(uuids[i])
+	}
+
+	return seeds
+}
+
 // GetProductSeeds returns a sample list of product documents; these documents are used by GetProductSeedsSQLStatements() to seed the database with test data.
 func GetProductSeeds() []*entities.Product {
 	uuids := []string{
-		"2ef2e322-8b7c-4b11-8432-15d082f49f43", "55e620cb-4eb3-46d7-a612-d8bf55088494", "0e78d74a-da19-4015-a76a-703a37d02503", "7321fc5c-596c-4b63-be0c-0d7af3fd78cc", "a23b4567-40bf-4761-ae19-00101223b124",
-		"dbd3b9cb-253b-449d-a72b-ce0d62231d82", "455a8746-7e92-4f42-a2db-f653cce0e2dd", "c79f1957-6403-4316-82bd-e7dd79dc5682", "a1afdbeb-d551-4a1a-873a-8ad16a8800dc", "9a2ad6c7-553f-4a59-957a-c9f875651e99",
-		"f8c57db1-f7f3-42ba-934f-bd30d5d31531", "912fbebc-1e42-46c2-bc1c-10666c724a21", "9f501018-e9c4-448e-89c9-8f48b571baa3", "90c2895c-ed20-483c-8a4e-6c41b6e6498f", "13131da7-fab3-42fe-9cce-7c7903fe5f8a",
-		"ac1ae9ef-22b0-41c0-8401-84f6b3eb5ff7", "9ee16a4a-0dde-4628-83a5-ebecf8978165", "e67730e6-8134-4717-b3ca-21122b9c3c4d", "bbf2d99e-b21b-406b-adb5-200cec4c5766", "47365987-8e22-45dc-804f-58bc68497b62",
+		"2ef2e322-8b7c-4b11-8432-15d082f49f43",
+		"55e620cb-4eb3-46d7-a612-d8bf55088494",
+		"0e78d74a-da19-4015-a76a-703a37d02503",
+		"7321fc5c-596c-4b63-be0c-0d7af3fd78cc",
+		"a23b4567-40bf-4761-ae19-00101223b124",
+		"dbd3b9cb-253b-449d-a72b-ce0d62231d82",
+		"455a8746-7e92-4f42-a2db-f653cce0e2dd",
+		"c79f1957-6403-4316-82bd-e7dd79dc5682",
+		"a1afdbeb-d551-4a1a-873a-8ad16a8800dc",
+		"9a2ad6c7-553f-4a59-957a-c9f875651e99",
+		"f8c57db1-f7f3-42ba-934f-bd30d5d31531",
+		"912fbebc-1e42-46c2-bc1c-10666c724a21",
+		"9f501018-e9c4-448e-89c9-8f48b571baa3",
+		"90c2895c-ed20-483c-8a4e-6c41b6e6498f",
+		"13131da7-fab3-42fe-9cce-7c7903fe5f8a",
+		"ac1ae9ef-22b0-41c0-8401-84f6b3eb5ff7",
+		"9ee16a4a-0dde-4628-83a5-ebecf8978165",
+		"e67730e6-8134-4717-b3ca-21122b9c3c4d",
+		"bbf2d99e-b21b-406b-adb5-200cec4c5766",
+		"47365987-8e22-45dc-804f-58bc68497b62",
 		"9a371660-b21a-43f9-acad-b48309ebacc9",
 	}
 
@@ -83,7 +132,7 @@ func GetProductSeeds() []*entities.Product {
 	}
 
 	for i := 0; i < len(seeds); i++ {
-		seeds[i].UUID, _ = uuid.Parse(uuids[i])
+		seeds[i].UUID = uuid.MustParse(uuids[i])
 		seeds[i].RevzillaPriceCents = seeds[i].MSRPCents + 10000
 		seeds[i].RevzillaBuyURL = fmt.Sprintf("http://www.testdata.com/revzilla/%d", i)
 		if i%2 == 0 {

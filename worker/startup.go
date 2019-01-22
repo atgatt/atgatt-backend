@@ -78,6 +78,7 @@ func (s *Server) Bootstrap() {
 	sess := session.Must(session.NewSession(&aws.Config{
 		Region:      aws.String("us-west-2"),
 		Credentials: credentials.NewEnvCredentials(),
+		Endpoint:    &s.Settings.AWS.MinioEndpoint, // If MINIO_ENDPOINT is defined, we use the simulated S3 service for integration tests; otherwise use the real AWS S3 service
 	}))
 
 	s3Uploader := s3manager.NewUploader(sess)
@@ -108,8 +109,15 @@ func (s *Server) Bootstrap() {
 	jobQueue.Start()
 	logrus.Info("Job queue started")
 
-	registerJob(e, jobQueue, "import_helmets", importHelmetsJob)
-	registerJob(e, jobQueue, "sync_revzilla_data", syncRevzillaDataJob)
+	// Jobs
+	s.registerJob(e, jobQueue, "import_helmets", importHelmetsJob)
+	s.registerJob(e, jobQueue, "sync_revzilla_data", syncRevzillaDataJob)
+
+	// Healthcheck endpoint
+	e.GET("/", func(context echo.Context) error {
+		var emptyResponse struct{}
+		return context.JSON(http.StatusOK, emptyResponse)
+	})
 
 	err = e.Start(s.Port)
 	if err != nil {
@@ -117,19 +125,30 @@ func (s *Server) Bootstrap() {
 	}
 }
 
-func registerJob(e *echo.Echo, jobQueue *artifex.Dispatcher, name string, job jobs.Job) {
-	e.POST("/jobs/"+name, func(context echo.Context) (err error) {
+func (s *Server) registerJob(e *echo.Echo, jobQueue *artifex.Dispatcher, name string, job jobs.Job) {
+	e.POST("/jobs/"+name, func(context echo.Context) error {
 		jobLogger := logrus.WithField("jobName", name)
 		jobLogger.Info("Triggered, dispatching work to job queue")
-		jobQueue.Dispatch(func() {
+
+		runJobFunc := func() {
 			jobLogger.Info("Starting Job")
-			err = job.Run()
+			err := job.Run()
 			if err != nil {
 				jobLogger.WithError(err).Error("Job completed with errors")
 				return
 			}
 			jobLogger.Info("Job completed successfully")
-		})
+		}
+
+		if s.Settings.UseSynchronousJobRunner {
+			runJobFunc()
+		} else {
+			err := jobQueue.Dispatch(runJobFunc)
+			if err != nil {
+				jobLogger.WithError(err).Error("Could not start job due to an error")
+				return err
+			}
+		}
 
 		jobLogger.Info("Finished dispatching work to job queue, returning OK")
 		var emptyResponse struct{}
