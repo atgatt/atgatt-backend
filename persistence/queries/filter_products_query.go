@@ -18,5 +18,5 @@ type FilterProductsQuery struct {
 		Field      string `json:"field"`
 		Descending bool   `json:"descending"`
 	} `json:"order"`
-	Discontinued bool `json:"discontinued"`
+	ExcludeDiscontinued bool `json:"excludeDiscontinued"`
 }

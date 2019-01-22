@@ -26,8 +26,7 @@ func Test_FilterProducts_should_return_all_of_the_products_data_when_the_limit_i
 	Expect(err).To(BeNil())
 	Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
-	seedsExceptDiscontinued := seeds.GetProductSeedsExceptDiscontinued()
-	Expect(*responseBody).To(BeEquivalentTo(seedsExceptDiscontinued))
+	Expect(*responseBody).To(BeEquivalentTo(seeds.GetProductSeeds()))
 }
 
 func Test_FilterProducts_should_return_all_of_the_products_that_have_the_given_subtype_when_the_subtypes_array_has_one_element(t *testing.T) {
@@ -270,12 +269,12 @@ func Test_FilterProducts_should_return_products_with_DOT_certifications(t *testi
 	}
 }
 
-func Test_FilterProducts_should_return_discontinued_and_current_products_when_discontinued_is_true(t *testing.T) {
+func Test_FilterProducts_should_return_only_the_current_products_when_exclude_discontinued_is_true(t *testing.T) {
 	RegisterTestingT(t)
 
 	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 2000000}}
 	request.Order.Field = "created_at_utc"
-	request.Discontinued = true
+	request.ExcludeDiscontinued = true
 
 	responseBody := &[]*entities.Product{}
 	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
@@ -294,7 +293,7 @@ func Test_FilterProducts_should_return_discontinued_and_current_products_when_di
 		}
 	}
 
-	Expect(foundDiscontinued).To(BeTrue())
+	Expect(foundDiscontinued).To(BeFalse())
 	Expect(foundCurrent).To(BeTrue())
 }
 
@@ -372,7 +371,7 @@ func Test_FilterProducts_should_correctly_page_through_the_resultset_when_start_
 	request := &queries.FilterProductsQuery{Start: 0, Limit: 1, UsdPriceRange: []int{0, 2000000}}
 	request.Order.Field = "id"
 
-	seeds := seeds.GetProductSeedsExceptDiscontinued()
+	seeds := seeds.GetProductSeeds()
 	for i := 0; i < len(seeds)+1; i++ {
 		responseBody := &[]*entities.Product{}
 		resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
