@@ -15,7 +15,7 @@ require (
 	github.com/goware/emailx v0.0.0-20171023230436-0bae9679d4e3
 	github.com/hashicorp/go-cleanhttp v0.5.0
 	github.com/jmoiron/sqlx v1.2.0
-	github.com/labstack/echo v3.3.8+incompatible
+	github.com/labstack/echo v3.3.10+incompatible
 	github.com/lib/pq v1.0.0
 	github.com/mattn/go-sqlite3 v1.10.0 // indirect
 	github.com/onsi/gomega v1.4.3
