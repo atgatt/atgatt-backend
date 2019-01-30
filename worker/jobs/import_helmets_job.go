@@ -1,6 +1,7 @@
 package jobs
 
 import (
+	"crashtested-backend/application/parsers"
 	"crashtested-backend/persistence/entities"
 	"crashtested-backend/persistence/repositories"
 	"fmt"
@@ -20,8 +21,8 @@ import (
 // ImportHelmetsJob imports all helmet data from SHARP and SNELL into the database. It tries to normalize helmet models and manufacturers while doing this in order to have a clean data set. TODO: Refactor to not upsert if the product already exists, write tests
 type ImportHelmetsJob struct {
 	ProductRepository      *repositories.ProductRepository
-	SNELLHelmetRepository  *repositories.SNELLHelmetRepository
-	SHARPHelmetRepository  *repositories.SHARPHelmetRepository
+	SNELLHelmetParser      *parsers.SNELLHelmetParser
+	SHARPHelmetParser      *parsers.SHARPHelmetParser
 	ManufacturerRepository *repositories.ManufacturerRepository
 	S3Uploader             s3manageriface.UploaderAPI
 	S3Bucket               string
@@ -55,7 +56,7 @@ func (j *ImportHelmetsJob) Run() error {
 	}
 
 	// NOTE: This call blocks for about a minute on average as we need to fetch 400+ HTML files and scrape them for data.
-	sharpHelmets, err := j.SHARPHelmetRepository.GetAll()
+	sharpHelmets, err := j.SHARPHelmetParser.GetAll()
 	if err != nil {
 		return err
 	}
@@ -92,7 +93,7 @@ func (j *ImportHelmetsJob) Run() error {
 		sharpProducts = append(sharpProducts, product)
 	}
 
-	snellHelmets, err := j.SNELLHelmetRepository.GetAllByCertification("M2015")
+	snellHelmets, err := j.SNELLHelmetParser.GetAllByCertification("M2015")
 	if err != nil {
 		return err
 	}

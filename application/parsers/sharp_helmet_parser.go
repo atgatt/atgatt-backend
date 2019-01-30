@@ -1,4 +1,4 @@
-package repositories
+package parsers
 
 import (
 	"crashtested-backend/common/http/helpers"
@@ -14,17 +14,17 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/hashicorp/go-cleanhttp"
+	cleanhttp "github.com/hashicorp/go-cleanhttp"
 	"github.com/sirupsen/logrus"
 )
 
-// SHARPHelmetRepository contains functions used to scrape helmet data from SHARP's website
-type SHARPHelmetRepository struct {
+// SHARPHelmetParser contains functions used to scrape helmet data from SHARP's website
+type SHARPHelmetParser struct {
 	Limit int
 }
 
 // GetAll scrapes and returns all helmet data from SHARP's website, or an error if there was a problem fetching/scraping the HTML
-func (r *SHARPHelmetRepository) GetAll() ([]*entities.SHARPHelmet, error) {
+func (r *SHARPHelmetParser) GetAll() ([]*entities.SHARPHelmet, error) {
 	logrus.Info("Started getting all SHARP helmets")
 	helmets := make([]*entities.SHARPHelmet, 0)
 	starsRegexp := regexp.MustCompile(`rating-star-(\d)`)
@@ -76,7 +76,7 @@ func (r *SHARPHelmetRepository) GetAll() ([]*entities.SHARPHelmet, error) {
 }
 
 // GetHelmetUrls calls an undocumented SHARP endpoint to retrieve a hash set of all the helmet urls on the SHARP website
-func (r *SHARPHelmetRepository) GetHelmetUrls() (map[string]bool, error) {
+func (r *SHARPHelmetParser) GetHelmetUrls() (map[string]bool, error) {
 	limitToUse := strconv.Itoa(r.Limit)
 	if r.Limit < 0 {
 		limitToUse = "500000"

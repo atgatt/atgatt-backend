@@ -1,6 +1,7 @@
 package worker
 
 import (
+	"crashtested-backend/application/parsers"
 	"crashtested-backend/common/logging/helpers"
 	"crashtested-backend/persistence/repositories"
 	"crashtested-backend/worker/jobs"
@@ -94,8 +95,8 @@ func (s *Server) Bootstrap() {
 
 	importHelmetsJob := &jobs.ImportHelmetsJob{
 		ProductRepository:      productRepository,
-		SHARPHelmetRepository:  &repositories.SHARPHelmetRepository{Limit: -1},
-		SNELLHelmetRepository:  &repositories.SNELLHelmetRepository{},
+		SHARPHelmetParser:      &parsers.SHARPHelmetParser{Limit: -1},
+		SNELLHelmetParser:      &parsers.SNELLHelmetParser{},
 		ManufacturerRepository: &repositories.ManufacturerRepository{DB: db},
 		S3Uploader:             s3Uploader,
 		S3Bucket:               config.AWS.S3Bucket,
