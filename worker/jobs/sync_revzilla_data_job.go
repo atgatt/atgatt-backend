@@ -63,7 +63,7 @@ func (j *SyncRevzillaDataJob) syncDataForProduct(pooledClient *http.Client, prod
 		return false, err
 	}
 
-	req.Header.Set("Authorization", j.CJAPIKey)
+	req.Header.Set("Authorization", "Bearer "+j.CJAPIKey)
 
 	resp, err := pooledClient.Do(req)
 	if err != nil {
