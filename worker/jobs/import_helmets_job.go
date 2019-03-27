@@ -88,8 +88,8 @@ func (j *ImportHelmetsJob) Run() error {
 			}).Info("Found some aliases for the given model")
 		}
 
-		product.Certifications.SHARP = sharpHelmet.Certifications
-		product.Certifications.ECE = sharpHelmet.IsECECertified
+		product.HelmetCertifications.SHARP = sharpHelmet.Certifications
+		product.HelmetCertifications.ECE = sharpHelmet.IsECECertified
 		sharpProducts = append(sharpProducts, product)
 	}
 
@@ -110,8 +110,8 @@ func (j *ImportHelmetsJob) Run() error {
 				"manufacturer": matchingSHARPProduct.Manufacturer,
 				"model":        matchingSHARPProduct.Model,
 			}).Info("Updated a SHARP helmet to have SNELL and DOT ratings")
-			matchingSHARPProduct.Certifications.SNELL = true
-			matchingSHARPProduct.Certifications.DOT = true
+			matchingSHARPProduct.HelmetCertifications.SNELL = true
+			matchingSHARPProduct.HelmetCertifications.DOT = true
 		} else {
 			logrus.WithFields(logrus.Fields{
 				"manufacturer": cleanedManufacturer,
@@ -127,8 +127,8 @@ func (j *ImportHelmetsJob) Run() error {
 				Subtype:      snellHelmet.FaceConfig,
 				Sizes:        sizes,
 			}
-			snellOnlyProduct.Certifications.SNELL = true
-			snellOnlyProduct.Certifications.DOT = true
+			snellOnlyProduct.HelmetCertifications.SNELL = true
+			snellOnlyProduct.HelmetCertifications.DOT = true
 			snellOnlyProducts = append(snellOnlyProducts, snellOnlyProduct)
 		}
 	}

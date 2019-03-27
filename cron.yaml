@@ -3,6 +3,6 @@ cron:
  - name: "import_helmets"
    url: "/jobs/import_helmets"
    schedule: "0 0 * * *"
- - name: "sync_revzilla_data"
-   url: "/jobs/sync_revzilla_data"
+ - name: "sync_revzilla_helmets"
+   url: "/jobs/sync_revzilla_helmets"
    schedule: "0 1 * * *"

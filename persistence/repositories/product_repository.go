@@ -198,50 +198,50 @@ func (r *ProductRepository) FilterProducts(query *queries.FilterProductsQuery) (
 		))`
 	}
 
-	sharpCert := query.Certifications.SHARP
+	sharpCert := query.HelmetCertifications.SHARP
 	if sharpCert != nil {
-		whereCriteria += "and document->'certifications'->>'SHARP' is not null "
+		whereCriteria += "and document->'helmetCertifications'->>'SHARP' is not null "
 		if sharpCert.Stars > 0 {
-			queryParams["minimum_SHARP_stars"] = query.Certifications.SHARP.Stars
-			whereCriteria += "and to_number((document->'certifications'->'SHARP'->>'stars'), '9') >= :minimum_SHARP_stars "
+			queryParams["minimum_SHARP_stars"] = query.HelmetCertifications.SHARP.Stars
+			whereCriteria += "and to_number((document->'helmetCertifications'->'SHARP'->>'stars'), '9') >= :minimum_SHARP_stars "
 		}
 
 		if sharpCert.ImpactZoneMinimums.Left > 0 {
 			queryParams["left_impact_zone_minimum"] = sharpCert.ImpactZoneMinimums.Left
-			whereCriteria += "and to_number((document->'certifications'->'SHARP'->'impactZoneRatings'->>'left'), '9') >= :left_impact_zone_minimum "
+			whereCriteria += "and to_number((document->'helmetCertifications'->'SHARP'->'impactZoneRatings'->>'left'), '9') >= :left_impact_zone_minimum "
 		}
 
 		if sharpCert.ImpactZoneMinimums.Rear > 0 {
 			queryParams["rear_impact_zone_minimum"] = sharpCert.ImpactZoneMinimums.Rear
-			whereCriteria += "and to_number((document->'certifications'->'SHARP'->'impactZoneRatings'->>'rear'), '9') >= :rear_impact_zone_minimum "
+			whereCriteria += "and to_number((document->'helmetCertifications'->'SHARP'->'impactZoneRatings'->>'rear'), '9') >= :rear_impact_zone_minimum "
 		}
 
 		if sharpCert.ImpactZoneMinimums.Right > 0 {
 			queryParams["right_impact_zone_minimum"] = sharpCert.ImpactZoneMinimums.Right
-			whereCriteria += "and to_number((document->'certifications'->'SHARP'->'impactZoneRatings'->>'right'), '9') >= :right_impact_zone_minimum "
+			whereCriteria += "and to_number((document->'helmetCertifications'->'SHARP'->'impactZoneRatings'->>'right'), '9') >= :right_impact_zone_minimum "
 		}
 
 		if sharpCert.ImpactZoneMinimums.Top.Front > 0 {
 			queryParams["top_front_impact_zone_minimum"] = sharpCert.ImpactZoneMinimums.Top.Front
-			whereCriteria += "and to_number((document->'certifications'->'SHARP'->'impactZoneRatings'->'top'->>'front'), '9') >= :top_front_impact_zone_minimum "
+			whereCriteria += "and to_number((document->'helmetCertifications'->'SHARP'->'impactZoneRatings'->'top'->>'front'), '9') >= :top_front_impact_zone_minimum "
 		}
 
 		if sharpCert.ImpactZoneMinimums.Top.Rear > 0 {
 			queryParams["top_rear_impact_zone_minimum"] = sharpCert.ImpactZoneMinimums.Top.Rear
-			whereCriteria += "and to_number((document->'certifications'->'SHARP'->'impactZoneRatings'->'top'->>'rear'), '9') >= :top_rear_impact_zone_minimum "
+			whereCriteria += "and to_number((document->'helmetCertifications'->'SHARP'->'impactZoneRatings'->'top'->>'rear'), '9') >= :top_rear_impact_zone_minimum "
 		}
 	}
 
-	if query.Certifications.SNELL {
-		whereCriteria += "and document->'certifications'->>'SNELL' = 'true' "
+	if query.HelmetCertifications.SNELL {
+		whereCriteria += "and document->'helmetCertifications'->>'SNELL' = 'true' "
 	}
 
-	if query.Certifications.ECE {
-		whereCriteria += "and document->'certifications'->>'ECE' = 'true' "
+	if query.HelmetCertifications.ECE {
+		whereCriteria += "and document->'helmetCertifications'->>'ECE' = 'true' "
 	}
 
-	if query.Certifications.DOT {
-		whereCriteria += "and document->'certifications'->>'DOT' = 'true' "
+	if query.HelmetCertifications.DOT {
+		whereCriteria += "and document->'helmetCertifications'->>'DOT' = 'true' "
 	}
 
 	if query.ExcludeDiscontinued {

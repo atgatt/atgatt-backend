@@ -217,7 +217,7 @@ func Test_FilterProducts_should_return_products_with_SNELL_certifications(t *tes
 
 	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 2000000}}
 	request.Order.Field = "created_at_utc"
-	request.Certifications.SNELL = true
+	request.HelmetCertifications.SNELL = true
 
 	responseBody := &[]*entities.Product{}
 	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
@@ -227,7 +227,7 @@ func Test_FilterProducts_should_return_products_with_SNELL_certifications(t *tes
 
 	Expect(*responseBody).ToNot(BeEmpty())
 	for _, item := range *responseBody {
-		Expect(item.Certifications.SNELL).To(BeTrue())
+		Expect(item.HelmetCertifications.SNELL).To(BeTrue())
 	}
 }
 
@@ -236,7 +236,7 @@ func Test_FilterProducts_should_return_products_with_ECE_certifications(t *testi
 
 	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 2000000}}
 	request.Order.Field = "created_at_utc"
-	request.Certifications.ECE = true
+	request.HelmetCertifications.ECE = true
 
 	responseBody := &[]*entities.Product{}
 	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
@@ -246,7 +246,7 @@ func Test_FilterProducts_should_return_products_with_ECE_certifications(t *testi
 
 	Expect(*responseBody).ToNot(BeEmpty())
 	for _, item := range *responseBody {
-		Expect(item.Certifications.ECE).To(BeTrue())
+		Expect(item.HelmetCertifications.ECE).To(BeTrue())
 	}
 }
 
@@ -255,7 +255,7 @@ func Test_FilterProducts_should_return_products_with_DOT_certifications(t *testi
 
 	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 2000000}}
 	request.Order.Field = "created_at_utc"
-	request.Certifications.DOT = true
+	request.HelmetCertifications.DOT = true
 
 	responseBody := &[]*entities.Product{}
 	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
@@ -265,7 +265,7 @@ func Test_FilterProducts_should_return_products_with_DOT_certifications(t *testi
 
 	Expect(*responseBody).ToNot(BeEmpty())
 	for _, item := range *responseBody {
-		Expect(item.Certifications.DOT).To(BeTrue())
+		Expect(item.HelmetCertifications.DOT).To(BeTrue())
 	}
 }
 
@@ -302,7 +302,7 @@ func Test_FilterProducts_should_return_products_with_SHARP_certifications(t *tes
 
 	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 2000000}}
 	request.Order.Field = "created_at_utc"
-	request.Certifications.SHARP = &queries.SHARPCertificationQueryParams{}
+	request.HelmetCertifications.SHARP = &queries.SHARPCertificationQueryParams{}
 
 	responseBody := &[]*entities.Product{}
 	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
@@ -312,7 +312,7 @@ func Test_FilterProducts_should_return_products_with_SHARP_certifications(t *tes
 
 	Expect(*responseBody).ToNot(BeEmpty())
 	for _, item := range *responseBody {
-		Expect(item.Certifications.SHARP).ToNot(BeNil())
+		Expect(item.HelmetCertifications.SHARP).ToNot(BeNil())
 	}
 }
 
@@ -321,12 +321,12 @@ func Test_FilterProducts_should_return_products_with_SHARP_certifications_and_mi
 
 	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 2000000}}
 	request.Order.Field = "created_at_utc"
-	request.Certifications.SHARP = &queries.SHARPCertificationQueryParams{}
-	request.Certifications.SHARP.ImpactZoneMinimums.Left = 4
-	request.Certifications.SHARP.ImpactZoneMinimums.Right = 3
-	request.Certifications.SHARP.ImpactZoneMinimums.Rear = 3
-	request.Certifications.SHARP.ImpactZoneMinimums.Top.Front = 3
-	request.Certifications.SHARP.ImpactZoneMinimums.Top.Rear = 3
+	request.HelmetCertifications.SHARP = &queries.SHARPCertificationQueryParams{}
+	request.HelmetCertifications.SHARP.ImpactZoneMinimums.Left = 4
+	request.HelmetCertifications.SHARP.ImpactZoneMinimums.Right = 3
+	request.HelmetCertifications.SHARP.ImpactZoneMinimums.Rear = 3
+	request.HelmetCertifications.SHARP.ImpactZoneMinimums.Top.Front = 3
+	request.HelmetCertifications.SHARP.ImpactZoneMinimums.Top.Rear = 3
 
 	responseBody := &[]*entities.Product{}
 	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
@@ -336,12 +336,12 @@ func Test_FilterProducts_should_return_products_with_SHARP_certifications_and_mi
 
 	Expect(*responseBody).ToNot(BeEmpty())
 	for _, item := range *responseBody {
-		Expect(item.Certifications.SHARP).ToNot(BeNil())
-		Expect(item.Certifications.SHARP.ImpactZoneRatings.Left).To(BeNumerically(">=", request.Certifications.SHARP.ImpactZoneMinimums.Left))
-		Expect(item.Certifications.SHARP.ImpactZoneRatings.Right).To(BeNumerically(">=", request.Certifications.SHARP.ImpactZoneMinimums.Right))
-		Expect(item.Certifications.SHARP.ImpactZoneRatings.Rear).To(BeNumerically(">=", request.Certifications.SHARP.ImpactZoneMinimums.Rear))
-		Expect(item.Certifications.SHARP.ImpactZoneRatings.Top.Front).To(BeNumerically(">=", request.Certifications.SHARP.ImpactZoneMinimums.Top.Front))
-		Expect(item.Certifications.SHARP.ImpactZoneRatings.Top.Rear).To(BeNumerically(">=", request.Certifications.SHARP.ImpactZoneMinimums.Top.Rear))
+		Expect(item.HelmetCertifications.SHARP).ToNot(BeNil())
+		Expect(item.HelmetCertifications.SHARP.ImpactZoneRatings.Left).To(BeNumerically(">=", request.HelmetCertifications.SHARP.ImpactZoneMinimums.Left))
+		Expect(item.HelmetCertifications.SHARP.ImpactZoneRatings.Right).To(BeNumerically(">=", request.HelmetCertifications.SHARP.ImpactZoneMinimums.Right))
+		Expect(item.HelmetCertifications.SHARP.ImpactZoneRatings.Rear).To(BeNumerically(">=", request.HelmetCertifications.SHARP.ImpactZoneMinimums.Rear))
+		Expect(item.HelmetCertifications.SHARP.ImpactZoneRatings.Top.Front).To(BeNumerically(">=", request.HelmetCertifications.SHARP.ImpactZoneMinimums.Top.Front))
+		Expect(item.HelmetCertifications.SHARP.ImpactZoneRatings.Top.Rear).To(BeNumerically(">=", request.HelmetCertifications.SHARP.ImpactZoneMinimums.Top.Rear))
 	}
 }
 
@@ -350,7 +350,7 @@ func Test_FilterProducts_should_return_products_with_SHARP_certifications_and_mi
 
 	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 2000000}}
 	request.Order.Field = "created_at_utc"
-	request.Certifications.SHARP = &queries.SHARPCertificationQueryParams{Stars: 3}
+	request.HelmetCertifications.SHARP = &queries.SHARPCertificationQueryParams{Stars: 3}
 
 	responseBody := &[]*entities.Product{}
 	resp, err := helpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
@@ -360,8 +360,8 @@ func Test_FilterProducts_should_return_products_with_SHARP_certifications_and_mi
 
 	Expect(*responseBody).ToNot(BeEmpty())
 	for _, item := range *responseBody {
-		Expect(item.Certifications.SHARP).ToNot(BeNil())
-		Expect(item.Certifications.SHARP.Stars).To(BeNumerically(">=", request.Certifications.SHARP.Stars))
+		Expect(item.HelmetCertifications.SHARP).ToNot(BeNil())
+		Expect(item.HelmetCertifications.SHARP.Stars).To(BeNumerically(">=", request.HelmetCertifications.SHARP.Stars))
 	}
 }
 

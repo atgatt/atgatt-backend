@@ -102,7 +102,8 @@ func (s *Server) Bootstrap() {
 		S3Bucket:               config.AWS.S3Bucket,
 	}
 
-	syncRevzillaDataJob := &jobs.SyncRevzillaDataJob{ProductRepository: productRepository, CJAPIKey: config.CJAPIKey}
+	syncRevzillaHelmetsJob := &jobs.SyncRevzillaHelmetsJob{ProductRepository: productRepository, CJAPIKey: config.CJAPIKey}
+	scrapeRevzillaJacketsJob := &jobs.SyncRevzillaJacketsJob{ProductRepository: productRepository, S3Uploader: s3Uploader, S3Bucket: config.AWS.S3Bucket}
 
 	numWorkers := runtime.NumCPU()
 	logrus.WithField("numWorkers", numWorkers).Info("Starting job queue")
@@ -112,7 +113,8 @@ func (s *Server) Bootstrap() {
 
 	// Jobs
 	s.registerJob(e, jobQueue, "import_helmets", importHelmetsJob)
-	s.registerJob(e, jobQueue, "sync_revzilla_data", syncRevzillaDataJob)
+	s.registerJob(e, jobQueue, "sync_revzilla_helmets", syncRevzillaHelmetsJob)
+	s.registerJob(e, jobQueue, "sync_revzilla_jackets", scrapeRevzillaJacketsJob)
 
 	// Healthcheck endpoint
 	e.GET("/", func(context echo.Context) error {
@@ -131,20 +133,28 @@ func (s *Server) registerJob(e *echo.Echo, jobQueue *artifex.Dispatcher, name st
 		jobLogger := logrus.WithField("jobName", name)
 		jobLogger.Info("Triggered, dispatching work to job queue")
 
-		runJobFunc := func() {
+		runJobFunc := func() error {
 			jobLogger.Info("Starting Job")
 			err := job.Run()
 			if err != nil {
 				jobLogger.WithError(err).Error("Job completed with errors")
-				return
+				return err
 			}
 			jobLogger.Info("Job completed successfully")
+			return nil
+		}
+
+		runJobFuncWrapper := func() {
+			_ = runJobFunc()
 		}
 
 		if s.Settings.UseSynchronousJobRunner {
-			runJobFunc()
+			err := runJobFunc()
+			if err != nil {
+				return err
+			}
 		} else {
-			err := jobQueue.Dispatch(runJobFunc)
+			err := jobQueue.Dispatch(runJobFuncWrapper)
 			if err != nil {
 				jobLogger.WithError(err).Error("Could not start job due to an error")
 				return err

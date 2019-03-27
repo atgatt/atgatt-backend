@@ -19,8 +19,8 @@ import (
 	"github.com/xrash/smetrics"
 )
 
-// SyncRevzillaDataJob syncs revzilla price and buy urls by calling the CJ Affiliate API and pointing it at RevZilla's advertiser ID
-type SyncRevzillaDataJob struct {
+// SyncRevzillaHelmetsJob syncs revzilla price and buy urls by calling the CJ Affiliate API and pointing it at RevZilla's advertiser ID
+type SyncRevzillaHelmetsJob struct {
 	ProductRepository *repositories.ProductRepository
 	CJAPIKey          string
 }
@@ -28,7 +28,7 @@ type SyncRevzillaDataJob struct {
 const bestMatchConfidenceThreshold float64 = 0.8
 
 // Run executes the job
-func (j *SyncRevzillaDataJob) Run() error {
+func (j *SyncRevzillaHelmetsJob) Run() error {
 	pooledClient := cleanhttp.DefaultPooledClient()
 	return helpers.ForEachProduct(j.ProductRepository, func(product *entities.Product, productLogger *logrus.Entry) error {
 		modelsToTry := []string{product.Model}
@@ -56,7 +56,7 @@ func (j *SyncRevzillaDataJob) Run() error {
 	})
 }
 
-func (j *SyncRevzillaDataJob) syncDataForProduct(pooledClient *http.Client, product *entities.Product, modelToTry string, productLogger *logrus.Entry) (bool, error) {
+func (j *SyncRevzillaHelmetsJob) syncDataForProduct(pooledClient *http.Client, product *entities.Product, modelToTry string, productLogger *logrus.Entry) (bool, error) {
 	req, err := http.NewRequest("GET", fmt.Sprintf("https://product-search.api.cj.com/v2/product-search?website-id=8505854&advertiser-ids=3318586&keywords=%%2B\"%s\"+%%2B\"%s\"+%%2Bhelmet&page-number=1&records-per-page=100&low-price=200",
 		url.QueryEscape(product.Manufacturer), url.QueryEscape(modelToTry)), nil)
 	if err != nil {
