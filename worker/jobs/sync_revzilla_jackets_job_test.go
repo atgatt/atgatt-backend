@@ -9,7 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func Test_sync_revzilla_jackets_should_do_something(t *testing.T) {
+func Test_sync_revzilla_jackets_should_return_OK(t *testing.T) {
 	RegisterTestingT(t)
 
 	resp, err := http.Post(APIBaseURL+"/jobs/sync_revzilla_jackets", "application/json", strings.NewReader("{}"))

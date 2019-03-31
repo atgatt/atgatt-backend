@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -16,12 +17,11 @@ type ProductRepository struct {
 }
 
 // GetByModel returns a single product where the manufacturer and model matches
-func (r *ProductRepository) GetByModel(manufacturer string, model string) (*entities.Product, error) {
-	query := &queries.FilterProductsQuery{Start: 0, Limit: 1, Manufacturer: manufacturer, Model: model}
-	query.Order.Field = "id"
-	rows, err := r.DB.NamedQuery("select document from products where document->>'manufacturer' = :manufacturer and document->>'model' = :model", map[string]interface{}{
+func (r *ProductRepository) GetByModel(manufacturer string, model string, productType string) (*entities.Product, error) {
+	rows, err := r.DB.NamedQuery("select document from products where document->>'manufacturer' = :manufacturer and document->>'model' = :model and document->>'type' = :type", map[string]interface{}{
 		"manufacturer": manufacturer,
 		"model":        model,
+		"type":         productType,
 	})
 	if err != nil {
 		return nil, err
@@ -144,7 +144,9 @@ func (r *ProductRepository) CreateProduct(product *entities.Product) error {
 // FilterProducts is a method that ANDs a bunch of query parameters together and returns a list of matching products, or an error if there was a problem executing the query.
 func (r *ProductRepository) FilterProducts(query *queries.FilterProductsQuery) ([]entities.Product, error) {
 	queryParams := make(map[string]interface{})
-	whereCriteria := `where document->>'type' = :type `
+	var whereCriteria strings.Builder
+	whereCriteria.WriteString("where 1=1 ")
+
 	queryParams["type"] = "helmet" // TODO: this is hardcoded for now
 	queryParams["start"] = query.Start
 	queryParams["limit"] = query.Limit
@@ -172,17 +174,22 @@ func (r *ProductRepository) FilterProducts(query *queries.FilterProductsQuery) (
 		highPrice := query.UsdPriceRange[1]
 		queryParams["low_price"] = lowPrice
 		queryParams["high_price"] = highPrice
-		whereCriteria += "and cast((document->>'searchPriceCents') as int) between :low_price and :high_price "
+		whereCriteria.WriteString("and cast((document->>'searchPriceCents') as int) between :low_price and :high_price ")
+	}
+
+	if len(query.Types) > 0 {
+		queryParams["types"] = query.Types
+		whereCriteria.WriteString(`and document->>'type' in (:types) `)
 	}
 
 	if len(query.Subtypes) > 0 {
 		queryParams["subtypes"] = query.Subtypes
-		whereCriteria += "and document->>'subtype' in (:subtypes) "
+		whereCriteria.WriteString("and document->>'subtype' in (:subtypes) ")
 	}
 
 	if query.Manufacturer != "" {
 		queryParams["manufacturer"] = query.Manufacturer
-		whereCriteria += "and document->>'manufacturer' ilike (:manufacturer || '%') "
+		whereCriteria.WriteString("and document->>'manufacturer' ilike (:manufacturer || '%') ")
 	}
 
 	// TODO: This will not scale for a large number of rows!
@@ -191,61 +198,61 @@ func (r *ProductRepository) FilterProducts(query *queries.FilterProductsQuery) (
 	if query.Model != "" {
 		queryParams["model"] = query.Model
 		// Find rows where the model matches, or one of the aliases starts with the model
-		whereCriteria += `and (document->>'model' ilike (:model || '%') or exists(
+		whereCriteria.WriteString(`and (document->>'model' ilike (:model || '%') or exists(
 			select 1 
 			from jsonb_array_elements(cast(document->>'modelAliases' as jsonb)) elem
 			where elem->>'modelAlias' ilike (:model || '%')
-		))`
+		))`)
 	}
 
 	sharpCert := query.HelmetCertifications.SHARP
 	if sharpCert != nil {
-		whereCriteria += "and document->'helmetCertifications'->>'SHARP' is not null "
+		whereCriteria.WriteString("and document->'helmetCertifications'->>'SHARP' is not null ")
 		if sharpCert.Stars > 0 {
 			queryParams["minimum_SHARP_stars"] = query.HelmetCertifications.SHARP.Stars
-			whereCriteria += "and to_number((document->'helmetCertifications'->'SHARP'->>'stars'), '9') >= :minimum_SHARP_stars "
+			whereCriteria.WriteString("and to_number((document->'helmetCertifications'->'SHARP'->>'stars'), '9') >= :minimum_SHARP_stars ")
 		}
 
 		if sharpCert.ImpactZoneMinimums.Left > 0 {
 			queryParams["left_impact_zone_minimum"] = sharpCert.ImpactZoneMinimums.Left
-			whereCriteria += "and to_number((document->'helmetCertifications'->'SHARP'->'impactZoneRatings'->>'left'), '9') >= :left_impact_zone_minimum "
+			whereCriteria.WriteString("and to_number((document->'helmetCertifications'->'SHARP'->'impactZoneRatings'->>'left'), '9') >= :left_impact_zone_minimum ")
 		}
 
 		if sharpCert.ImpactZoneMinimums.Rear > 0 {
 			queryParams["rear_impact_zone_minimum"] = sharpCert.ImpactZoneMinimums.Rear
-			whereCriteria += "and to_number((document->'helmetCertifications'->'SHARP'->'impactZoneRatings'->>'rear'), '9') >= :rear_impact_zone_minimum "
+			whereCriteria.WriteString("and to_number((document->'helmetCertifications'->'SHARP'->'impactZoneRatings'->>'rear'), '9') >= :rear_impact_zone_minimum ")
 		}
 
 		if sharpCert.ImpactZoneMinimums.Right > 0 {
 			queryParams["right_impact_zone_minimum"] = sharpCert.ImpactZoneMinimums.Right
-			whereCriteria += "and to_number((document->'helmetCertifications'->'SHARP'->'impactZoneRatings'->>'right'), '9') >= :right_impact_zone_minimum "
+			whereCriteria.WriteString("and to_number((document->'helmetCertifications'->'SHARP'->'impactZoneRatings'->>'right'), '9') >= :right_impact_zone_minimum ")
 		}
 
 		if sharpCert.ImpactZoneMinimums.Top.Front > 0 {
 			queryParams["top_front_impact_zone_minimum"] = sharpCert.ImpactZoneMinimums.Top.Front
-			whereCriteria += "and to_number((document->'helmetCertifications'->'SHARP'->'impactZoneRatings'->'top'->>'front'), '9') >= :top_front_impact_zone_minimum "
+			whereCriteria.WriteString("and to_number((document->'helmetCertifications'->'SHARP'->'impactZoneRatings'->'top'->>'front'), '9') >= :top_front_impact_zone_minimum ")
 		}
 
 		if sharpCert.ImpactZoneMinimums.Top.Rear > 0 {
 			queryParams["top_rear_impact_zone_minimum"] = sharpCert.ImpactZoneMinimums.Top.Rear
-			whereCriteria += "and to_number((document->'helmetCertifications'->'SHARP'->'impactZoneRatings'->'top'->>'rear'), '9') >= :top_rear_impact_zone_minimum "
+			whereCriteria.WriteString("and to_number((document->'helmetCertifications'->'SHARP'->'impactZoneRatings'->'top'->>'rear'), '9') >= :top_rear_impact_zone_minimum ")
 		}
 	}
 
 	if query.HelmetCertifications.SNELL {
-		whereCriteria += "and document->'helmetCertifications'->>'SNELL' = 'true' "
+		whereCriteria.WriteString("and document->'helmetCertifications'->>'SNELL' = 'true' ")
 	}
 
 	if query.HelmetCertifications.ECE {
-		whereCriteria += "and document->'helmetCertifications'->>'ECE' = 'true' "
+		whereCriteria.WriteString("and document->'helmetCertifications'->>'ECE' = 'true' ")
 	}
 
 	if query.HelmetCertifications.DOT {
-		whereCriteria += "and document->'helmetCertifications'->>'DOT' = 'true' "
+		whereCriteria.WriteString("and document->'helmetCertifications'->>'DOT' = 'true' ")
 	}
 
 	if query.ExcludeDiscontinued {
-		whereCriteria += "and document->>'isDiscontinued' = 'false' "
+		whereCriteria.WriteString("and document->>'isDiscontinued' = 'false' ")
 	}
 
 	productDocuments := []entities.Product{}
@@ -253,7 +260,7 @@ func (r *ProductRepository) FilterProducts(query *queries.FilterProductsQuery) (
 											%s
 											order by %s %s,
 													 id asc
-											offset :start limit :limit`, whereCriteria, orderByExpression, orderByDirection)
+											offset :start limit :limit`, whereCriteria.String(), orderByExpression, orderByDirection)
 
 	// Converts :arguments to ? arguments so that we can preprocess the query
 	preProcessedSQLQueryString, args, err := sqlx.Named(originalSQLQueryString, queryParams)

@@ -17,7 +17,7 @@ import (
 const revzillaBaseURL string = "https://www.revzilla.com"
 const minRevzillaProducts int = 1000
 
-// SyncRevzillaJacketsJob scrapes all of RevZilla's helmet data and uploads it to a S3 bucket for downstream processing
+// SyncRevzillaJacketsJob scrapes all of RevZilla's helmet data
 type SyncRevzillaJacketsJob struct {
 	ProductRepository *repositories.ProductRepository
 	S3Uploader        s3manageriface.UploaderAPI

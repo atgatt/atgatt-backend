@@ -25,5 +25,5 @@ func (c *CEImpactZone) GetScore() float64 {
 		totalScore += 0.25
 	}
 
-	return 0
+	return totalScore
 }

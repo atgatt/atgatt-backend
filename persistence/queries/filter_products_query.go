@@ -4,6 +4,7 @@ package queries
 type FilterProductsQuery struct {
 	Manufacturer         string   `json:"manufacturer"`
 	Model                string   `json:"model"`
+	Types                []string `json:"types"`
 	Subtypes             []string `json:"subtypes"`
 	HelmetCertifications struct {
 		SHARP *SHARPCertificationQueryParams `json:"SHARP"`

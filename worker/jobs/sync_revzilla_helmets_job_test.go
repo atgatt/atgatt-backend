@@ -20,28 +20,28 @@ func Test_sync_revzilla_data_should_sync_revzilla_data_for_discontinued_and_acti
 	Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
 	productRepository := &repositories.ProductRepository{DB: sqlx.MustOpen("postgres", TestDatabaseConnectionString)}
-	activeAliasProduct, err := productRepository.GetByModel("Shoei", "X Spirit lll")
+	activeAliasProduct, err := productRepository.GetByModel("Shoei", "X Spirit lll", "helmet")
 	Expect(err).To(BeNil())
 	Expect(activeAliasProduct).ToNot(BeNil())
 	Expect(activeAliasProduct.SearchPriceCents).To(BeNumerically(">", 0))
 	Expect(activeAliasProduct.RevzillaBuyURL).ToNot(BeEmpty())
 	Expect(activeAliasProduct.IsDiscontinued).To(BeFalse())
 
-	activeNormalProduct, err := productRepository.GetByModel("Bell", "Star")
+	activeNormalProduct, err := productRepository.GetByModel("Bell", "Star", "helmet")
 	Expect(err).To(BeNil())
 	Expect(activeNormalProduct).ToNot(BeNil())
 	Expect(activeNormalProduct.SearchPriceCents).To(BeNumerically(">", 0))
 	Expect(activeNormalProduct.RevzillaBuyURL).ToNot(BeEmpty())
 	Expect(activeNormalProduct.IsDiscontinued).To(BeFalse())
 
-	discontinuedProduct, err := productRepository.GetByModel("Shoei", "X-12")
+	discontinuedProduct, err := productRepository.GetByModel("Shoei", "X-12", "helmet")
 	Expect(err).To(BeNil())
 	Expect(discontinuedProduct).ToNot(BeNil())
 	Expect(discontinuedProduct.SearchPriceCents).To(Equal(0)) // make sure we didn't change the price for a discontinued product
 	Expect(discontinuedProduct.RevzillaBuyURL).To(BeEmpty())
 	Expect(discontinuedProduct.IsDiscontinued).To(BeTrue()) // make sure we set discontinued to true
 
-	notFoundProduct, err := productRepository.GetByModel("IAMNOTREAL", "IDONOTEXIST")
+	notFoundProduct, err := productRepository.GetByModel("IAMNOTREAL", "IDONOTEXIST", "helmet")
 	Expect(err).To(BeNil())
 	Expect(notFoundProduct).ToNot(BeNil())
 	Expect(notFoundProduct.SearchPriceCents).To(Equal(0)) // make sure we didn't change the price for a nonexistent product

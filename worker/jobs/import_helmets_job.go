@@ -147,7 +147,7 @@ func (j *ImportHelmetsJob) Run() error {
 			continue
 		}
 
-		existingProduct, err := j.ProductRepository.GetByModel(product.Manufacturer, product.Model)
+		existingProduct, err := j.ProductRepository.GetByModel(product.Manufacturer, product.Model, "helmet")
 		if err != nil {
 			return err
 		}
