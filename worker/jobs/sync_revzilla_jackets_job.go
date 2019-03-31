@@ -1,15 +1,11 @@
 package jobs
 
 import (
-	"bytes"
 	appEntities "crashtested-backend/application/entities"
 	"crashtested-backend/persistence/repositories"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
-
-	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager/s3manageriface"
@@ -69,21 +65,6 @@ func (j *SyncRevzillaJacketsJob) Run() error {
 	}
 
 	sizedWg.Wait()
-
-	res, err := json.Marshal(revzillaProductsToScrape)
-	if err != nil {
-		return err
-	}
-
-	s3Key := "data/jacket-dumps/dump.json"
-	_, err = j.S3Uploader.Upload(&s3manager.UploadInput{
-		Bucket: &j.S3Bucket,
-		Key:    &s3Key,
-		Body:   bytes.NewReader(res),
-	})
-	if err != nil {
-		return err
-	}
 	return nil
 }
 
