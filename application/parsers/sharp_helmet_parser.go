@@ -1,7 +1,7 @@
 package parsers
 
 import (
-	"crashtested-backend/common/http/helpers"
+	httpHelpers "crashtested-backend/common/http"
 	"crashtested-backend/persistence/entities"
 	"errors"
 	"fmt"
@@ -90,7 +90,7 @@ func (r *SHARPHelmetParser) GetHelmetUrls() (map[string]bool, error) {
 	form.Add("pageNumber", "1")
 	form.Add("type", "1")
 
-	resp, err := helpers.MakeFormPOSTRequest("https://sharp.dft.gov.uk/wp-admin/admin-ajax.php", form)
+	resp, err := httpHelpers.MakeFormPOSTRequest("https://sharp.dft.gov.uk/wp-admin/admin-ajax.php", form)
 	if err != nil {
 		return nil, err
 	}

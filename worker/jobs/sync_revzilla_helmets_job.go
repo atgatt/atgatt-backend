@@ -1,7 +1,7 @@
 package jobs
 
 import (
-	httpHelpers "crashtested-backend/common/http/helpers"
+	httpHelpers "crashtested-backend/common/http"
 	"crashtested-backend/persistence/entities"
 	"crashtested-backend/persistence/repositories"
 	"crashtested-backend/worker/jobs/helpers"

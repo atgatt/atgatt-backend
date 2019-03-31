@@ -2,7 +2,7 @@ package worker
 
 import (
 	"crashtested-backend/application/parsers"
-	"crashtested-backend/common/logging/helpers"
+	loggingHelpers "crashtested-backend/common/logging"
 	"crashtested-backend/persistence/repositories"
 	"crashtested-backend/worker/jobs"
 	"crashtested-backend/worker/settings"
@@ -74,7 +74,7 @@ func (s *Server) Bootstrap() {
 		"CommitHash":     s.CommitHash,
 		"AppEnvironment": s.Settings.AppEnvironment,
 	}
-	helpers.InitializeLogzio(s.Settings.LogzioToken, s.Name, s.Settings.AppEnvironment, logContext)
+	loggingHelpers.InitializeLogzio(s.Settings.LogzioToken, s.Name, s.Settings.AppEnvironment, logContext)
 
 	sess := session.Must(session.NewSession(&aws.Config{
 		Region:      aws.String("us-west-2"),
