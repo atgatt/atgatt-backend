@@ -127,7 +127,7 @@ func (j *SyncRevzillaHelmetsJob) syncDataForProduct(pooledClient *http.Client, p
 			product.RevzillaBuyURL = bestMatchRevzillaProduct.BuyURL
 			product.RevzillaPriceCents = int(bestMatchRevzillaProduct.Price * 100)
 			product.IsDiscontinued = false
-			product.UpdateCertificationsByDescription(bestMatchRevzillaProduct.Description)
+			product.UpdateHelmetCertificationsByDescription(bestMatchRevzillaProduct.Description)
 			product.UpdateSearchPrice()
 			product.UpdateSafetyPercentage()
 			productLogger.WithFields(confidenceLogFields).Info("Set new price and buy URL from RevZilla")

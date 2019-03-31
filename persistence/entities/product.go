@@ -4,6 +4,8 @@ import (
 	"math"
 	"strings"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/google/uuid"
 )
 
@@ -35,10 +37,11 @@ type Product struct {
 		DOT   bool                        `json:"DOT"`
 	} `json:"helmetCertifications"`
 	JacketCertifications struct {
-		Shoulder *CECertification `json:"shoulder"`
-		Elbow    *CECertification `json:"elbow"`
-		Back     *CECertification `json:"back"`
-		Chest    *CECertification `json:"chest"`
+		Shoulder   *CEImpactZone `json:"shoulder"`
+		Elbow      *CEImpactZone `json:"elbow"`
+		Back       *CEImpactZone `json:"back"`
+		Chest      *CEImpactZone `json:"chest"`
+		FitsAirbag bool          `json:"fitsAirbag"`
 	} `json:"jacketCertifications"`
 	IsDiscontinued bool `json:"isDiscontinued"`
 }
@@ -59,8 +62,8 @@ func (p *Product) UpdateSearchPrice() {
 	}
 }
 
-// UpdateCertificationsByDescription updates the DOT and/or ECE certifications if the given description contains certain keywords indicating that the product has said certifications and returns booleans indicating whether or not updates occurred.
-func (p *Product) UpdateCertificationsByDescription(productDescription string) (bool, bool) {
+// UpdateHelmetCertificationsByDescription updates the DOT and/or ECE certifications if the given description contains certain keywords indicating that the product has said certifications and returns booleans indicating whether or not updates occurred.
+func (p *Product) UpdateHelmetCertificationsByDescription(productDescription string) (bool, bool) {
 	lowerDescription := strings.ToLower(productDescription)
 
 	// DOT and ECE are only 3 letters and are very common substrings, so it's better to use the real description and compare against that (the lowercase description probably has "dot" and "ece" in various words)
@@ -87,12 +90,70 @@ func (p *Product) UpdateCertificationsByDescription(productDescription string) (
 	return hasNewDOTCertification, hasNewECECertification
 }
 
-// UpdateSafetyPercentage calculates how safe a helmet is based on a weighted average of all of its certifications, rounded up to the nearest integer.
-// SHARP Percentages are calculated by dividing the raw score by the maximum score (i.e. Raw-Score / 5)
-// TODO: Make this support multiple product types once gloves, boots, jackets, etc are added
-func (p *Product) UpdateSafetyPercentage() {
+// UpdateJacketCertificationsByDescriptionParts updates all of the jacket certifications when certain text appears in each part of the description
+func (p *Product) UpdateJacketCertificationsByDescriptionParts(productDescriptionParts []string) (bool, bool, bool, bool, bool) {
+	updatedAirbag := false
+	updatedBack := false
+	updatedShoulder := false
+	updatedElbow := false
+	updatedChest := false
+
+	for _, part := range productDescriptionParts {
+		lowerPart := strings.ToLower(part)
+
+		isEmpty := strings.Contains(lowerPart, "sold separately") || strings.Contains(lowerPart, "optional") || strings.Contains(lowerPart, "pocket")
+		fitsAirbag := strings.Contains(lowerPart, "d-air") || strings.Contains(lowerPart, "tech-air") || strings.Contains(lowerPart, "tech air") || strings.Contains(lowerPart, "air bag") || strings.Contains(lowerPart, "airbag")
+
+		if !p.JacketCertifications.FitsAirbag && fitsAirbag {
+			p.JacketCertifications.FitsAirbag = true
+			updatedAirbag = true
+		}
+
+		isCertified := strings.Contains(part, "CE")
+		isApproved := strings.Contains(part, "CE approved")
+		isLevel2 := strings.Contains(lowerPart, "level 2") || strings.Contains(lowerPart, "level ii")
+		if isCertified || isApproved {
+			if p.JacketCertifications.Back == nil && strings.Contains(lowerPart, "back") {
+				p.JacketCertifications.Back = &CEImpactZone{IsApproved: isApproved, IsLevel2: isLevel2, IsEmpty: isEmpty}
+				updatedBack = true
+			}
+
+			if p.JacketCertifications.Elbow == nil && strings.Contains(lowerPart, "elbow") {
+				p.JacketCertifications.Elbow = &CEImpactZone{IsApproved: isApproved, IsLevel2: isLevel2, IsEmpty: isEmpty}
+				updatedElbow = true
+			}
+
+			if p.JacketCertifications.Shoulder == nil && strings.Contains(lowerPart, "shoulder") {
+				p.JacketCertifications.Shoulder = &CEImpactZone{IsApproved: isApproved, IsLevel2: isLevel2, IsEmpty: isEmpty}
+				updatedShoulder = true
+			}
+
+			if p.JacketCertifications.Chest == nil && strings.Contains(lowerPart, "chest") {
+				p.JacketCertifications.Chest = &CEImpactZone{IsApproved: isApproved, IsLevel2: isLevel2, IsEmpty: isEmpty}
+				updatedChest = true
+			}
+		}
+	}
+
+	return updatedBack, updatedElbow, updatedShoulder, updatedChest, updatedAirbag
+}
+
+func (p *Product) getJacketSafetyPercentage() int {
 	var totalScore float64
 
+	zones := []*CEImpactZone{p.JacketCertifications.Back, p.JacketCertifications.Chest, p.JacketCertifications.Elbow, p.JacketCertifications.Shoulder}
+	numZones := len(zones)
+	for _, zone := range zones {
+		if zone != nil {
+			totalScore += (zone.GetScore() / float64(numZones))
+		}
+	}
+
+	return int(math.Round(totalScore * 100))
+}
+
+func (p *Product) getHelmetSafetyPercentage() int {
+	var totalScore float64
 	snellWeightToUse := defaultSNELLWeight
 	eceWeightToUse := defaultECEWeight
 	dotWeightToUse := defaultDOTWeight
@@ -127,5 +188,28 @@ func (p *Product) UpdateSafetyPercentage() {
 		totalScore += dotWeightToUse
 	}
 
-	p.SafetyPercentage = int(math.Round(totalScore * 100))
+	return int(math.Round(totalScore * 100))
+}
+
+// UpdateSafetyPercentage calculates how safe a helmet is based on a weighted average of all of its certifications, rounded up to the nearest integer.
+// SHARP Percentages are calculated by dividing the raw score by the maximum score (i.e. Raw-Score / 5)
+func (p *Product) UpdateSafetyPercentage() {
+
+	if p.Type == "" {
+		logrus.Error("Attempted to update a safety percentage for a product without a type")
+		return
+	}
+
+	// TODO: consider an OO approach when other pieces of gear are added
+	safetyPercentage := 0
+	switch p.Type {
+	case "helmet":
+		safetyPercentage = p.getHelmetSafetyPercentage()
+		break
+	case "jacket":
+		safetyPercentage = p.getJacketSafetyPercentage()
+		break
+	}
+
+	p.SafetyPercentage = safetyPercentage
 }

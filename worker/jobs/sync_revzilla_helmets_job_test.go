@@ -15,7 +15,7 @@ import (
 func Test_sync_revzilla_data_should_sync_revzilla_data_for_discontinued_and_active_products(t *testing.T) {
 	RegisterTestingT(t)
 
-	resp, err := http.Post(APIBaseURL+"/jobs/sync_revzilla_data", "application/json", strings.NewReader("{}"))
+	resp, err := http.Post(APIBaseURL+"/jobs/sync_revzilla_helmets", "application/json", strings.NewReader("{}"))
 	Expect(err).To(BeNil())
 	Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
