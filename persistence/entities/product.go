@@ -31,10 +31,10 @@ type Product struct {
 	Materials            string               `json:"materials"`
 	RetentionSystem      string               `json:"retentionSystem"`
 	HelmetCertifications struct {
-		SHARP *SHARPCertificationDocument `json:"SHARP"`
-		SNELL bool                        `json:"SNELL"`
-		ECE   bool                        `json:"ECE"`
-		DOT   bool                        `json:"DOT"`
+		SHARP *SHARPCertification `json:"SHARP"`
+		SNELL bool                `json:"SNELL"`
+		ECE   bool                `json:"ECE"`
+		DOT   bool                `json:"DOT"`
 	} `json:"helmetCertifications"`
 	JacketCertifications struct {
 		Shoulder   *CEImpactZone `json:"shoulder"`

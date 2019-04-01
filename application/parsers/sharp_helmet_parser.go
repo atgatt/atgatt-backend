@@ -155,7 +155,7 @@ func parseSHARPHelmetByURL(pooledHTTPClient *http.Client, httpRequestsSemaphore 
 		helmetLogger.Warn("Product image not found")
 	}
 
-	impactZoneRatings := &entities.SHARPImpactZoneRatingsDocument{}
+	impactZoneRatings := &entities.SHARPImpactZoneRatings{}
 	impactZoneImages := helmetDetailsDoc.Find("img[src*='impact-zones/dots']")
 	impactZoneRatings, err = getImpactZoneRatings(helmetLogger, impactZoneImages, leftImpactZoneRegexp, rightImpactZoneRegexp, topImpactZoneRegexp, rearImpactZoneRegexp)
 	if err != nil {
@@ -251,7 +251,7 @@ func parseSHARPHelmetByURL(pooledHTTPClient *http.Client, httpRequestsSemaphore 
 		RetentionSystem:      retentionSystem,
 		Materials:            materials,
 		IsECECertified:       isECERated,
-		Certifications:       &entities.SHARPCertificationDocument{Stars: starsValue, ImpactZoneRatings: impactZoneRatings},
+		Certifications:       &entities.SHARPCertification{Stars: starsValue, ImpactZoneRatings: impactZoneRatings},
 		ApproximateMSRPCents: approximateMSRPCents,
 	}
 
@@ -260,8 +260,8 @@ func parseSHARPHelmetByURL(pooledHTTPClient *http.Client, httpRequestsSemaphore 
 	helmetLogger.Info("Finished parsing helmet data")
 }
 
-func getImpactZoneRatings(helmetLogger *logrus.Entry, impactZoneImagesSelection *goquery.Selection, leftImpactZoneRegexp *regexp.Regexp, rightImpactZoneRegexp *regexp.Regexp, topImpactZoneRegexp *regexp.Regexp, rearImpactZoneRegexp *regexp.Regexp) (*entities.SHARPImpactZoneRatingsDocument, error) {
-	impactZoneRatings := &entities.SHARPImpactZoneRatingsDocument{}
+func getImpactZoneRatings(helmetLogger *logrus.Entry, impactZoneImagesSelection *goquery.Selection, leftImpactZoneRegexp *regexp.Regexp, rightImpactZoneRegexp *regexp.Regexp, topImpactZoneRegexp *regexp.Regexp, rearImpactZoneRegexp *regexp.Regexp) (*entities.SHARPImpactZoneRatings, error) {
+	impactZoneRatings := &entities.SHARPImpactZoneRatings{}
 	var err error
 	impactZoneImagesSelection.Each(func(index int, selection *goquery.Selection) {
 		if err != nil {

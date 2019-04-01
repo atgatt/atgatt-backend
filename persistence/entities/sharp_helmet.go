@@ -11,7 +11,7 @@ type SHARPHelmet struct {
 	Sizes                []string
 	Materials            string
 	RetentionSystem      string
-	Certifications       *SHARPCertificationDocument
+	Certifications       *SHARPCertification
 	IsECECertified       bool
 	ApproximateMSRPCents int
 }

@@ -2,16 +2,14 @@ package jobs
 
 import (
 	"crashtested-backend/application/parsers"
+	s3Helpers "crashtested-backend/common/s3"
 	"crashtested-backend/persistence/entities"
 	"crashtested-backend/persistence/repositories"
 	"fmt"
 	"math"
-	"net/http"
-	"path"
 	"strings"
 
 	golinq "github.com/ahmetb/go-linq"
-	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager/s3manageriface"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
@@ -153,25 +151,11 @@ func (j *ImportHelmetsJob) Run() error {
 		}
 
 		if product.OriginalImageURL != "" && existingProduct == nil {
-			resp, err := http.Get(product.OriginalImageURL)
+			key, err := s3Helpers.CopyImageToS3FromURL(productLogger, j.S3Uploader, product.OriginalImageURL, j.S3Bucket)
 			if err != nil {
-				productLogger.WithField("originalImageURL", product.OriginalImageURL).WithError(err).Warning("Could not download the product image from the image URL specified, saving the product to the DB anyway")
+				productLogger.Warning("Could not upload image to S3, saving the product to the DB anyway")
 			} else {
-				s3Key := fmt.Sprintf("img/products/%s", path.Base(product.OriginalImageURL))
-				s3Logger := productLogger.WithField("s3Key", s3Key)
-				s3Logger.Info("Uploading product image to S3")
-				s3Resp, err := j.S3Uploader.Upload(&s3manager.UploadInput{
-					Bucket: &j.S3Bucket,
-					Key:    &s3Key,
-					Body:   resp.Body,
-				})
-				if err != nil {
-					s3Logger.WithError(err).Warning("Could not upload the product image to S3, saving the product to the DB anyway")
-				}
-
-				product.ImageKey = s3Key
-				s3Logger.WithField("s3UploadLocation", s3Resp.Location).Info("Finished uploading product image to S3")
-				resp.Body.Close()
+				product.ImageKey = key
 			}
 		} else {
 			productLogger.Info("Not uploading anything to S3, saving the product to the DB anyway")

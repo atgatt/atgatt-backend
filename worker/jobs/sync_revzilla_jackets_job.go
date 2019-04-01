@@ -2,10 +2,14 @@ package jobs
 
 import (
 	appEntities "crashtested-backend/application/entities"
+	s3Helpers "crashtested-backend/common/s3"
+	"crashtested-backend/persistence/entities"
 	"crashtested-backend/persistence/repositories"
 	"errors"
 	"fmt"
 	"net/http"
+
+	"github.com/google/uuid"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager/s3manageriface"
@@ -60,6 +64,33 @@ func (j *SyncRevzillaJacketsJob) Run() error {
 				productLogger.Warning("Could not find a description for a product, continuing to the next one")
 			} else {
 				productLogger.Info("Finished getting a description for a product")
+			}
+
+			productToPersist := &entities.Product{
+				OriginalImageURL:   p.ImageURL,
+				Manufacturer:       p.Brand,
+				Model:              p.GetModel(),
+				RevzillaPriceCents: p.GetPriceCents(),
+				Type:               "jacket",
+				UUID:               uuid.New(),
+				RevzillaBuyURL:     fmt.Sprintf("http://www.anrdoezrs.net/links/8505854/type/dlg/%s", p.URL),
+			}
+
+			productToPersist.UpdateJacketCertificationsByDescriptionParts(p.DescriptionParts)
+
+			if productToPersist.OriginalImageURL != "" {
+				key, err := s3Helpers.CopyImageToS3FromURL(productLogger, j.S3Uploader, p.ImageURL, j.S3Bucket)
+				if err != nil {
+					productLogger.WithError(err).Warning("Failed to upload an image to S3, continuing")
+				}
+				productToPersist.ImageKey = key
+			} else {
+				productLogger.Warning("Skipping uploading image to S3 because the URL is empty, continuing")
+			}
+
+			err = j.ProductRepository.CreateProduct(productToPersist)
+			if err != nil {
+				productLogger.WithError(err).Error("Failed to insert a product into the database")
 			}
 		}(revzillaProduct)
 	}

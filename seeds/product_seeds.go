@@ -141,9 +141,9 @@ func GetProductSeeds() []*entities.Product {
 		if i%2 == 0 {
 			seeds[i].HelmetCertifications.ECE = true
 			seeds[i].HelmetCertifications.DOT = true
-			seeds[i].HelmetCertifications.SHARP = &entities.SHARPCertificationDocument{}
+			seeds[i].HelmetCertifications.SHARP = &entities.SHARPCertification{}
 			seeds[i].HelmetCertifications.SHARP.Stars = 4
-			seeds[i].HelmetCertifications.SHARP.ImpactZoneRatings = &entities.SHARPImpactZoneRatingsDocument{}
+			seeds[i].HelmetCertifications.SHARP.ImpactZoneRatings = &entities.SHARPImpactZoneRatings{}
 			seeds[i].HelmetCertifications.SHARP.ImpactZoneRatings.Left = 4
 			seeds[i].HelmetCertifications.SHARP.ImpactZoneRatings.Right = 3
 			seeds[i].HelmetCertifications.SHARP.ImpactZoneRatings.Rear = 4
@@ -153,9 +153,9 @@ func GetProductSeeds() []*entities.Product {
 		} else if i%3 == 0 {
 			seeds[i].HelmetCertifications.ECE = true
 			seeds[i].HelmetCertifications.DOT = true
-			seeds[i].HelmetCertifications.SHARP = &entities.SHARPCertificationDocument{}
+			seeds[i].HelmetCertifications.SHARP = &entities.SHARPCertification{}
 			seeds[i].HelmetCertifications.SHARP.Stars = 3
-			seeds[i].HelmetCertifications.SHARP.ImpactZoneRatings = &entities.SHARPImpactZoneRatingsDocument{}
+			seeds[i].HelmetCertifications.SHARP.ImpactZoneRatings = &entities.SHARPImpactZoneRatings{}
 			seeds[i].HelmetCertifications.SHARP.ImpactZoneRatings.Left = 1
 			seeds[i].HelmetCertifications.SHARP.ImpactZoneRatings.Right = 1
 			seeds[i].HelmetCertifications.SHARP.ImpactZoneRatings.Rear = 2
