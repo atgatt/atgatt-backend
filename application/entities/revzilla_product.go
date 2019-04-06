@@ -31,8 +31,7 @@ func (r RevzillaProduct) GetPriceCents() int {
 	return int(priceFloat * float64(100))
 }
 
-// GetCertifications calculates the CE certifications of this product by scraping the Description for key terms
-func (r RevzillaProduct) GetCertifications() int {
-	descriptionSeparatorRegexp.Split(r.DescriptionParts[0], -1)
-	return 0
+// IsDiscontinued returns true if the product doesn't have the expected summary section that indicates that it is a real product
+func (r RevzillaProduct) IsDiscontinued(buyURLContents string) bool {
+	return !strings.Contains(strings.ToLower(buyURLContents), "product-show-summary")
 }

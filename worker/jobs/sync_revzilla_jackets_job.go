@@ -66,32 +66,51 @@ func (j *SyncRevzillaJacketsJob) Run() error {
 				productLogger.Info("Finished getting a description for a product")
 			}
 
-			productToPersist := &entities.Product{
-				OriginalImageURL:   p.ImageURL,
-				Manufacturer:       p.Brand,
-				Model:              p.GetModel(),
-				RevzillaPriceCents: p.GetPriceCents(),
-				Type:               "jacket",
-				UUID:               uuid.New(),
-				RevzillaBuyURL:     fmt.Sprintf("http://www.anrdoezrs.net/links/8505854/type/dlg/%s", p.URL),
-			}
-
-			productToPersist.UpdateJacketCertificationsByDescriptionParts(p.DescriptionParts)
-
-			if productToPersist.OriginalImageURL != "" {
-				key, err := s3Helpers.CopyImageToS3FromURL(productLogger, j.S3Uploader, p.ImageURL, j.S3Bucket)
-				if err != nil {
-					productLogger.WithError(err).Warning("Failed to upload an image to S3, continuing")
-				}
-				productToPersist.ImageKey = key
-			} else {
-				productLogger.Warning("Skipping uploading image to S3 because the URL is empty, continuing")
-			}
-
-			err = j.ProductRepository.CreateProduct(productToPersist)
+			existingProduct, err := j.ProductRepository.GetByExternalID(p.ID)
 			if err != nil {
-				productLogger.WithError(err).Error("Failed to insert a product into the database")
+				productLogger.WithError(err).Error("Failed to get a product from the database by external ID")
 			}
+
+			if existingProduct != nil {
+				existingProduct.RevzillaPriceCents = p.GetPriceCents()
+				existingProduct.RevzillaBuyURL = p.URL
+				existingProduct.IsDiscontinued = len(p.DescriptionParts) <= 0
+				existingProduct.UpdateJacketCertificationsByDescriptionParts(p.DescriptionParts)
+				existingProduct.UpdateSearchPrice()
+				existingProduct.UpdateSafetyPercentage()
+
+				err = j.ProductRepository.UpdateProduct(existingProduct)
+			} else {
+				productToPersist := &entities.Product{
+					OriginalImageURL:   p.ImageURL,
+					Manufacturer:       p.Brand,
+					Model:              p.GetModel(),
+					RevzillaPriceCents: p.GetPriceCents(),
+					Type:               "jacket",
+					UUID:               uuid.New(),
+					RevzillaBuyURL:     fmt.Sprintf("http://www.anrdoezrs.net/links/8505854/type/dlg/%s", p.URL),
+					ExternalID:         p.ID,
+				}
+
+				productToPersist.UpdateJacketCertificationsByDescriptionParts(p.DescriptionParts)
+
+				if productToPersist.OriginalImageURL != "" {
+					key, err := s3Helpers.CopyImageToS3FromURL(productLogger, j.S3Uploader, p.ImageURL, j.S3Bucket)
+					if err != nil {
+						productLogger.WithError(err).Warning("Failed to upload an image to S3, continuing")
+					}
+					productToPersist.ImageKey = key
+				} else {
+					productLogger.Warning("Skipping uploading image to S3 because the URL is empty, continuing")
+				}
+
+				err = j.ProductRepository.CreateProduct(productToPersist)
+			}
+
+			if err != nil {
+				productLogger.WithError(err).Error("Failed to upsert a product into the database")
+			}
+
 		}(revzillaProduct)
 	}
 

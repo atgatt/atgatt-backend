@@ -16,16 +16,7 @@ type ProductRepository struct {
 	DB *sqlx.DB
 }
 
-// GetByModel returns a single product where the manufacturer and model matches
-func (r *ProductRepository) GetByModel(manufacturer string, model string, productType string) (*entities.Product, error) {
-	rows, err := r.DB.NamedQuery("select document from products where document->>'manufacturer' = :manufacturer and document->>'model' = :model and document->>'type' = :type", map[string]interface{}{
-		"manufacturer": manufacturer,
-		"model":        model,
-		"type":         productType,
-	})
-	if err != nil {
-		return nil, err
-	}
+func getOneProductFromRows(rows *sqlx.Rows) (*entities.Product, error) {
 	defer rows.Close()
 
 	productDocuments := []*entities.Product{}
@@ -52,6 +43,32 @@ func (r *ProductRepository) GetByModel(manufacturer string, model string, produc
 	}
 
 	return productDocuments[0], nil
+}
+
+// GetByExternalID returns a single product where the external ID matches
+func (r *ProductRepository) GetByExternalID(externalID string) (*entities.Product, error) {
+	rows, err := r.DB.NamedQuery("select document from products where document->>'externalID' = :externalID", map[string]interface{}{
+		"externalID": externalID,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return getOneProductFromRows(rows)
+}
+
+// GetByModel returns a single product where the manufacturer and model matches
+func (r *ProductRepository) GetByModel(manufacturer string, model string, productType string) (*entities.Product, error) {
+	rows, err := r.DB.NamedQuery("select document from products where document->>'manufacturer' = :manufacturer and document->>'model' = :model and document->>'type' = :type", map[string]interface{}{
+		"manufacturer": manufacturer,
+		"model":        model,
+		"type":         productType,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return getOneProductFromRows(rows)
 }
 
 // GetAllPaged queries the database for all products without prices, within the range of start and limit.
