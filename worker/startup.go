@@ -103,7 +103,7 @@ func (s *Server) Bootstrap() {
 	}
 
 	syncRevzillaHelmetsJob := &jobs.SyncRevzillaHelmetsJob{ProductRepository: productRepository, CJAPIKey: config.CJAPIKey}
-	scrapeRevzillaJacketsJob := &jobs.SyncRevzillaJacketsJob{ProductRepository: productRepository, S3Uploader: s3Uploader, S3Bucket: config.AWS.S3Bucket}
+	syncRevzillaJacketsJob := &jobs.SyncRevzillaJacketsJob{ProductRepository: productRepository, S3Uploader: s3Uploader, S3Bucket: config.AWS.S3Bucket}
 
 	numWorkers := runtime.NumCPU()
 	logrus.WithField("numWorkers", numWorkers).Info("Starting job queue")
@@ -114,7 +114,7 @@ func (s *Server) Bootstrap() {
 	// Jobs
 	s.registerJob(e, jobQueue, "import_helmets", importHelmetsJob)
 	s.registerJob(e, jobQueue, "sync_revzilla_helmets", syncRevzillaHelmetsJob)
-	s.registerJob(e, jobQueue, "sync_revzilla_jackets", scrapeRevzillaJacketsJob)
+	s.registerJob(e, jobQueue, "sync_revzilla_jackets", syncRevzillaJacketsJob)
 
 	// Healthcheck endpoint
 	e.GET("/", func(context echo.Context) error {
