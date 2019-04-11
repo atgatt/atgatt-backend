@@ -131,9 +131,13 @@ func getDescriptionPartsForProduct(pooledClient *http.Client, revzillaProduct *a
 
 	parts := []string{}
 	detailsNode := doc.Find(".product-details__details")
-	detailsNode.Find("li").Each(func(index int, item *goquery.Selection) {
+
+	aggregateText := func(index int, item *goquery.Selection) {
 		parts = append(parts, item.Text())
-	})
+	}
+
+	detailsNode.Find("p").Each(aggregateText)
+	detailsNode.Find("li").Each(aggregateText)
 	return parts, nil
 }
 
