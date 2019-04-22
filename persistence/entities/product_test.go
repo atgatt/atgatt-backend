@@ -134,3 +134,38 @@ func Test_CalculateSafetyPercentage_should_return_correctly_when_the_product_has
 
 	Expect(product.SafetyPercentage).To(Equal(62))
 }
+
+func Test_CalculateSafetyPercentage_should_return_a_full_safety_score_when_the_product_is_a_jacket_with_all_parts_certified(t *testing.T) {
+	RegisterTestingT(t)
+	product := &Product{ImageKey: "google.com/lol.png", Manufacturer: "Manufacturer5", Model: "RF-SR3", MSRPCents: 70099, Type: "jacket", SafetyPercentage: -1234}
+	fullImpactZone := &CEImpactZone{IsApproved: true, IsLevel2: true}
+	product.JacketCertifications.Back = fullImpactZone
+	product.JacketCertifications.Chest = fullImpactZone
+	product.JacketCertifications.Elbow = fullImpactZone
+	product.JacketCertifications.Shoulder = fullImpactZone
+	product.JacketCertifications.FitsAirbag = true
+	product.UpdateSafetyPercentage()
+
+	Expect(product.SafetyPercentage).To(Equal(100))
+}
+
+func Test_CalculateSafetyPercentage_should_return_a_reduced_safety_score_when_the_product_is_a_jacket_that_is_missing_an_airbag(t *testing.T) {
+	RegisterTestingT(t)
+	product := &Product{ImageKey: "google.com/lol.png", Manufacturer: "Manufacturer5", Model: "RF-SR3", MSRPCents: 70099, Type: "jacket", SafetyPercentage: -1234}
+	fullImpactZone := &CEImpactZone{IsApproved: true, IsLevel2: true}
+	product.JacketCertifications.Back = fullImpactZone
+	product.JacketCertifications.Chest = fullImpactZone
+	product.JacketCertifications.Elbow = fullImpactZone
+	product.JacketCertifications.Shoulder = fullImpactZone
+	product.UpdateSafetyPercentage()
+
+	Expect(product.SafetyPercentage).To(Equal(85))
+}
+
+func Test_CalculateSafetyPercentage_should_return_zero_when_the_product_is_a_jacket_without_any_armor_slots(t *testing.T) {
+	RegisterTestingT(t)
+	product := &Product{ImageKey: "google.com/lol.png", Manufacturer: "Manufacturer5", Model: "RF-SR3", MSRPCents: 70099, Type: "jacket", SafetyPercentage: -1234}
+	product.UpdateSafetyPercentage()
+
+	Expect(product.SafetyPercentage).To(Equal(0))
+}

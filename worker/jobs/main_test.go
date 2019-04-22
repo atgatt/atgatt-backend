@@ -2,6 +2,7 @@ package jobs_test
 
 import (
 	testHelpers "crashtested-backend/common/testing"
+
 	"crashtested-backend/seeds"
 	"crashtested-backend/worker"
 	"crashtested-backend/worker/settings"
@@ -37,6 +38,7 @@ func TestMain(m *testing.M) {
 	defaultSettings.DatabaseConnectionString = TestDatabaseConnectionString
 	defaultSettings.AppEnvironment = "integration-tests"
 	defaultSettings.UseSynchronousJobRunner = true
+
 	server := &worker.Server{Port: ":5002", Name: "crashtested-worker", Version: "integration-tests-version", BuildNumber: "integration-tests-build", CommitHash: "integration-tests-commit", Settings: defaultSettings}
 	go server.Bootstrap()
 

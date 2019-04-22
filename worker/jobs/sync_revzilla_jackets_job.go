@@ -1,19 +1,18 @@
 package jobs
 
 import (
+	"crashtested-backend/application/clients"
 	appEntities "crashtested-backend/application/entities"
 	s3Helpers "crashtested-backend/common/s3"
 	"crashtested-backend/persistence/entities"
 	"crashtested-backend/persistence/repositories"
 	"errors"
 	"fmt"
-	"net/http"
 
 	"github.com/google/uuid"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager/s3manageriface"
-	cleanhttp "github.com/hashicorp/go-cleanhttp"
 	"github.com/remeh/sizedwaitgroup"
 	"github.com/sirupsen/logrus"
 )
@@ -23,25 +22,22 @@ const minRevzillaProducts int = 1000
 
 // SyncRevzillaJacketsJob scrapes all of RevZilla's helmet data
 type SyncRevzillaJacketsJob struct {
-	ProductRepository *repositories.ProductRepository
-	S3Uploader        s3manageriface.UploaderAPI
-	S3Bucket          string
+	ProductRepository      *repositories.ProductRepository
+	RevzillaClient         clients.RevzillaClient
+	S3Uploader             s3manageriface.UploaderAPI
+	S3Bucket               string
+	EnableMinProductsCheck bool
 }
 
 // Run executes the job
 func (j *SyncRevzillaJacketsJob) Run() error {
-	pooledClient := cleanhttp.DefaultPooledClient()
-	resp, err := pooledClient.Get("https://www.revzilla.com/motorcycle-jackets-vests?page=1&sort=featured&limit=10000&rating=-1&price=&price_min=3&price_max=1700&is_new=false&is_sale=false&is_made_in_usa=false&has_video=false&is_holiday=false&is_blemished=false&view_all=true")
-	if err != nil {
-		return err
-	}
-	doc, err := goquery.NewDocumentFromResponse(resp)
+	doc, err := j.RevzillaClient.GetAllJacketOverviewsHTML()
 	if err != nil {
 		return err
 	}
 
 	revzillaProductsToScrape := getRevzillaProductsToScrape(doc)
-	if len(revzillaProductsToScrape) < minRevzillaProducts {
+	if j.EnableMinProductsCheck && len(revzillaProductsToScrape) < minRevzillaProducts {
 		return errors.New("Not enough URLs found, check RevZilla's HTML for changes")
 	}
 
@@ -55,7 +51,7 @@ func (j *SyncRevzillaJacketsJob) Run() error {
 				"name":       p.Name,
 			})
 			productLogger.Info("Starting to get a description for a product")
-			p.DescriptionParts, err = getDescriptionPartsForProduct(pooledClient, p)
+			p.DescriptionParts, err = j.getDescriptionPartsForProduct(p)
 			if err != nil {
 				productLogger.WithError(err).Error("Failed to get a description for a product")
 			}
@@ -75,7 +71,6 @@ func (j *SyncRevzillaJacketsJob) Run() error {
 				existingProduct.RevzillaPriceCents = p.GetPriceCents()
 				existingProduct.RevzillaBuyURL = p.URL
 				existingProduct.IsDiscontinued = len(p.DescriptionParts) <= 0
-				existingProduct.UpdateJacketCertificationsByDescriptionParts(p.DescriptionParts)
 				existingProduct.UpdateSearchPrice()
 				existingProduct.UpdateSafetyPercentage()
 
@@ -118,13 +113,8 @@ func (j *SyncRevzillaJacketsJob) Run() error {
 	return nil
 }
 
-func getDescriptionPartsForProduct(pooledClient *http.Client, revzillaProduct *appEntities.RevzillaProduct) ([]string, error) {
-	resp, err := pooledClient.Get(revzillaProduct.URL)
-	if err != nil {
-		return nil, err
-	}
-
-	doc, err := goquery.NewDocumentFromResponse(resp)
+func (j *SyncRevzillaJacketsJob) getDescriptionPartsForProduct(revzillaProduct *appEntities.RevzillaProduct) ([]string, error) {
+	doc, err := j.RevzillaClient.GetDescriptionPartsHTMLByURL(revzillaProduct.URL)
 	if err != nil {
 		return nil, err
 	}

@@ -1,6 +1,7 @@
 package worker
 
 import (
+	"crashtested-backend/application/clients"
 	"crashtested-backend/application/parsers"
 	loggingHelpers "crashtested-backend/common/logging"
 	"crashtested-backend/persistence/repositories"
@@ -103,7 +104,7 @@ func (s *Server) Bootstrap() {
 	}
 
 	syncRevzillaHelmetsJob := &jobs.SyncRevzillaHelmetsJob{ProductRepository: productRepository, CJAPIKey: config.CJAPIKey}
-	syncRevzillaJacketsJob := &jobs.SyncRevzillaJacketsJob{ProductRepository: productRepository, S3Uploader: s3Uploader, S3Bucket: config.AWS.S3Bucket}
+	syncRevzillaJacketsJob := &jobs.SyncRevzillaJacketsJob{ProductRepository: productRepository, S3Uploader: s3Uploader, S3Bucket: config.AWS.S3Bucket, RevzillaClient: clients.NewHTTPRevzillaClient(), EnableMinProductsCheck: true}
 
 	numWorkers := runtime.NumCPU()
 	logrus.WithField("numWorkers", numWorkers).Info("Starting job queue")

@@ -31,7 +31,7 @@ require (
 	github.com/google/pprof v0.0.0-20190228041337-2ef8d84b2e3c // indirect
 	github.com/google/uuid v1.1.1
 	github.com/googleapis/gax-go v2.0.2+incompatible // indirect
-	github.com/gopherjs/gopherjs v0.0.0-20181103185306-d547d1d9531e // indirect
+	github.com/gopherjs/gopherjs v0.0.0-20181103185306-d547d1d9531e
 	github.com/gorilla/mux v1.7.0 // indirect
 	github.com/goware/emailx v0.0.0-20171023230436-0bae9679d4e3
 	github.com/gregjones/httpcache v0.0.0-20190212212710-3befbb6ad0cc // indirect

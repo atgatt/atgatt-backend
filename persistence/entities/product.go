@@ -91,6 +91,10 @@ func (p *Product) UpdateHelmetCertificationsByDescription(productDescription str
 	return hasNewDOTCertification, hasNewECECertification
 }
 
+func isScoreUpgraded(oldZone *CEImpactZone, newZone *CEImpactZone) bool {
+	return oldZone == nil || (newZone.GetScore() > oldZone.GetScore())
+}
+
 // UpdateJacketCertificationsByDescriptionParts updates all of the jacket certifications when certain text appears in each part of the description
 func (p *Product) UpdateJacketCertificationsByDescriptionParts(productDescriptionParts []string) (bool, bool, bool, bool, bool) {
 	updatedAirbag := false
@@ -102,7 +106,7 @@ func (p *Product) UpdateJacketCertificationsByDescriptionParts(productDescriptio
 	for _, part := range productDescriptionParts {
 		lowerPart := strings.ToLower(part)
 
-		isEmpty := strings.Contains(lowerPart, "sold separately") || strings.Contains(lowerPart, "optional") || strings.Contains(lowerPart, "pocket")
+		isEmpty := strings.Contains(lowerPart, "sold separately") || strings.Contains(lowerPart, "optional") || strings.Contains(lowerPart, "pocket") || strings.Contains(lowerPart, "protector")
 		fitsAirbag := strings.Contains(lowerPart, "d-air") || strings.Contains(lowerPart, "tech-air") || strings.Contains(lowerPart, "tech air") || strings.Contains(lowerPart, "air bag") || strings.Contains(lowerPart, "airbag")
 
 		if !p.JacketCertifications.FitsAirbag && fitsAirbag {
@@ -113,24 +117,33 @@ func (p *Product) UpdateJacketCertificationsByDescriptionParts(productDescriptio
 		isCertified := strings.Contains(part, "CE")
 		isApproved := strings.Contains(lowerPart, "ce approved")
 		isLevel2 := strings.Contains(lowerPart, "level 2") || strings.Contains(lowerPart, "level ii")
-		if isCertified || isApproved {
-			if p.JacketCertifications.Back == nil && strings.Contains(lowerPart, "back") {
-				p.JacketCertifications.Back = &CEImpactZone{IsApproved: isApproved, IsLevel2: isLevel2, IsEmpty: isEmpty}
+
+		// If we have conflicting information (we think this is an empty slot but we also found CE cert details) assume the worst
+		if (isCertified || isApproved) && isEmpty {
+			isCertified = false
+			isApproved = false
+			isLevel2 = false
+		}
+
+		newCEImpactZone := &CEImpactZone{IsApproved: isApproved, IsLevel2: isLevel2, IsEmpty: isEmpty}
+		if isCertified || isApproved || isEmpty {
+			if isScoreUpgraded(p.JacketCertifications.Back, newCEImpactZone) && strings.Contains(lowerPart, "back") {
+				p.JacketCertifications.Back = newCEImpactZone
 				updatedBack = true
 			}
 
-			if p.JacketCertifications.Elbow == nil && strings.Contains(lowerPart, "elbow") {
-				p.JacketCertifications.Elbow = &CEImpactZone{IsApproved: isApproved, IsLevel2: isLevel2, IsEmpty: isEmpty}
+			if isScoreUpgraded(p.JacketCertifications.Elbow, newCEImpactZone) && strings.Contains(lowerPart, "elbow") {
+				p.JacketCertifications.Elbow = newCEImpactZone
 				updatedElbow = true
 			}
 
-			if p.JacketCertifications.Shoulder == nil && strings.Contains(lowerPart, "shoulder") {
-				p.JacketCertifications.Shoulder = &CEImpactZone{IsApproved: isApproved, IsLevel2: isLevel2, IsEmpty: isEmpty}
+			if isScoreUpgraded(p.JacketCertifications.Shoulder, newCEImpactZone) && strings.Contains(lowerPart, "shoulder") {
+				p.JacketCertifications.Shoulder = newCEImpactZone
 				updatedShoulder = true
 			}
 
-			if p.JacketCertifications.Chest == nil && strings.Contains(lowerPart, "chest") {
-				p.JacketCertifications.Chest = &CEImpactZone{IsApproved: isApproved, IsLevel2: isLevel2, IsEmpty: isEmpty}
+			if isScoreUpgraded(p.JacketCertifications.Chest, newCEImpactZone) && strings.Contains(lowerPart, "chest") {
+				p.JacketCertifications.Chest = newCEImpactZone
 				updatedChest = true
 			}
 		}
@@ -143,13 +156,15 @@ func (p *Product) getJacketSafetyPercentage() int {
 	var totalScore float64
 
 	zones := []*CEImpactZone{p.JacketCertifications.Back, p.JacketCertifications.Chest, p.JacketCertifications.Elbow, p.JacketCertifications.Shoulder}
-	numZones := len(zones)
 	for _, zone := range zones {
 		if zone != nil {
-			totalScore += (zone.GetScore() / float64(numZones))
+			totalScore += zone.GetScore() * float64(0.2125)
 		}
 	}
 
+	if p.JacketCertifications.FitsAirbag {
+		totalScore += float64(0.15)
+	}
 	return int(math.Round(totalScore * 100))
 }
 
