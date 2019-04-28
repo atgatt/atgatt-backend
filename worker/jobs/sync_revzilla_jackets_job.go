@@ -29,6 +29,10 @@ type SyncRevzillaJacketsJob struct {
 	EnableMinProductsCheck bool
 }
 
+func getRevzillaURL(url string) string {
+	return fmt.Sprintf("http://www.anrdoezrs.net/links/8505854/type/dlg/%s", url)
+}
+
 // Run executes the job
 func (j *SyncRevzillaJacketsJob) Run() error {
 	doc, err := j.RevzillaClient.GetAllJacketOverviewsHTML()
@@ -69,7 +73,7 @@ func (j *SyncRevzillaJacketsJob) Run() error {
 
 			if existingProduct != nil {
 				existingProduct.RevzillaPriceCents = p.GetPriceCents()
-				existingProduct.RevzillaBuyURL = p.URL
+				existingProduct.RevzillaBuyURL = getRevzillaURL(p.URL)
 				existingProduct.IsDiscontinued = len(p.DescriptionParts) <= 0
 				existingProduct.UpdateSearchPrice()
 				existingProduct.UpdateSafetyPercentage()
@@ -83,7 +87,7 @@ func (j *SyncRevzillaJacketsJob) Run() error {
 					RevzillaPriceCents: p.GetPriceCents(),
 					Type:               "jacket",
 					UUID:               uuid.New(),
-					RevzillaBuyURL:     fmt.Sprintf("http://www.anrdoezrs.net/links/8505854/type/dlg/%s", p.URL),
+					RevzillaBuyURL:     getRevzillaURL(p.URL),
 					ExternalID:         p.ID,
 				}
 
