@@ -28,6 +28,9 @@ func (v *FilterProductsQueryValidator) Validate() error {
 			validation.Length(2, 2).Error("The price range array must contain exactly two elements"),
 			validation.By(PriceRange),
 		),
+		validation.Field(&v.Query.HelmetCertifications,
+			validation.By(v.HelmetCertifications),
+		),
 	)
 	if err != nil {
 		return err
@@ -50,6 +53,15 @@ func (v *FilterProductsQueryValidator) OrderByField(value interface{}) error {
 	if _, exists := v.AllowedOrderFields[orderByField]; !exists {
 		return errors.New("The order field that was specified is not allowed to be used")
 	}
+	return nil
+}
+
+// HelmetCertifications ensures we either have helmet certifications or jacket certifications but not both
+func (v *FilterProductsQueryValidator) HelmetCertifications(value interface{}) error {
+	if v.Query.HelmetCertifications != nil && v.Query.JacketCertifications != nil {
+		return errors.New("Helmet and Jacket certifications cannot be supplied together")
+	}
+
 	return nil
 }
 

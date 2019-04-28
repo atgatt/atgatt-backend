@@ -2,9 +2,9 @@ package entities
 
 // CEImpactZone represents a zone of a particular product (or an entire product) that has a level 1 or 2 CE certification
 type CEImpactZone struct {
-	IsLevel2   bool
-	IsApproved bool
-	IsEmpty    bool // if this product can fit CE-certified/approved armor in this zone but doesn't include one, it's an "empty" zone
+	IsLevel2   bool `json:"isLevel2"`
+	IsApproved bool `json:"isApproved"`
+	IsEmpty    bool `json:"isEmpty"` // if this product can fit CE-certified/approved armor in this zone but doesn't include one, it's an "empty" zone
 }
 
 // GetScore returns the component of an overall safety score associated with this zone

@@ -29,6 +29,76 @@ func Test_FilterProducts_should_return_all_of_the_products_data_when_the_limit_i
 	Expect(*responseBody).To(BeEquivalentTo(seeds.GetProductSeeds()))
 }
 
+func Test_FilterProducts_should_only_return_jackets_data_when_the_limit_is_large_enough_and_the_type_is_set_to_jacket(t *testing.T) {
+	RegisterTestingT(t)
+
+	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 2000000}, Type: "jacket"}
+	request.Order.Field = "created_at_utc"
+
+	responseBody := &[]*entities.Product{}
+	resp, err := httpHelpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
+
+	Expect(err).To(BeNil())
+	Expect(resp.StatusCode).To(Equal(http.StatusOK))
+
+	Expect(*responseBody).ToNot(BeEmpty())
+	for _, item := range *responseBody {
+		Expect(item.Type).To(Equal("jacket"))
+	}
+}
+
+func Test_FilterProducts_should_only_return_chest_CE_level_2_jackets_when_the_filters_are_set_to_CE_level_2(t *testing.T) {
+	RegisterTestingT(t)
+
+	level2Filter :=  &queries.CEImpactZoneQueryParams{
+		IsLevel2: true,
+	}
+	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 2000000}, Type: "jacket", JacketCertifications: &queries.JacketCertificationsQueryParams{
+		Shoulder: level2Filter,
+		Elbow: level2Filter,
+		Back: level2Filter,
+		Chest: level2Filter,
+	}}
+	request.Order.Field = "created_at_utc"
+
+	responseBody := &[]*entities.Product{}
+	resp, err := httpHelpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
+
+	Expect(err).To(BeNil())
+	Expect(resp.StatusCode).To(Equal(http.StatusOK))
+
+	Expect(*responseBody).ToNot(BeEmpty())
+	for _, item := range *responseBody {
+		Expect(item.Type).To(Equal("jacket"))
+		Expect(item.JacketCertifications).ToNot(BeNil())
+		Expect(item.JacketCertifications.Shoulder.IsLevel2).To(BeTrue())
+		Expect(item.JacketCertifications.Elbow.IsLevel2).To(BeTrue())
+		Expect(item.JacketCertifications.Back.IsLevel2).To(BeTrue())
+		Expect(item.JacketCertifications.Chest.IsLevel2).To(BeTrue())
+	}
+}
+
+func Test_FilterProducts_should_only_return_airbag_jackets_when_the_filters_are_set_to_require_airbags(t *testing.T) {
+	RegisterTestingT(t)
+	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 2000000}, Type: "jacket", JacketCertifications: &queries.JacketCertificationsQueryParams{
+		FitsAirbag: true,
+	}}
+	request.Order.Field = "created_at_utc"
+
+	responseBody := &[]*entities.Product{}
+	resp, err := httpHelpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
+
+	Expect(err).To(BeNil())
+	Expect(resp.StatusCode).To(Equal(http.StatusOK))
+
+	Expect(*responseBody).ToNot(BeEmpty())
+	for _, item := range *responseBody {
+		Expect(item.Type).To(Equal("jacket"))
+		Expect(item.JacketCertifications).ToNot(BeNil())
+		Expect(item.JacketCertifications.FitsAirbag).To(BeTrue())
+	}
+}
+
 func Test_FilterProducts_should_return_all_of_the_products_that_have_the_given_subtype_when_the_subtypes_array_has_one_element(t *testing.T) {
 	RegisterTestingT(t)
 
@@ -215,7 +285,7 @@ func Test_FilterProducts_should_return_products_whose_manufacturers_start_with_t
 func Test_FilterProducts_should_return_products_with_SNELL_certifications(t *testing.T) {
 	RegisterTestingT(t)
 
-	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 2000000}}
+	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 2000000}, HelmetCertifications: &queries.HelmetCertificationsQueryParams{}}
 	request.Order.Field = "created_at_utc"
 	request.HelmetCertifications.SNELL = true
 
@@ -234,7 +304,7 @@ func Test_FilterProducts_should_return_products_with_SNELL_certifications(t *tes
 func Test_FilterProducts_should_return_products_with_ECE_certifications(t *testing.T) {
 	RegisterTestingT(t)
 
-	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 2000000}}
+	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 2000000}, HelmetCertifications: &queries.HelmetCertificationsQueryParams{}}
 	request.Order.Field = "created_at_utc"
 	request.HelmetCertifications.ECE = true
 
@@ -253,7 +323,7 @@ func Test_FilterProducts_should_return_products_with_ECE_certifications(t *testi
 func Test_FilterProducts_should_return_products_with_DOT_certifications(t *testing.T) {
 	RegisterTestingT(t)
 
-	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 2000000}}
+	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 2000000}, HelmetCertifications: &queries.HelmetCertificationsQueryParams{}}
 	request.Order.Field = "created_at_utc"
 	request.HelmetCertifications.DOT = true
 
@@ -300,7 +370,7 @@ func Test_FilterProducts_should_return_only_the_current_products_when_exclude_di
 func Test_FilterProducts_should_return_products_with_SHARP_certifications(t *testing.T) {
 	RegisterTestingT(t)
 
-	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 2000000}}
+	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 2000000}, HelmetCertifications: &queries.HelmetCertificationsQueryParams{}}
 	request.Order.Field = "created_at_utc"
 	request.HelmetCertifications.SHARP = &queries.SHARPCertificationQueryParams{}
 
@@ -319,7 +389,7 @@ func Test_FilterProducts_should_return_products_with_SHARP_certifications(t *tes
 func Test_FilterProducts_should_return_products_with_SHARP_certifications_and_minimum_impact_zones(t *testing.T) {
 	RegisterTestingT(t)
 
-	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 2000000}}
+	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 2000000}, HelmetCertifications: &queries.HelmetCertificationsQueryParams{}}
 	request.Order.Field = "created_at_utc"
 	request.HelmetCertifications.SHARP = &queries.SHARPCertificationQueryParams{}
 	request.HelmetCertifications.SHARP.ImpactZoneMinimums.Left = 4
@@ -348,7 +418,7 @@ func Test_FilterProducts_should_return_products_with_SHARP_certifications_and_mi
 func Test_FilterProducts_should_return_products_with_SHARP_certifications_and_minimum_stars(t *testing.T) {
 	RegisterTestingT(t)
 
-	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 2000000}}
+	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 2000000}, HelmetCertifications: &queries.HelmetCertificationsQueryParams{}}
 	request.Order.Field = "created_at_utc"
 	request.HelmetCertifications.SHARP = &queries.SHARPCertificationQueryParams{Stars: 3}
 
@@ -387,6 +457,19 @@ func Test_FilterProducts_should_correctly_page_through_the_resultset_when_start_
 
 		request.Start++
 	}
+}
+
+func Test_FilterProducts_should_return_bad_request_when_both_jacket_certifications_and_helmet_certifications_are_specified(t *testing.T) {
+	RegisterTestingT(t)
+
+	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 1000}, HelmetCertifications: &queries.HelmetCertificationsQueryParams{}, JacketCertifications: &queries.JacketCertificationsQueryParams{}}
+	request.Order.Field = "created_at_utc"
+
+	responseBody := &[]*entities.Product{}
+	resp, err := httpHelpers.MakeJSONPOSTRequest(fmt.Sprintf("%s/v1/products/filter", APIBaseURL), request, responseBody)
+
+	Expect(err).To(BeNil())
+	Expect(resp.StatusCode).To(Equal(http.StatusBadRequest))
 }
 
 func Test_FilterProducts_should_return_bad_request_when_the_limit_is_too_large(t *testing.T) {

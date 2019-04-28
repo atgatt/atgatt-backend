@@ -37,6 +37,7 @@ func TestMain(m *testing.M) {
 	// Override the database in env vars with the test database
 	defaultSettings.DatabaseConnectionString = TestDatabaseConnectionString
 	defaultSettings.AppEnvironment = "integration-tests"
+	defaultSettings.LogAPIRequests = false
 	server := api.Server{Port: ":5001", Name: "crashtested-api", Version: "integration-tests-version", BuildNumber: "integration-tests-build", CommitHash: "integration-tests-commit", Settings: defaultSettings}
 	go server.Bootstrap()
 

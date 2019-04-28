@@ -54,10 +54,10 @@ func WaitForAPI(apiBaseURL string, maxTimeToWait time.Duration) error {
 func WaitForMigrations(testDbServerConnString, testDbName, testDbConnString, migrationsPath string, seedsSQLStatements []string, maxTimeToWait time.Duration) error {
 	return WaitFor("database", func() error {
 		dbServerConn, err := sql.Open("postgres", testDbServerConnString)
-		defer dbServerConn.Close()
 		if err != nil {
 			return err
 		}
+		defer dbServerConn.Close()
 		_, _ = dbServerConn.Query(fmt.Sprintf("select pg_terminate_backend(pid) from pg_stat_activity where datname = '%s'", testDbName))
 		_, err = dbServerConn.Exec(fmt.Sprintf("drop database if exists %s", testDbName))
 		if err != nil {

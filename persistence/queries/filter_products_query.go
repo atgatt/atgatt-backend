@@ -2,16 +2,12 @@ package queries
 
 // FilterProductsQuery represents a query used to return a subset of products from the database. All of the query parameters are AND'd together when the query is executed.
 type FilterProductsQuery struct {
+	Type                 string   `json:"type"`
+	Subtypes             []string `json:"subtypes"`
 	Manufacturer         string   `json:"manufacturer"`
 	Model                string   `json:"model"`
-	Types                []string `json:"types"`
-	Subtypes             []string `json:"subtypes"`
-	HelmetCertifications struct {
-		SHARP *SHARPCertificationQueryParams `json:"SHARP"`
-		SNELL bool                           `json:"SNELL"`
-		ECE   bool                           `json:"ECE"`
-		DOT   bool                           `json:"DOT"`
-	} `json:"helmetCertifications"`
+	HelmetCertifications *HelmetCertificationsQueryParams `json:"helmetCertifications"`
+	JacketCertifications *JacketCertificationsQueryParams `json:"jacketCertifications"`
 	UsdPriceRange []int `json:"usdPriceRange"`
 	Start         int   `json:"start"`
 	Limit         int   `json:"limit"`

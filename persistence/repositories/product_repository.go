@@ -158,6 +158,22 @@ func (r *ProductRepository) CreateProduct(product *entities.Product) error {
 	return nil
 }
 
+func applyCEImpactZoneParams(zoneKey string, ceImpactZoneParams *queries.CEImpactZoneQueryParams, whereCriteria *strings.Builder) {
+	if ceImpactZoneParams != nil {
+		if ceImpactZoneParams.IsLevel2 {
+			(*whereCriteria).WriteString(fmt.Sprintf("and document->%s->>'isLevel2' = 'true' ", zoneKey))
+		}
+
+		if ceImpactZoneParams.IsApproved {
+			(*whereCriteria).WriteString(fmt.Sprintf("and document->%s->>'isApproved' = 'true' ", zoneKey))
+		}
+
+		if ceImpactZoneParams.IsEmpty {
+			(*whereCriteria).WriteString(fmt.Sprintf("and document->%s->>'isEmpty' = 'true' ", zoneKey))
+		}
+	}
+}
+
 // FilterProducts is a method that ANDs a bunch of query parameters together and returns a list of matching products, or an error if there was a problem executing the query.
 func (r *ProductRepository) FilterProducts(query *queries.FilterProductsQuery) ([]entities.Product, error) {
 	queryParams := make(map[string]interface{})
@@ -194,9 +210,9 @@ func (r *ProductRepository) FilterProducts(query *queries.FilterProductsQuery) (
 		whereCriteria.WriteString("and cast((document->>'searchPriceCents') as int) between :low_price and :high_price ")
 	}
 
-	if len(query.Types) > 0 {
-		queryParams["types"] = query.Types
-		whereCriteria.WriteString(`and document->>'type' in (:types) `)
+	if query.Type != "" {
+		queryParams["type"] = query.Type
+		whereCriteria.WriteString(`and document->>'type' = :type `)
 	}
 
 	if len(query.Subtypes) > 0 {
@@ -222,51 +238,65 @@ func (r *ProductRepository) FilterProducts(query *queries.FilterProductsQuery) (
 		))`)
 	}
 
-	sharpCert := query.HelmetCertifications.SHARP
-	if sharpCert != nil {
-		whereCriteria.WriteString("and document->'helmetCertifications'->>'SHARP' is not null ")
-		if sharpCert.Stars > 0 {
-			queryParams["minimum_SHARP_stars"] = query.HelmetCertifications.SHARP.Stars
-			whereCriteria.WriteString("and to_number((document->'helmetCertifications'->'SHARP'->>'stars'), '9') >= :minimum_SHARP_stars ")
+	if query.HelmetCertifications != nil {
+		sharpCert := query.HelmetCertifications.SHARP
+		if sharpCert != nil {
+			whereCriteria.WriteString("and document->'helmetCertifications'->>'SHARP' is not null ")
+			if sharpCert.Stars > 0 {
+				queryParams["minimum_SHARP_stars"] = query.HelmetCertifications.SHARP.Stars
+				whereCriteria.WriteString("and to_number((document->'helmetCertifications'->'SHARP'->>'stars'), '9') >= :minimum_SHARP_stars ")
+			}
+
+			if sharpCert.ImpactZoneMinimums.Left > 0 {
+				queryParams["left_impact_zone_minimum"] = sharpCert.ImpactZoneMinimums.Left
+				whereCriteria.WriteString("and to_number((document->'helmetCertifications'->'SHARP'->'impactZoneRatings'->>'left'), '9') >= :left_impact_zone_minimum ")
+			}
+
+			if sharpCert.ImpactZoneMinimums.Rear > 0 {
+				queryParams["rear_impact_zone_minimum"] = sharpCert.ImpactZoneMinimums.Rear
+				whereCriteria.WriteString("and to_number((document->'helmetCertifications'->'SHARP'->'impactZoneRatings'->>'rear'), '9') >= :rear_impact_zone_minimum ")
+			}
+
+			if sharpCert.ImpactZoneMinimums.Right > 0 {
+				queryParams["right_impact_zone_minimum"] = sharpCert.ImpactZoneMinimums.Right
+				whereCriteria.WriteString("and to_number((document->'helmetCertifications'->'SHARP'->'impactZoneRatings'->>'right'), '9') >= :right_impact_zone_minimum ")
+			}
+
+			if sharpCert.ImpactZoneMinimums.Top.Front > 0 {
+				queryParams["top_front_impact_zone_minimum"] = sharpCert.ImpactZoneMinimums.Top.Front
+				whereCriteria.WriteString("and to_number((document->'helmetCertifications'->'SHARP'->'impactZoneRatings'->'top'->>'front'), '9') >= :top_front_impact_zone_minimum ")
+			}
+
+			if sharpCert.ImpactZoneMinimums.Top.Rear > 0 {
+				queryParams["top_rear_impact_zone_minimum"] = sharpCert.ImpactZoneMinimums.Top.Rear
+				whereCriteria.WriteString("and to_number((document->'helmetCertifications'->'SHARP'->'impactZoneRatings'->'top'->>'rear'), '9') >= :top_rear_impact_zone_minimum ")
+			}
 		}
 
-		if sharpCert.ImpactZoneMinimums.Left > 0 {
-			queryParams["left_impact_zone_minimum"] = sharpCert.ImpactZoneMinimums.Left
-			whereCriteria.WriteString("and to_number((document->'helmetCertifications'->'SHARP'->'impactZoneRatings'->>'left'), '9') >= :left_impact_zone_minimum ")
+		if query.HelmetCertifications.SNELL {
+			whereCriteria.WriteString("and document->'helmetCertifications'->>'SNELL' = 'true' ")
 		}
 
-		if sharpCert.ImpactZoneMinimums.Rear > 0 {
-			queryParams["rear_impact_zone_minimum"] = sharpCert.ImpactZoneMinimums.Rear
-			whereCriteria.WriteString("and to_number((document->'helmetCertifications'->'SHARP'->'impactZoneRatings'->>'rear'), '9') >= :rear_impact_zone_minimum ")
+		if query.HelmetCertifications.ECE {
+			whereCriteria.WriteString("and document->'helmetCertifications'->>'ECE' = 'true' ")
 		}
 
-		if sharpCert.ImpactZoneMinimums.Right > 0 {
-			queryParams["right_impact_zone_minimum"] = sharpCert.ImpactZoneMinimums.Right
-			whereCriteria.WriteString("and to_number((document->'helmetCertifications'->'SHARP'->'impactZoneRatings'->>'right'), '9') >= :right_impact_zone_minimum ")
-		}
-
-		if sharpCert.ImpactZoneMinimums.Top.Front > 0 {
-			queryParams["top_front_impact_zone_minimum"] = sharpCert.ImpactZoneMinimums.Top.Front
-			whereCriteria.WriteString("and to_number((document->'helmetCertifications'->'SHARP'->'impactZoneRatings'->'top'->>'front'), '9') >= :top_front_impact_zone_minimum ")
-		}
-
-		if sharpCert.ImpactZoneMinimums.Top.Rear > 0 {
-			queryParams["top_rear_impact_zone_minimum"] = sharpCert.ImpactZoneMinimums.Top.Rear
-			whereCriteria.WriteString("and to_number((document->'helmetCertifications'->'SHARP'->'impactZoneRatings'->'top'->>'rear'), '9') >= :top_rear_impact_zone_minimum ")
+		if query.HelmetCertifications.DOT {
+			whereCriteria.WriteString("and document->'helmetCertifications'->>'DOT' = 'true' ")
 		}
 	}
 
-	if query.HelmetCertifications.SNELL {
-		whereCriteria.WriteString("and document->'helmetCertifications'->>'SNELL' = 'true' ")
-	}
+	if query.JacketCertifications != nil {
+		applyCEImpactZoneParams("'jacketCertifications'->'shoulder'", query.JacketCertifications.Shoulder, &whereCriteria)
+		applyCEImpactZoneParams("'jacketCertifications'->'elbow'", query.JacketCertifications.Elbow, &whereCriteria)
+		applyCEImpactZoneParams("'jacketCertifications'->'back'", query.JacketCertifications.Back, &whereCriteria)
+		applyCEImpactZoneParams("'jacketCertifications'->'chest'", query.JacketCertifications.Chest, &whereCriteria)
 
-	if query.HelmetCertifications.ECE {
-		whereCriteria.WriteString("and document->'helmetCertifications'->>'ECE' = 'true' ")
+		if query.JacketCertifications.FitsAirbag {
+			whereCriteria.WriteString("and document->'jacketCertifications'->>'fitsAirbag' = 'true'")
+		}
 	}
-
-	if query.HelmetCertifications.DOT {
-		whereCriteria.WriteString("and document->'helmetCertifications'->>'DOT' = 'true' ")
-	}
+	
 
 	if query.ExcludeDiscontinued {
 		whereCriteria.WriteString("and document->>'isDiscontinued' = 'false' ")

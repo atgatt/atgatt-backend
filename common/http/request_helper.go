@@ -6,8 +6,6 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-
-	"github.com/sirupsen/logrus"
 )
 
 // GetContentsAtURL makes a request to url and returns the response content as a string
@@ -33,7 +31,6 @@ func MakeJSONPOSTRequest(url string, request interface{}, response interface{}) 
 	}
 
 	requestString := string(requestBytes)
-	logrus.Infof("Making JSON POST request with data: %s", requestString)
 	resp, postErr := http.Post(url, "application/json", strings.NewReader(requestString))
 	if postErr != nil {
 		return nil, postErr
@@ -47,7 +44,6 @@ func MakeJSONPOSTRequest(url string, request interface{}, response interface{}) 
 
 // MakeFormPOSTRequest makes a request to the given url with a supplied set of urlencoded form values and returns the response body as a string.
 func MakeFormPOSTRequest(url string, formValues url.Values) (string, error) {
-	logrus.WithField("formValues", formValues).Info("Making JSON POST form request")
 	resp, postErr := http.PostForm(url, formValues)
 	if postErr != nil {
 		return "", postErr

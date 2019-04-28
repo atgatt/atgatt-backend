@@ -39,8 +39,8 @@ func (s *Server) Bootstrap() {
 	e.Use(middleware.RequestID())
 
 	config := &logrusmiddleware.Config{
-		IncludeRequestBodies:  true,
-		IncludeResponseBodies: true,
+		IncludeRequestBodies:  s.Settings.LogAPIRequests,
+		IncludeResponseBodies: s.Settings.LogAPIRequests,
 	}
 	e.Use(logrusmiddleware.HookWithConfig(*config))
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{AllowOrigins: []string{"https://master.crashtested.co", "https://www.master.crashtested.co", "https://crashtested.co", "https://www.crashtested.co"}}))
