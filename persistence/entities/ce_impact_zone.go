@@ -14,16 +14,21 @@ func (c *CEImpactZone) GetScore() float64 {
 		return 0.25
 	}
 
-	var totalScore float64
+	// start off with 25% for CE level 1 and no approval
+	totalScore := 0.25
+
+	// use 50% if we have CE level 2
+	if c.IsLevel2 {
+		totalScore = 0.50
+	}
+
+	// ... add 50% for CE approval
 	if c.IsApproved {
 		totalScore += 0.50
 	}
 
-	if c.IsLevel2 {
-		totalScore += 0.50
-	} else {
-		totalScore += 0.25
-	}
+	// ... 100% total if we have CE level 2 on top of approval, otherwise end up at 75% total
+	
 
 	return totalScore
 }

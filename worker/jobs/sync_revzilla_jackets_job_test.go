@@ -84,9 +84,15 @@ func Test_Run_should_create_all_new_jackets_if_none_exist(t *testing.T) {
 	}))
 
 	Expect(product.JacketCertifications.FitsAirbag).To(BeFalse())
+	Expect(product.Manufacturer).To(Equal("REAX"))
+	Expect(product.Model).To(Equal("Folsom Leather Jacket"))
+	Expect(product.Subtype).To(Equal("leather"))
 
 	product, _ = productRepository.GetByExternalID(expectedProductIds[1])
 	Expect(product).ToNot(BeNil())
+	Expect(product.Manufacturer).To(Equal("REAX"))
+	Expect(product.Model).To(Equal("Alta Mesh Jacket"))
+	Expect(product.Subtype).To(Equal("textile"))
 }
 
 func Test_sync_revzilla_jackets_should_complete_successfully_with_a_full_set_of_data(t *testing.T) {

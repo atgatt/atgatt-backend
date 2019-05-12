@@ -169,3 +169,16 @@ func Test_CalculateSafetyPercentage_should_return_zero_when_the_product_is_a_jac
 
 	Expect(product.SafetyPercentage).To(Equal(0))
 }
+
+func Test_CalculateSafetyPercentage_should_return_64_when_the_product_is_a_jacket_with_approved_ce_level_1_armor(t *testing.T) {
+	RegisterTestingT(t)
+	product := &Product{ImageKey: "google.com/lol.png", Manufacturer: "Manufacturer5", Model: "RF-SR3", MSRPCents: 70099, Type: "jacket", SafetyPercentage: -1234}
+	level1ImpactZone := &CEImpactZone{IsApproved: true}
+	product.JacketCertifications.Back = level1ImpactZone
+	product.JacketCertifications.Chest = level1ImpactZone
+	product.JacketCertifications.Elbow = level1ImpactZone
+	product.JacketCertifications.Shoulder = level1ImpactZone
+	product.UpdateSafetyPercentage()
+
+	Expect(product.SafetyPercentage).To(Equal(64))
+}

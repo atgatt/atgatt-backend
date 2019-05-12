@@ -92,6 +92,7 @@ func (j *SyncRevzillaJacketsJob) Run() error {
 				}
 
 				productToPersist.UpdateJacketCertificationsByDescriptionParts(p.DescriptionParts)
+				productToPersist.UpdateJacketSubtypeByDescriptionParts(p.DescriptionParts)
 
 				if productToPersist.OriginalImageURL != "" {
 					key, err := s3Helpers.CopyImageToS3FromURL(productLogger, j.S3Uploader, p.ImageURL, j.S3Bucket)

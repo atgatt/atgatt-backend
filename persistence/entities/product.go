@@ -95,6 +95,23 @@ func isScoreUpgraded(oldZone *CEImpactZone, newZone *CEImpactZone) bool {
 	return oldZone == nil || (newZone.GetScore() > oldZone.GetScore())
 }
 
+// UpdateJacketSubtypeByDescriptionParts updates the subtype when certain text appears in each part of the description
+func (p *Product) UpdateJacketSubtypeByDescriptionParts(productDescriptionParts []string) {
+	for _, part := range productDescriptionParts {
+		lowerPart := strings.ToLower(part)
+		if strings.Contains(lowerPart, "gore-tex") || strings.Contains(lowerPart, "goretex") || strings.Contains(lowerPart, "gore tex") {
+			p.Subtype = "goretex"
+			return
+		} else if strings.Contains(lowerPart, "leather") {
+			p.Subtype = "leather"
+			return
+		} else {
+			p.Subtype = "textile"
+			return
+		}
+	}
+}
+
 // UpdateJacketCertificationsByDescriptionParts updates all of the jacket certifications when certain text appears in each part of the description
 func (p *Product) UpdateJacketCertificationsByDescriptionParts(productDescriptionParts []string) (bool, bool, bool, bool, bool) {
 	updatedAirbag := false
@@ -153,7 +170,7 @@ func (p *Product) UpdateJacketCertificationsByDescriptionParts(productDescriptio
 }
 
 func (p *Product) getJacketSafetyPercentage() int {
-	var totalScore float64
+	totalScore := float64(0)
 
 	zones := []*CEImpactZone{p.JacketCertifications.Back, p.JacketCertifications.Chest, p.JacketCertifications.Elbow, p.JacketCertifications.Shoulder}
 	for _, zone := range zones {
