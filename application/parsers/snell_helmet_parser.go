@@ -45,7 +45,7 @@ func (r *SNELLHelmetParser) GetAllByCertification(standard string) ([]*entities.
 		return nil, errors.New("Did not receive enough SNELL helmets")
 	}
 
-	filteredHelmets := make([]*entities.SNELLHelmet, 0)
+	filteredHelmets := []*entities.SNELLHelmet{}
 	for _, rawHelmet := range snellHelmetsResponse.Data {
 		if strings.EqualFold(strings.TrimSpace(rawHelmet.Standard), standard) {
 			subtype := ""

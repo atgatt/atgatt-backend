@@ -17,7 +17,7 @@ func (r *ManufacturerRepository) GetAll() ([]string, error) {
 	}
 	defer rows.Close()
 
-	manufacturers := make([]string, 0)
+	manufacturers := []string{}
 	for rows.Next() {
 		manufacturer := ""
 		err := rows.Scan(&manufacturer)
