@@ -180,7 +180,6 @@ func (r *ProductRepository) FilterProducts(query *queries.FilterProductsQuery) (
 	var whereCriteria strings.Builder
 	whereCriteria.WriteString("where 1=1 ")
 
-	queryParams["type"] = "helmet" // TODO: this is hardcoded for now
 	queryParams["start"] = query.Start
 	queryParams["limit"] = query.Limit
 
