@@ -11,7 +11,6 @@ import (
 
 // Product represents a safety product such as a motorcycle helmet, jacket, etc. It contains the price of the product, certifications, etc.
 type Product struct {
-	// TODO: fix this https://www.revzilla.com/motorcycle/revit-worker-overshirt?utm_source=CJ&utm_medium=affiliate&utm_campaign=8505854&PublisherName=CrashTested&cjevent=1de41d2f5aa911e9805c00640a1c0e0d
 	UUID                 uuid.UUID            `json:"uuid"`
 	ExternalID           string               `json:"externalID"`
 	Type                 string               `json:"type"`
