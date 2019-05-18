@@ -30,8 +30,8 @@ const helmetType string = "helmet"
 
 // Run invokes the job and returns an error if any errors occurred while processing the helmet data.
 func (j *ImportHelmetsJob) Run() error {
-	sharpProducts := []*entities.Product{}
-	snellOnlyProducts := []*entities.Product{}
+	var sharpProducts []*entities.Product
+	var snellOnlyProducts []*entities.Product
 
 	manufacturers, err := j.ManufacturerRepository.GetAll()
 	if err != nil {
@@ -179,7 +179,7 @@ func (j *ImportHelmetsJob) Run() error {
 }
 
 func findAliasesForModel(allAliases []*entities.ProductModelAlias, manufacturer string, model string) []*entities.ProductModelAlias {
-	matchingAliases := []*entities.ProductModelAlias{}
+	var matchingAliases []*entities.ProductModelAlias
 	for _, alias := range allAliases {
 		if strings.EqualFold(alias.Manufacturer, manufacturer) && strings.EqualFold(alias.Model, model) {
 			matchingAliases = append(matchingAliases, alias)
@@ -192,7 +192,7 @@ const boostThreshold float64 = 0.7
 const prefixSize int = 4
 
 func findMatchingSHARPProduct(cleanedSNELLManufacturer string, rawSNELLModel string, sharpProducts []*entities.Product) *entities.Product {
-	possibleSHARPHelmets := []*entities.Product{}
+	var possibleSHARPHelmets []*entities.Product
 	for _, sharpHelmet := range sharpProducts {
 		if sharpHelmet.Manufacturer == cleanedSNELLManufacturer {
 			possibleSHARPHelmets = append(possibleSHARPHelmets, sharpHelmet)
@@ -208,7 +208,7 @@ func findMatchingSHARPProduct(cleanedSNELLManufacturer string, rawSNELLModel str
 	}
 
 	confidenceMap := make(map[string]float64)
-	orderedSHARPHelmets := []*entities.Product{}
+	var orderedSHARPHelmets []*entities.Product
 	lowerSNELLModel := strings.ToLower(rawSNELLModel)
 	golinq.From(possibleSHARPHelmets).OrderByDescendingT(func(helmet *entities.Product) interface{} {
 		var maxConfidence float64

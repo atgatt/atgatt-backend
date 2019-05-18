@@ -124,7 +124,7 @@ func (j *SyncRevzillaJacketsJob) getDescriptionPartsForProduct(revzillaProduct *
 		return nil, err
 	}
 
-	parts := []string{}
+	var parts []string
 	detailsNode := doc.Find(".product-details__details")
 
 	aggregateText := func(index int, item *goquery.Selection) {
@@ -144,7 +144,7 @@ func getMetaValue(item *goquery.Selection, key string) string {
 func getRevzillaProductsToScrape(doc *goquery.Document) []*appEntities.RevzillaProduct {
 	productNodesCollection := doc.Find("*[data-product-id]")
 
-	revzillaProducts := []*appEntities.RevzillaProduct{}
+	var revzillaProducts []*appEntities.RevzillaProduct
 	productNodesCollection.Map(func(i int, item *goquery.Selection) string {
 		urlSuffix, exists := item.Attr("href")
 		externalID, _ := item.Attr("data-product-id")
