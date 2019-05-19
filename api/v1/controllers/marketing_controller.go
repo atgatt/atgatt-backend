@@ -39,7 +39,10 @@ func (m *MarketingController) CreateMarketingEmail(context echo.Context) (err er
 		return context.JSON(http.StatusBadRequest, &responses.Response{Message: "You're already signed up."})
 	}
 
-	_ = m.Repository.CreateMarketingEmail(lowerEmail)
+	err = m.Repository.CreateMarketingEmail(lowerEmail)
+	if err != nil {
+		return err
+	}
 
 	return context.NoContent(http.StatusOK)
 }

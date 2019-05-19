@@ -13,7 +13,7 @@ const mockHelmetImageURL = "https://sharp.dft.gov.uk/wp-content/uploads/2017/03/
 
 // GetProductSeedsSQLStatements returns an array of INSERT statements that target each of the product seed structs. Used to import test data into the database for automated tests, local development.
 func GetProductSeedsSQLStatements(productSeeds []*entities.Product) ([]string, error) {
-	statements := []string{}
+	var statements []string
 	for _, product := range productSeeds {
 		documentJSONBytes, err := json.Marshal(product)
 		if err != nil {
