@@ -1,6 +1,7 @@
 package api
 
 import (
+	"strings"
 	"crashtested-backend/api/settings"
 	"crashtested-backend/api/v1/controllers"
 	"crashtested-backend/persistence/helpers"
@@ -43,8 +44,17 @@ func (s *Server) Bootstrap() {
 		IncludeResponseBodies: s.Settings.LogAPIRequests,
 	}
 	e.Use(logrusmiddleware.HookWithConfig(*config))
-	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{AllowOrigins: []string{"https://master.crashtested.co", "https://www.master.crashtested.co", "https://crashtested.co", "https://www.crashtested.co"}}))
-
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"https://master.crashtested.co", "https://www.master.crashtested.co", "https://crashtested.co", "https://www.crashtested.co"},
+		Skipper: func(c echo.Context) bool {
+			origin := c.Request().Header.Get(echo.HeaderOrigin)
+			// Don't require CORS for netlify branch deploys
+			if strings.HasSuffix(origin, "--crashtested.netlify.com") {
+				return true
+			}
+			return false
+		},
+	}))
 	if s.Settings == nil {
 		logrus.Fatal("Failed to start the API because the app configuration was not specified")
 		os.Exit(-1)
