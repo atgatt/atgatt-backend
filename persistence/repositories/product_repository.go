@@ -301,7 +301,7 @@ func (r *ProductRepository) FilterProducts(query *queries.FilterProductsQuery) (
 		whereCriteria.WriteString("and document->>'isDiscontinued' = 'false' ")
 	}
 
-	var productDocuments []entities.Product
+	productDocuments := []entities.Product{}
 	originalSQLQueryString := fmt.Sprintf(`select document from products
 											%s
 											order by %s %s,
