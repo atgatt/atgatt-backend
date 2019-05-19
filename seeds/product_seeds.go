@@ -13,7 +13,7 @@ const mockHelmetImageURL = "https://sharp.dft.gov.uk/wp-content/uploads/2017/03/
 
 // GetProductSeedsSQLStatements returns an array of INSERT statements that target each of the product seed structs. Used to import test data into the database for automated tests, local development.
 func GetProductSeedsSQLStatements(productSeeds []*entities.Product) ([]string, error) {
-	var statements []string
+	statements := []string{}
 	for _, product := range productSeeds {
 		documentJSONBytes, err := json.Marshal(product)
 		if err != nil {
@@ -28,7 +28,7 @@ func GetProductSeedsSQLStatements(productSeeds []*entities.Product) ([]string, e
 
 // GetProductSeedsExceptDiscontinued returns all seeds except for the products that are marked as discontinued (useful for functional tests)
 func GetProductSeedsExceptDiscontinued() []*entities.Product {
-	var seedsExceptDiscontinued []*entities.Product
+	seedsExceptDiscontinued := []*entities.Product{}
 	golinq.From(GetProductSeeds()).WhereT(func(product *entities.Product) bool {
 		return !product.IsDiscontinued
 	}).ToSlice(&seedsExceptDiscontinued)

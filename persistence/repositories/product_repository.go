@@ -19,7 +19,7 @@ type ProductRepository struct {
 func getOneProductFromRows(rows *sqlx.Rows) (*entities.Product, error) {
 	defer rows.Close()
 
-	var productDocuments []*entities.Product
+	productDocuments := []*entities.Product{}
 	for rows.Next() {
 		productJSONBytesPtr := &[]byte{}
 		productDocument := &entities.Product{}
@@ -98,7 +98,7 @@ func (r *ProductRepository) GetAllModelAliases() ([]*entities.ProductModelAlias,
 
 // GetAllManufacturerAliases returns all the manufacturer aliases in the database
 func (r *ProductRepository) GetAllManufacturerAliases() ([]entities.ProductManufacturerAlias, error) {
-	var productManufacturerAliases []entities.ProductManufacturerAlias
+	productManufacturerAliases := []entities.ProductManufacturerAlias{}
 	err := r.DB.Select(&productManufacturerAliases, "select manufacturer, manufacturer_alias as manufactureralias from product_manufacturer_aliases")
 	if err != nil {
 		return nil, err
