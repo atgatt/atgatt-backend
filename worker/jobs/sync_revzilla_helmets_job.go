@@ -32,7 +32,7 @@ func (j *SyncRevzillaHelmetsJob) Run() error {
 	pooledClient := cleanhttp.DefaultPooledClient()
 	return helpers.ForEachProduct(j.ProductRepository, func(product *entities.Product, productLogger *logrus.Entry) error {
 		modelsToTry := []string{product.Model}
-		modelAliasStrings := []string{}
+		var modelAliasStrings []string
 		golinq.From(product.ModelAliases).SelectT(func(modelAlias *entities.ProductModelAlias) string {
 			return modelAlias.ModelAlias
 		}).ToSlice(&modelAliasStrings)

@@ -1,12 +1,9 @@
 package entities
 
 import (
-	"regexp"
 	"strconv"
 	"strings"
 )
-
-var descriptionSeparatorRegexp = regexp.MustCompile("[\n\t]+")
 
 // RevzillaProduct represents a product found by scraping RevZilla.com
 type RevzillaProduct struct {
