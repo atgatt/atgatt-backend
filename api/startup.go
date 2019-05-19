@@ -50,6 +50,7 @@ func (s *Server) Bootstrap() {
 			origin := c.Request().Header.Get(echo.HeaderOrigin)
 			// Don't require CORS for netlify branch deploys
 			if strings.HasSuffix(origin, "--crashtested.netlify.com") {
+				c.Response().Header().Set(echo.HeaderAccessControlAllowOrigin, origin)
 				return true
 			}
 			return false
