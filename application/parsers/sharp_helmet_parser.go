@@ -26,7 +26,7 @@ type SHARPHelmetParser struct {
 // GetAll scrapes and returns all helmet data from SHARP's website, or an error if there was a problem fetching/scraping the HTML
 func (r *SHARPHelmetParser) GetAll() ([]*entities.SHARPHelmet, error) {
 	logrus.Info("Started getting all SHARP helmets")
-	var helmets []*entities.SHARPHelmet
+	helmets := []*entities.SHARPHelmet{}
 	starsRegexp := regexp.MustCompile(`rating-star-(\d)`)
 	topImpactZoneRegexp := regexp.MustCompile(`front-(\d)-(\d)\.jpg`) // SHARP calls this front-front and front-rear which isn't correct, it's actually top-front and top-rear
 	leftImpactZoneRegexp := regexp.MustCompile(`left-(\d)\.jpg`)
