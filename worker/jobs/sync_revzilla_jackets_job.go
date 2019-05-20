@@ -106,6 +106,7 @@ func (j *SyncRevzillaJacketsJob) Run() error {
 					productLogger.Warning("Skipping uploading image to S3 because the URL is empty, continuing")
 				}
 
+				productToPersist.UpdateSafetyPercentage()
 				err = j.ProductRepository.CreateProduct(productToPersist)
 			}
 
