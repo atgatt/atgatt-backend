@@ -15,6 +15,7 @@ require (
 	github.com/bshuster-repo/logruzio v0.0.0-20170701214031-b0b294934396
 	github.com/coreos/etcd v3.3.12+incompatible // indirect
 	github.com/coreos/go-systemd v0.0.0-20190212144455-93d5ec2c7f76 // indirect
+	github.com/deckarep/golang-set v1.7.1 // indirect
 	github.com/gliderlabs/ssh v0.1.3 // indirect
 	github.com/go-logfmt/logfmt v0.4.0 // indirect
 	github.com/go-ozzo/ozzo-validation v3.5.0+incompatible
@@ -45,6 +46,8 @@ require (
 	github.com/mattn/go-colorable v0.1.1 // indirect
 	github.com/mattn/go-isatty v0.0.6 // indirect
 	github.com/mattn/go-sqlite3 v1.10.0 // indirect
+	github.com/mingrammer/commonregex v1.0.0 // indirect
+	github.com/montanaflynn/stats v0.5.0 // indirect
 	github.com/onsi/gomega v1.4.3
 	github.com/openzipkin/zipkin-go v0.1.5 // indirect
 	github.com/prometheus/client_model v0.0.0-20190129233127-fd36f4220a90 // indirect
@@ -86,8 +89,11 @@ require (
 	golang.org/x/perf v0.0.0-20190124201629-844a5f5b46f4 // indirect
 	golang.org/x/sys v0.0.0-20190302025703-b6889370fb10 // indirect
 	golang.org/x/tools v0.0.0-20190228203856-589c23e65e65 // indirect
+	gonum.org/v1/gonum v0.0.0-20190517105223-d76380b39392 // indirect
 	google.golang.org/genproto v0.0.0-20190227213309-4f5b463f9597 // indirect
 	gopkg.in/gorp.v1 v1.7.2 // indirect
+	gopkg.in/jdkato/prose.v2 v2.0.0-20180825173540-767a23049b9e
+	gopkg.in/neurosnap/sentences.v1 v1.0.6 // indirect
 	honnef.co/go/tools v0.0.0-20190215041234-466a0476246c // indirect
 	sourcegraph.com/sqs/pbtypes v1.0.0 // indirect
 )

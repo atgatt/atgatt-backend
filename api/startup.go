@@ -1,7 +1,6 @@
 package api
 
 import (
-	"strings"
 	"crashtested-backend/api/settings"
 	"crashtested-backend/api/v1/controllers"
 	"crashtested-backend/persistence/helpers"
