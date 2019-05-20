@@ -11,24 +11,21 @@ type CEImpactZone struct {
 func (c *CEImpactZone) GetScore() float64 {
 	// Penalize the product, but give some credit, for not including armor but allowing the user to install their own
 	if c.IsEmpty {
-		return 0.25
+		return 0.50
 	}
 
 	// start off with 25% for CE level 1 and no approval
-	totalScore := 0.25
+	totalScore := 0.75
 
-	// use 50% if we have CE level 2
+	// use 95% if we have CE level 2
 	if c.IsLevel2 {
-		totalScore = 0.50
+		totalScore = 0.95
 	}
 
-	// ... add 50% for CE approval
+	// ... add 5% for CE approval (we don't *really* know if CE approved this, but it's a good sign that the manufacturer claims it)
 	if c.IsApproved {
-		totalScore += 0.50
+		totalScore += 0.05
 	}
-
-	// ... 100% total if we have CE level 2 on top of approval, otherwise end up at 75% total
 	
-
 	return totalScore
 }

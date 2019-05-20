@@ -100,12 +100,15 @@ func (p *Product) UpdateJacketSubtypeByDescriptionParts(productDescriptionParts 
 		lowerPart := strings.ToLower(part)
 		if strings.Contains(lowerPart, "gore-tex") || strings.Contains(lowerPart, "goretex") || strings.Contains(lowerPart, "gore tex") {
 			p.Subtype = "goretex"
+			p.Materials = p.Subtype
 			return
 		} else if strings.Contains(lowerPart, "leather") {
 			p.Subtype = "leather"
+			p.Materials = p.Subtype
 			return
 		} else {
 			p.Subtype = "textile"
+			p.Materials = p.Subtype
 			return
 		}
 	}
@@ -130,7 +133,7 @@ func (p *Product) UpdateJacketCertificationsByDescriptionParts(productDescriptio
 			updatedAirbag = true
 		}
 
-		isCertified := strings.Contains(part, "CE") || strings.Contains(lowerPart, "level 1") || strings.Contains(lowerPart, "pro-armor") || strings.Contains(lowerPart, "pro armor") // Pro-armor is Dainese-specific armor that is CE-level 1 certified
+		isCertified := strings.Contains(part, "CE") || strings.Contains(lowerPart, "level 1") || strings.Contains(lowerPart, "1621") || strings.Contains(lowerPart, "pro-armor") || strings.Contains(lowerPart, "pro armor") // Pro-armor is Dainese-specific armor that is CE-level 1 certified
 		isApproved := strings.Contains(lowerPart, "ce approved")
 		isLevel2 := strings.Contains(lowerPart, "level 2") || strings.Contains(lowerPart, "level ii") || strings.Contains(lowerPart, "cat. ii") || strings.Contains(lowerPart, "cat ii")
 		if isLevel2 {
@@ -181,8 +184,12 @@ func (p *Product) getJacketSafetyPercentage() int {
 		}
 	}
 
+	if p.Materials == "leather" {
+		totalScore += float64(0.05)	
+	}
+
 	if p.JacketCertifications.FitsAirbag {
-		totalScore += float64(0.15)
+		totalScore += float64(0.10)
 	}
 	return int(math.Round(totalScore * 100))
 }

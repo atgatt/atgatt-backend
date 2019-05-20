@@ -141,7 +141,7 @@ func Test_CalculateSafetyPercentage_should_return_correctly_when_the_product_has
 
 func Test_CalculateSafetyPercentage_should_return_a_full_safety_score_when_the_product_is_a_jacket_with_all_parts_certified(t *testing.T) {
 	RegisterTestingT(t)
-	product := &Product{ImageKey: "google.com/lol.png", Manufacturer: "Manufacturer5", Model: "RF-SR3", MSRPCents: 70099, Type: "jacket", SafetyPercentage: -1234}
+	product := &Product{ImageKey: "google.com/lol.png", Manufacturer: "Manufacturer5", Model: "RF-SR3", MSRPCents: 70099, Type: "jacket", Subtype: "leather", Materials: "leather", SafetyPercentage: -1234}
 	fullImpactZone := &CEImpactZone{IsApproved: true, IsLevel2: true}
 	product.JacketCertifications.Back = fullImpactZone
 	product.JacketCertifications.Chest = fullImpactZone
@@ -184,7 +184,7 @@ func Test_CalculateSafetyPercentage_should_return_64_when_the_product_is_a_jacke
 	product.JacketCertifications.Shoulder = level1ImpactZone
 	product.UpdateSafetyPercentage()
 
-	Expect(product.SafetyPercentage).To(Equal(64))
+	Expect(product.SafetyPercentage).To(Equal(68))
 }
 
 
