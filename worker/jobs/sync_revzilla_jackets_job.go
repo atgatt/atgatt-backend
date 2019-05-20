@@ -1,6 +1,8 @@
 package jobs
 
 import (
+	"strings"
+	"crashtested-backend/common/text"
 	"crashtested-backend/application/clients"
 	appEntities "crashtested-backend/application/entities"
 	s3Helpers "crashtested-backend/common/s3"
@@ -55,7 +57,7 @@ func (j *SyncRevzillaJacketsJob) Run() error {
 				"name":       p.Name,
 			})
 			productLogger.Info("Starting to get a description for a product")
-			p.DescriptionParts, err = j.getDescriptionPartsForProduct(p)
+			p.DescriptionParts, err = j.getDescriptionPartsForProduct(p, productLogger)
 			if err != nil {
 				productLogger.WithError(err).Error("Failed to get a description for a product")
 			}
@@ -118,7 +120,7 @@ func (j *SyncRevzillaJacketsJob) Run() error {
 	return nil
 }
 
-func (j *SyncRevzillaJacketsJob) getDescriptionPartsForProduct(revzillaProduct *appEntities.RevzillaProduct) ([]string, error) {
+func (j *SyncRevzillaJacketsJob) getDescriptionPartsForProduct(revzillaProduct *appEntities.RevzillaProduct, productLogger *logrus.Entry) ([]string, error) {
 	doc, err := j.RevzillaClient.GetDescriptionPartsHTMLByURL(revzillaProduct.URL)
 	if err != nil {
 		return nil, err
@@ -127,12 +129,29 @@ func (j *SyncRevzillaJacketsJob) getDescriptionPartsForProduct(revzillaProduct *
 	parts := []string{}
 	detailsNode := doc.Find(".product-details__details")
 
-	aggregateText := func(index int, item *goquery.Selection) {
-		parts = append(parts, item.Text())
-	}
+	detailsNode.Find("p").Each(func(index int, item *goquery.Selection) {
+		rawSummary := item.Text()
 
-	detailsNode.Find("p").Each(aggregateText)
-	detailsNode.Find("li").Each(aggregateText)
+		// the ML model isn't trained for motorcycle terms, so sometimes it screws up like on Category II (thinks its another sentence)
+		sentences, err := text.GetSentencesFromString(strings.Replace(rawSummary, "Cat. II", "Cat II", -1))
+		if err != nil {
+			productLogger.WithError(err).Error("Got an error while splitting the summary, using the raw text as is")
+			parts = append(parts, rawSummary)
+			return
+		}
+
+		if len(sentences) == 0 {
+			productLogger.Warn("Got 0 sentences back while splitting the summary, using the raw text as is")
+			parts = append(parts, rawSummary)
+			return
+		}
+		
+		parts = append(parts, sentences...)
+	})
+
+	detailsNode.Find("li").Each(func(index int, item *goquery.Selection) {
+		parts = append(parts, item.Text())
+	})
 	return parts, nil
 }
 

@@ -1,8 +1,12 @@
 package entities
 
 import (
+	text "crashtested-backend/common/text"
+	"fmt"
+	"strings"
 	"testing"
 
+	"github.com/PuerkitoBio/goquery"
 	. "github.com/onsi/gomega"
 )
 
@@ -181,4 +185,242 @@ func Test_CalculateSafetyPercentage_should_return_64_when_the_product_is_a_jacke
 	product.UpdateSafetyPercentage()
 
 	Expect(product.SafetyPercentage).To(Equal(64))
+}
+
+
+func generateMockDescriptionPartsFromHTML(html string) ([]string, error) {
+	doc, err := goquery.NewDocumentFromReader(strings.NewReader(html))
+	if err != nil {
+		return nil, err
+	}
+
+	mockDescriptionParts := []string{}
+	doc.Find("li").Each(func(i int, s *goquery.Selection){
+		mockDescriptionParts = append(mockDescriptionParts, s.Text())
+	})
+
+	return mockDescriptionParts, nil
+}
+
+func Test_UpdateJacketCertificationsByDescriptionParts_should_apply_CE_level_2_certification_when_level_2_is_found(t *testing.T) {
+	RegisterTestingT(t)
+
+	mockProductDescription := `
+	<ul>
+	<li>
+		Soft distressed leather</li>
+	<li>
+		Sas-Tec Level 2 armor at elbows and shoulders</li>
+	<li>
+		Pocket at&nbsp;back for optional Sas-Tec&nbsp;back protector (<a href="/motorcycle/scorpion-sc-115-sas-tec-back-protector">sold separately</a>)</li>
+	<li>
+		Perforated panels underarms and sides of torso</li>
+	<li>
+		Two zippered rear vents</li>
+	<li>
+		Leather overlays at elbows</li>
+	<li>
+		4 external pockets</li>
+	<li>
+		Rib stretch panels as side hems</li>
+	<li>
+		Rear waist adjustment tabs</li>
+	<li>
+		Zipper closures at wrists</li>
+	<li>
+		Antique Brass YKK&nbsp;zippers throughout</li>
+	<li>
+		Padded comfort collar</li>
+	<li>
+		Two internal mesh pockets</li>
+	<li>
+		Removable EverHeat&nbsp;jacket liner with Kwikwick&nbsp;panels</li>
+	<li>
+		8” jacket to pant zipper and rear belt loop attachment tab</li>
+	</ul>
+	`
+
+	mockDescriptionParts, err := generateMockDescriptionPartsFromHTML(mockProductDescription)
+	Expect(err).To(BeNil())
+
+	product := &Product{}
+	updatedBack, updatedElbow, updatedShoulder, updatedChest, updatedAirbag := product.UpdateJacketCertificationsByDescriptionParts(mockDescriptionParts)
+
+	Expect(updatedBack).To(BeTrue())
+	Expect(product.JacketCertifications.Back).To(Equal(&CEImpactZone{IsLevel2: false, IsApproved: false, IsEmpty: true}))
+
+	Expect(updatedShoulder).To(BeTrue())
+	Expect(product.JacketCertifications.Shoulder).To(Equal(&CEImpactZone{IsLevel2: true, IsApproved: false, IsEmpty: false}))
+
+	Expect(updatedChest).To(BeFalse())
+	Expect(product.JacketCertifications.Chest).To(BeNil())
+
+	Expect(updatedElbow).To(BeTrue())
+	Expect(product.JacketCertifications.Elbow).To(Equal(&CEImpactZone{IsLevel2: true, IsApproved: false, IsEmpty: false}))
+
+	Expect(updatedAirbag).To(BeFalse())
+	Expect(product.JacketCertifications.FitsAirbag).To(BeFalse())
+}
+
+
+func Test_UpdateJacketCertificationsByDescriptionParts_should_apply_CE_level_1_certifications_for_pro_armor(t *testing.T) {
+	RegisterTestingT(t)
+
+	mockProductDescription := `
+	<ul>
+		<li>Dainese's Rapida72 Leather Jacket encompasses racing history with modern functionality. The curves of the Rapida72 Perforated Jacket hug your body just like your motorcycle hugs apexes. 
+		Slim Pro-armor provides impact protection without adding bulk that would ruin the lines of the jacket. Supple perforated leather adds abrasion resistance and air flow. 
+		Riders with an aesthetic for a bygone era can wear the Dainese Rapida72 into modern times.</li>
+
+		<li>
+			Soft natural cowhide leather</li>
+		<li>
+			Removable soft Pro-armor protectors certified to standard EN 1621.1 on shoulders and elbows</li>
+		<li>
+			Jacket-trousers connection loop</li>
+		<li>
+			Perforated leather</li>
+		<li>
+			Printed cotton liner</li>
+		<li>
+			1 inner pocket</li>
+		<li>
+			3 outer pockets</li>
+		<li>
+			Pocket for G1 or G2 back protector (sold separately)</li>
+	</ul>
+	`
+
+	mockDescriptionParts, err := generateMockDescriptionPartsFromHTML(mockProductDescription)
+	Expect(err).To(BeNil())
+
+	product := &Product{}
+	updatedBack, updatedElbow, updatedShoulder, updatedChest, updatedAirbag := product.UpdateJacketCertificationsByDescriptionParts(mockDescriptionParts)
+
+	Expect(updatedBack).To(BeTrue())
+	Expect(product.JacketCertifications.Back).To(Equal(&CEImpactZone{IsLevel2: false, IsApproved: false, IsEmpty: true}))
+
+	Expect(updatedShoulder).To(BeTrue())
+	Expect(product.JacketCertifications.Shoulder).To(Equal(&CEImpactZone{IsLevel2: false, IsApproved: false, IsEmpty: false}))
+
+	Expect(updatedChest).To(BeFalse())
+	Expect(product.JacketCertifications.Chest).To(BeNil())
+
+	Expect(updatedElbow).To(BeTrue())
+	Expect(product.JacketCertifications.Elbow).To(Equal(&CEImpactZone{IsLevel2: false, IsApproved: false, IsEmpty: false}))
+
+	Expect(updatedAirbag).To(BeFalse())
+	Expect(product.JacketCertifications.FitsAirbag).To(BeFalse())
+}
+
+
+func Test_UpdateJacketCertificationsByDescriptionParts_should_apply_CE_level_1_certifications_for_pro_armor_without_dash(t *testing.T) {
+	RegisterTestingT(t)
+
+	mockProductDescription := `
+	<ul>
+		<li>Dainese's Rapida72 Leather Jacket encompasses racing history with modern functionality. The curves of the Rapida72 Perforated Jacket hug your body just like your motorcycle hugs apexes. 
+		Slim Pro-armor provides impact protection without adding bulk that would ruin the lines of the jacket. Supple perforated leather adds abrasion resistance and air flow. 
+		Riders with an aesthetic for a bygone era can wear the Dainese Rapida72 into modern times.</li>
+
+		<li>
+			Soft natural cowhide leather</li>
+		<li>
+			Removable soft Pro armor protectors certified to standard EN 1621.1 on shoulders and elbows</li>
+		<li>
+			Jacket-trousers connection loop</li>
+		<li>
+			Perforated leather</li>
+		<li>
+			Printed cotton liner</li>
+		<li>
+			1 inner pocket</li>
+		<li>
+			3 outer pockets</li>
+		<li>
+			Pocket for G1 or G2 back protector (sold separately)</li>
+	</ul>
+	`
+
+	mockDescriptionParts, err := generateMockDescriptionPartsFromHTML(mockProductDescription)
+	Expect(err).To(BeNil())
+
+	product := &Product{}
+	updatedBack, updatedElbow, updatedShoulder, updatedChest, updatedAirbag := product.UpdateJacketCertificationsByDescriptionParts(mockDescriptionParts)
+
+	Expect(updatedBack).To(BeTrue())
+	Expect(product.JacketCertifications.Back).To(Equal(&CEImpactZone{IsLevel2: false, IsApproved: false, IsEmpty: true}))
+
+	Expect(updatedShoulder).To(BeTrue())
+	Expect(product.JacketCertifications.Shoulder).To(Equal(&CEImpactZone{IsLevel2: false, IsApproved: false, IsEmpty: false}))
+
+	Expect(updatedChest).To(BeFalse())
+	Expect(product.JacketCertifications.Chest).To(BeNil())
+
+	Expect(updatedElbow).To(BeTrue())
+	Expect(product.JacketCertifications.Elbow).To(Equal(&CEImpactZone{IsLevel2: false, IsApproved: false, IsEmpty: false}))
+
+	Expect(updatedAirbag).To(BeFalse())
+	Expect(product.JacketCertifications.FitsAirbag).To(BeFalse())
+}
+
+func Test_UpdateJacketCertificationsByDescriptionParts_should_apply_CE_level_2_certifications_when_the_category_is_cat_ii(t *testing.T) {
+	RegisterTestingT(t)
+
+	mockSummary := `The 8-track tape may be obsolete, but the Dainese 8-Track Leather Jacket might as well be a subscription streaming service coming out of wireless speakers. 
+	Artemide refined full-grain cowhide leather gives the 8-Track Jacket an old school sheen with modern day robustness. 
+	CE armor at the elbows and shoulders along with specific design features allow the jacket to meet CE - Cat II - prEN 17092 certification. 
+	Slide in an optional back protector (sold separately) to upgrade the impact protection. 
+	A removable thermal liner allows you to stretch the 8-Track into cooler temperatures and can even be used as a separate mid-layer. 
+	The Dainese 8-Track Jacket is is named after some tech from the 60s, but its function is as state of the art as it gets for motorcycle gear.`
+
+	sentences, _ := text.GetSentencesFromString(mockSummary)
+	var sb strings.Builder
+	for _, sentence := range sentences {
+		sb.WriteString("<li>")
+		sb.WriteString(sentence)
+		sb.WriteString("</li>")
+	}
+	mockProductDescription := fmt.Sprintf(`
+	<ul>
+		%s
+		<li>
+			Soft natural cowhide leather</li>
+		<li>
+			Removable soft Pro armor protectors certified to standard EN 1621.1 on shoulders and elbows</li>
+		<li>
+			Jacket-trousers connection loop</li>
+		<li>
+			Perforated leather</li>
+		<li>
+			Printed cotton liner</li>
+		<li>
+			1 inner pocket</li>
+		<li>
+			3 outer pockets</li>
+		<li>
+			Pocket for G1 or G2 back protector (sold separately)</li>
+	</ul>
+	`, sb.String())
+
+	mockDescriptionParts, err := generateMockDescriptionPartsFromHTML(mockProductDescription)
+	Expect(err).To(BeNil())
+
+	product := &Product{}
+	updatedBack, updatedElbow, updatedShoulder, updatedChest, updatedAirbag := product.UpdateJacketCertificationsByDescriptionParts(mockDescriptionParts)
+
+	Expect(updatedBack).To(BeTrue())
+	Expect(product.JacketCertifications.Back).To(Equal(&CEImpactZone{IsLevel2: false, IsApproved: false, IsEmpty: true}))
+
+	Expect(updatedShoulder).To(BeTrue())
+	Expect(product.JacketCertifications.Shoulder).To(Equal(&CEImpactZone{IsLevel2: true, IsApproved: false, IsEmpty: false}))
+
+	Expect(updatedChest).To(BeFalse())
+	Expect(product.JacketCertifications.Chest).To(BeNil())
+
+	Expect(updatedElbow).To(BeTrue())
+	Expect(product.JacketCertifications.Elbow).To(Equal(&CEImpactZone{IsLevel2: true, IsApproved: false, IsEmpty: false}))
+
+	Expect(updatedAirbag).To(BeFalse())
+	Expect(product.JacketCertifications.FitsAirbag).To(BeFalse())
 }

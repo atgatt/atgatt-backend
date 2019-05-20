@@ -122,7 +122,7 @@ func (p *Product) UpdateJacketCertificationsByDescriptionParts(productDescriptio
 	for _, part := range productDescriptionParts {
 		lowerPart := strings.ToLower(part)
 
-		isEmpty := strings.Contains(lowerPart, "sold separately") || strings.Contains(lowerPart, "optional") || strings.Contains(lowerPart, "pocket") || strings.Contains(lowerPart, "protector")
+		isEmpty := strings.Contains(lowerPart, "sold separately") || strings.Contains(lowerPart, "optional") || strings.Contains(lowerPart, "pocket")
 		fitsAirbag := strings.Contains(lowerPart, "d-air") || strings.Contains(lowerPart, "tech-air") || strings.Contains(lowerPart, "tech air") || strings.Contains(lowerPart, "air bag") || strings.Contains(lowerPart, "airbag")
 
 		if !p.JacketCertifications.FitsAirbag && fitsAirbag {
@@ -130,9 +130,12 @@ func (p *Product) UpdateJacketCertificationsByDescriptionParts(productDescriptio
 			updatedAirbag = true
 		}
 
-		isCertified := strings.Contains(part, "CE")
+		isCertified := strings.Contains(part, "CE") || strings.Contains(lowerPart, "level 1") || strings.Contains(lowerPart, "pro-armor") || strings.Contains(lowerPart, "pro armor") // Pro-armor is Dainese-specific armor that is CE-level 1 certified
 		isApproved := strings.Contains(lowerPart, "ce approved")
-		isLevel2 := strings.Contains(lowerPart, "level 2") || strings.Contains(lowerPart, "level ii")
+		isLevel2 := strings.Contains(lowerPart, "level 2") || strings.Contains(lowerPart, "level ii") || strings.Contains(lowerPart, "cat. ii") || strings.Contains(lowerPart, "cat ii")
+		if isLevel2 {
+			isCertified = true
+		}
 
 		// If we have conflicting information (we think this is an empty slot but we also found CE cert details) assume the worst
 		if (isCertified || isApproved) && isEmpty {
