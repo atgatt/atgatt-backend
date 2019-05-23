@@ -10,7 +10,13 @@ import (
 
 // GetContentsAtURL makes a request to url and returns the response content as a string
 func GetContentsAtURL(url string) (string, error) {
-	resp, err := http.Get(url)
+	request, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return "", err
+	}
+
+	request.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.157 Safari/537.36")
+	resp, err := http.DefaultClient.Do(request)
 	if err != nil {
 		return "", err
 	}
