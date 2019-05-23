@@ -22,11 +22,11 @@ func NewHTTPRevzillaClient() *HTTPRevzillaClient {
 func (c *HTTPRevzillaClient) GetAllJacketOverviewsHTML() (*goquery.Document, error) {
 
 	request, err := http.NewRequest(http.MethodGet, "https://www.revzilla.com/motorcycle-jackets-vests?page=1&sort=featured&limit=10000&rating=-1&price=&price_min=3&price_max=1700&is_new=false&is_sale=false&is_made_in_usa=false&has_video=false&is_holiday=false&is_blemished=false&view_all=true", nil)
-	request.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.157 Safari/537.36")
 	if err != nil {
 		return nil, err
 	}
 
+	request.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.157 Safari/537.36")
 	resp, err := c.pooledClient.Do(request)
 	if err != nil {
 		return nil, err
@@ -41,7 +41,13 @@ func (c *HTTPRevzillaClient) GetAllJacketOverviewsHTML() (*goquery.Document, err
 
 // GetDescriptionPartsHTMLByURL returns a GoQuery document representing each bullet point in a revzilla product description
 func (c *HTTPRevzillaClient) GetDescriptionPartsHTMLByURL(url string) (*goquery.Document, error) {
-	resp, err := c.pooledClient.Get(url)
+	request, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	request.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.157 Safari/537.36")
+	resp, err := c.pooledClient.Do(request)
 	if err != nil {
 		return nil, err
 	}
