@@ -1,15 +1,15 @@
 package jobs
 
 import (
-	"strings"
-	"crashtested-backend/common/text"
 	"crashtested-backend/application/clients"
 	appEntities "crashtested-backend/application/entities"
 	s3Helpers "crashtested-backend/common/s3"
+	"crashtested-backend/common/text"
 	"crashtested-backend/persistence/entities"
 	"crashtested-backend/persistence/repositories"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/google/uuid"
 
@@ -146,7 +146,7 @@ func (j *SyncRevzillaJacketsJob) getDescriptionPartsForProduct(revzillaProduct *
 			parts = append(parts, rawSummary)
 			return
 		}
-		
+
 		parts = append(parts, sentences...)
 	})
 
