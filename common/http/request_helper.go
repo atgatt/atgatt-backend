@@ -15,7 +15,7 @@ func GetContentsAtURL(url string) (string, error) {
 		return "", err
 	}
 
-	request.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.157 Safari/537.36")
+	request.Header.Set("User-Agent", ChromeUserAgent)
 	resp, err := http.DefaultClient.Do(request)
 	if err != nil {
 		return "", err

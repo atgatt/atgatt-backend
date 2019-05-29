@@ -6,6 +6,8 @@ import (
 	"github.com/PuerkitoBio/goquery"
 
 	"github.com/hashicorp/go-cleanhttp"
+
+	httpHelpers "crashtested-backend/common/http"
 )
 
 // HTTPRevzillaClient is a RevzillaClient that communicates with Revzilla.com over HTTP
@@ -26,7 +28,7 @@ func (c *HTTPRevzillaClient) GetAllJacketOverviewsHTML() (*goquery.Document, err
 		return nil, err
 	}
 
-	request.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.157 Safari/537.36")
+	request.Header.Set("User-Agent", httpHelpers.ChromeUserAgent)
 	resp, err := c.pooledClient.Do(request)
 	if err != nil {
 		return nil, err
@@ -46,7 +48,7 @@ func (c *HTTPRevzillaClient) GetDescriptionPartsHTMLByURL(url string) (*goquery.
 		return nil, err
 	}
 
-	request.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.157 Safari/537.36")
+	request.Header.Set("User-Agent", httpHelpers.ChromeUserAgent)
 	resp, err := c.pooledClient.Do(request)
 	if err != nil {
 		return nil, err
