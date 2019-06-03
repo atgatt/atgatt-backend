@@ -187,7 +187,6 @@ func Test_CalculateSafetyPercentage_should_return_64_when_the_product_is_a_jacke
 	Expect(product.SafetyPercentage).To(Equal(68))
 }
 
-
 func generateMockDescriptionPartsFromHTML(html string) ([]string, error) {
 	doc, err := goquery.NewDocumentFromReader(strings.NewReader(html))
 	if err != nil {
@@ -195,7 +194,7 @@ func generateMockDescriptionPartsFromHTML(html string) ([]string, error) {
 	}
 
 	mockDescriptionParts := []string{}
-	doc.Find("li").Each(func(i int, s *goquery.Selection){
+	doc.Find("li").Each(func(i int, s *goquery.Selection) {
 		mockDescriptionParts = append(mockDescriptionParts, s.Text())
 	})
 
@@ -262,7 +261,6 @@ func Test_UpdateJacketCertificationsByDescriptionParts_should_apply_CE_level_2_c
 	Expect(product.JacketCertifications.FitsAirbag).To(BeFalse())
 }
 
-
 func Test_UpdateJacketCertificationsByDescriptionParts_should_apply_CE_level_1_certifications_for_pro_armor(t *testing.T) {
 	RegisterTestingT(t)
 
@@ -313,7 +311,6 @@ func Test_UpdateJacketCertificationsByDescriptionParts_should_apply_CE_level_1_c
 	Expect(product.JacketCertifications.FitsAirbag).To(BeFalse())
 }
 
-
 func Test_UpdateJacketCertificationsByDescriptionParts_should_apply_CE_level_1_certifications_for_pro_armor_without_dash(t *testing.T) {
 	RegisterTestingT(t)
 
@@ -326,7 +323,7 @@ func Test_UpdateJacketCertificationsByDescriptionParts_should_apply_CE_level_1_c
 		<li>
 			Soft natural cowhide leather</li>
 		<li>
-			Removable soft Pro armor protectors certified to standard EN 1621.1 on shoulders and elbows</li>
+			Removable soft Pro shape protectors certified to standard EN 1621.1 on shoulders and elbows</li>
 		<li>
 			Jacket-trousers connection loop</li>
 		<li>
