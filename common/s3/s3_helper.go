@@ -31,7 +31,7 @@ func CopyImageToS3FromURL(productLogger *logrus.Entry, uploader s3manageriface.U
 		}
 	
 		request.Header.Set("User-Agent", httpHelpers.ChromeUserAgent)
-		resp, err := http.DefaultClient.Do(request)
+		resp, err = http.DefaultClient.Do(request)
 		if err != nil || (resp != nil && resp.StatusCode > 299) {
 			productLogger.WithField("originalImageURL", sourceURL).WithError(err).Warning("Could not download the product image from the image URL specified, retrying...")
 			return err
