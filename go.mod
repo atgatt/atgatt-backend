@@ -13,6 +13,8 @@ require (
 	github.com/bakatz/echo-logrusmiddleware v1.1.0
 	github.com/borderstech/artifex v0.0.0-20181102223847-39e20eb3448b
 	github.com/bshuster-repo/logruzio v0.0.0-20170701214031-b0b294934396
+	github.com/cenkalti/backoff v2.1.1+incompatible
+	github.com/cenkalti/backoff/v3 v3.0.0 // indirect
 	github.com/coreos/etcd v3.3.12+incompatible // indirect
 	github.com/coreos/go-systemd v0.0.0-20190212144455-93d5ec2c7f76 // indirect
 	github.com/deckarep/golang-set v1.7.1 // indirect
