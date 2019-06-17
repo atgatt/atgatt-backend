@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"path"
 
+	httpHelpers "crashtested-backend/common/http"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager/s3manageriface"
 	"github.com/sirupsen/logrus"
@@ -24,7 +25,13 @@ func CopyImageToS3FromURL(productLogger *logrus.Entry, uploader s3manageriface.U
 
 	var resp *http.Response
 	err := backoff.Retry(func() error {
-		resp, err := http.Get(sourceURL)
+		request, err := http.NewRequest(http.MethodGet, sourceURL, nil)
+		if err != nil {
+			return err
+		}
+	
+		request.Header.Set("User-Agent", httpHelpers.ChromeUserAgent)
+		resp, err := http.DefaultClient.Do(request)
 		if err != nil || (resp != nil && resp.StatusCode > 299) {
 			productLogger.WithField("originalImageURL", sourceURL).WithError(err).Warning("Could not download the product image from the image URL specified, retrying...")
 			return err
