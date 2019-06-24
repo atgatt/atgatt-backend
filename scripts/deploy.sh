@@ -3,7 +3,7 @@ set -x
 set -e
 
 sudo apt-get -y -qq install awscli python-pip
-pip install awsebcli --upgrade
+pip install awsebcli --upgrade --user
 echo 'export PATH=$PATH:~/.local/bin' >> $BASH_ENV
 source ~/.bashrc
 chmod +x ./scripts/setup_aws_credentials.sh && ./scripts/setup_aws_credentials.sh
