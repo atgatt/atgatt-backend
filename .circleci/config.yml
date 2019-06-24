@@ -48,9 +48,6 @@ jobs:
       - attach_workspace:
           at: workspace
       - run: ./scripts/deploy.sh staging
-    branches:
-      only:
-        - master
   promote_staging_to_prod:
     docker:
       - image: circleci/golang:1.12
@@ -59,19 +56,28 @@ jobs:
       - attach_workspace:
           at: workspace
       - run: ./scripts/deploy.sh prod
-    branches:
-      only:
-        - master
 workflows:
   version: 2
   promote_to_prod:
     jobs:
       - build_and_test
-      - deploy_staging
+      - deploy_staging:
+          filters:
+            branches:
+              only:
+                - master
       - hold:
           type: approval
           requires:
             - deploy_staging
+          filters:
+            branches:
+              only:
+                - master
       - promote_staging_to_prod:
           requires:
             - hold
+          filters:
+            branches:
+              only:
+                - master
