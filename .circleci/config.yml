@@ -47,7 +47,17 @@ jobs:
       - checkout
       - attach_workspace:
           at: workspace
-      - run: chmod +x ./scripts/deploy.sh && source ./scripts/deploy.sh staging
+      - run: sudo apt-get -y -qq install awscli python-pip
+      - run: pip install awsebcli --upgrade --user
+      - run: echo 'export PATH=$PATH:~/.local/bin' >> $BASH_ENV
+      - run: source ~/.bashrc
+      - run: chmod +x ./scripts/setup_aws_credentials.sh && ./scripts/setup_aws_credentials.sh
+      - run: cp workspace/artifacts/api-artifacts.zip .
+      - run: cp workspace/artifacts/worker-artifacts.zip .
+      - run: mv api-artifacts.zip artifacts.zip
+      - run: eb deploy api-staging --label api-${CIRCLE_SHA1} --process --verbose
+      - run: rm artifacts.zip && mv worker-artifacts.zip artifacts.zip
+      - run: eb deploy worker-staging --label worker-${CIRCLE_SHA1} --process --verbose
   promote_staging_to_prod:
     docker:
       - image: circleci/golang:1.12
@@ -55,7 +65,17 @@ jobs:
       - checkout
       - attach_workspace:
           at: workspace
-      - run: chmod +x ./scripts/deploy.sh && source ./scripts/deploy.sh prod
+      - run: sudo apt-get -y -qq install awscli python-pip
+      - run: pip install awsebcli --upgrade --user
+      - run: echo 'export PATH=$PATH:~/.local/bin' >> $BASH_ENV
+      - run: source ~/.bashrc
+      - run: chmod +x ./scripts/setup_aws_credentials.sh && ./scripts/setup_aws_credentials.sh
+      - run: cp workspace/artifacts/api-artifacts.zip .
+      - run: cp workspace/artifacts/worker-artifacts.zip .
+      - run: mv api-artifacts.zip artifacts.zip
+      - run: eb deploy api-prod --label api-${CIRCLE_SHA1} --process --verbose
+      - run: rm artifacts.zip && mv worker-artifacts.zip artifacts.zip
+      - run: eb deploy worker-prod --label worker-${CIRCLE_SHA1} --process --verbose
 workflows:
   version: 2
   build_workflow:
