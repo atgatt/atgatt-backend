@@ -58,7 +58,7 @@ jobs:
       - run: ./scripts/deploy.sh prod
 workflows:
   version: 2
-  promote_to_prod:
+  build_workflow:
     jobs:
       - build_and_test
       - deploy_staging:
