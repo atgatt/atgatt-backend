@@ -48,6 +48,7 @@ jobs:
       - attach_workspace:
           at: workspace
       - run: ./scripts/deploy.sh staging
+    branches:
       only:
         - master
   promote_staging_to_prod:
