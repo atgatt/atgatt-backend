@@ -7,7 +7,7 @@ Monorepo for all of the CrashTested backend services (API, background jobs, etc.
 1. Clone this repository to your local machine in some directory i.e. `~/dev/crashtested-backend`
 1. Install VS Code via https://code.visualstudio.com/ 
 1. In VS Code, install the `Go` extension to get code completion and other nice things
-1. Install Go 1.11.x via https://golang.org/dl/
+1. Install Go 1.12.x via https://golang.org/dl/
 1. Install Postgres 10.6 via https://www.postgresql.org/download/
 1. Install sql-migrate by running `go get -v github.com/rubenv/sql-migrate/...`
 1. Optionally, install Air for live reload support via https://github.com/cosmtrek/air#installation
