@@ -5,7 +5,7 @@ import (
 	"crashtested-backend/persistence/repositories"
 	"net/http"
 
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 )
 
 // HealthCheckController contains methods used for automated healthchecks.

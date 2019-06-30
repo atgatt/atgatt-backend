@@ -5,7 +5,7 @@ import (
 	"crashtested-backend/persistence/repositories"
 	"net/http"
 
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 )
 
 // ProductController contains functions related to filtering and updating Products

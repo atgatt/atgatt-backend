@@ -12,8 +12,8 @@ import (
 	"github.com/bshuster-repo/logruzio"
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/jmoiron/sqlx"
-	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/sirupsen/logrus"
 
 	// Importing the PostgreSQL driver with side effects because we need to call sql.Open() to run queries

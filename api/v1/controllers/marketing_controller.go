@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/goware/emailx"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 )
 
 // MarketingController contains functions related to filtering and updating Products

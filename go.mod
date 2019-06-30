@@ -5,7 +5,7 @@ require (
 	github.com/ahmetb/go-linq v3.0.0+incompatible
 	github.com/asaskevich/govalidator v0.0.0-20180720115003-f9ffefc3facf // indirect
 	github.com/aws/aws-sdk-go v1.17.9
-	github.com/bakatz/echo-logrusmiddleware v1.1.0
+	github.com/bakatz/echo-logrusmiddleware v0.0.0-20190630045949-a113cd951a90
 	github.com/borderstech/artifex v0.0.0-20181102223847-39e20eb3448b
 	github.com/bshuster-repo/logruzio v0.0.0-20170701214031-b0b294934396
 	github.com/cenkalti/backoff v2.1.1+incompatible
@@ -22,10 +22,8 @@ require (
 	github.com/hashicorp/go-cleanhttp v0.5.0
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
-	github.com/labstack/echo v3.3.10+incompatible
+	github.com/labstack/echo/v4 v4.1.6
 	github.com/lib/pq v1.0.0
-	github.com/mattn/go-colorable v0.1.1 // indirect
-	github.com/mattn/go-isatty v0.0.6 // indirect
 	github.com/mattn/go-sqlite3 v1.10.0 // indirect
 	github.com/mingrammer/commonregex v1.0.0 // indirect
 	github.com/montanaflynn/stats v0.5.0 // indirect
@@ -35,15 +33,9 @@ require (
 	github.com/rogpeppe/go-internal v1.2.2 // indirect
 	github.com/rubenv/sql-migrate v0.0.0-20190212093014-1007f53448d7
 	github.com/sirupsen/logrus v1.3.0
-	github.com/valyala/fasttemplate v1.0.1 // indirect
 	github.com/xrash/smetrics v0.0.0-20170218160415-a3153f7040e9
 	github.com/ziutek/mymysql v1.5.4 // indirect
-	golang.org/x/crypto v0.0.0-20190228161510-8dd112bcdc25 // indirect
 	golang.org/x/exp v0.0.0-20190301171323-01c40f57f5f6 // indirect
-	golang.org/x/net v0.0.0-20190301231341-16b79f2e4e95 // indirect
-	golang.org/x/sync v0.0.0-20190227155943-e225da77a7e6 // indirect
-	golang.org/x/sys v0.0.0-20190302025703-b6889370fb10 // indirect
-	golang.org/x/text v0.3.1-0.20180807135948-17ff2d5776d2 // indirect
 	gonum.org/v1/gonum v0.0.0-20190517105223-d76380b39392 // indirect
 	google.golang.org/appengine v1.4.0 // indirect
 	gopkg.in/gorp.v1 v1.7.2 // indirect
