@@ -2,5 +2,6 @@
     "go.buildOnSave": "workspace",
     "go.lintOnSave": "workspace",
     "go.vetOnSave": "workspace",
-    "python.pythonPath": "venv\\Scripts\\python.exe"
+    "python.pythonPath": "venv\\Scripts\\python.exe",
+    "go.formatTool": "goimports"
 }

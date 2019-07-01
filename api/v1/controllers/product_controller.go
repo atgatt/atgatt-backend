@@ -33,3 +33,8 @@ func (p *ProductController) FilterProducts(context echo.Context) (err error) {
 
 	return context.JSON(http.StatusOK, products)
 }
+
+// CreateReview TODO[karthik]: implement me
+func (p *ProductController) CreateReview(context echo.Context) (err error) {
+	return context.NoContent(http.StatusOK)
+}

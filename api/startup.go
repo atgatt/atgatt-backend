@@ -3,9 +3,11 @@ package api
 import (
 	"crashtested-backend/api/settings"
 	"crashtested-backend/api/v1/controllers"
-	"crashtested-backend/persistence/helpers"
+	helpers "crashtested-backend/common/auth"
+	persistenceHelpers "crashtested-backend/persistence/helpers"
 	"crashtested-backend/persistence/repositories"
 	"fmt"
+	"net/http"
 	"os"
 
 	logrusmiddleware "github.com/bakatz/echo-logrusmiddleware"
@@ -38,20 +40,28 @@ func (s *Server) Bootstrap() {
 	e.Logger = logrusmiddleware.Logger{Logger: logrus.StandardLogger()}
 	e.Use(middleware.RequestID())
 
-	config := &logrusmiddleware.Config{
-		IncludeRequestBodies:  s.Settings.LogAPIRequests,
-		IncludeResponseBodies: s.Settings.LogAPIRequests,
-	}
-	e.Use(logrusmiddleware.HookWithConfig(*config))
-	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: []string{"https://master.crashtested.co", "https://www.master.crashtested.co", "https://crashtested.co", "https://www.crashtested.co"},
-	}))
 	if s.Settings == nil {
 		logrus.Fatal("Failed to start the API because the app configuration was not specified")
 		os.Exit(-1)
 	}
 
-	err := validation.ValidateStruct(s.Settings,
+	config := &logrusmiddleware.Config{
+		IncludeRequestBodies:  s.Settings.LogAPIRequests,
+		IncludeResponseBodies: s.Settings.LogAPIRequests,
+	}
+
+	signingKey, err := helpers.GetAuth0PublicKey(s.Settings.Auth0Domain)
+	if err != nil {
+		logrus.Fatalf("Failed to start the API because the JWT signing key could not be retrieved from auth0: %s", err.Error())
+		os.Exit(-1)
+	}
+
+	e.Use(logrusmiddleware.HookWithConfig(*config))
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"https://master.crashtested.co", "https://www.master.crashtested.co", "https://crashtested.co", "https://www.crashtested.co"},
+	}))
+
+	err = validation.ValidateStruct(s.Settings,
 		validation.Field(&s.Settings.DatabaseConnectionString, validation.Required),
 		validation.Field(&s.Settings.AppEnvironment, validation.Required),
 	)
@@ -77,7 +87,7 @@ func (s *Server) Bootstrap() {
 		logrus.Warn("LOGZIO_TOKEN was not set, so all application logs are going to stdout")
 	}
 
-	err = helpers.RunMigrations(s.Settings.DatabaseConnectionString, "persistence/migrations")
+	err = persistenceHelpers.RunMigrations(s.Settings.DatabaseConnectionString, "persistence/migrations")
 	if err != nil {
 		logrus.WithError(err).Error("Failed to run migrations, but starting the app anyway")
 	}
@@ -101,10 +111,18 @@ func (s *Server) Bootstrap() {
 	productsController := &controllers.ProductController{Repository: &repositories.ProductRepository{DB: db}, AllowedOrderFields: allowedOrderFields}
 	marketingController := &controllers.MarketingController{Repository: &repositories.MarketingRepository{DB: db}}
 
+	jwtMiddleware := middleware.JWTWithConfig(middleware.JWTConfig{
+		SigningMethod: "RS256",
+		SigningKey:    signingKey,
+		Skipper: func(c echo.Context) bool {
+			return c.Request().Method == http.MethodOptions
+		},
+	})
 	e.GET("/", healthCheckController.Healthcheck)
 	e.HEAD("/", healthCheckController.Healthcheck)
 	e.POST("/v1/products/filter", productsController.FilterProducts)
 	e.POST("/v1/marketing/email", marketingController.CreateMarketingEmail)
+	e.POST("/v1/products/:id/review", productsController.CreateReview, jwtMiddleware)
 
 	err = e.Start(s.Port)
 	if err != nil {

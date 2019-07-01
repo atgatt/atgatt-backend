@@ -6,6 +6,7 @@ jobs:
         environment:
           DATABASE_CONNECTION_STRING: postgres://postgres:password@localhost:5432/crashtested_integrationtests?sslmode=disable
           APP_ENVIRONMENT: circleci
+          AUTH0_DOMAIN: crashtested-staging.auth0.com
       - image: postgres:11.2-alpine
         environment:
           POSTGRES_USER: postgres
