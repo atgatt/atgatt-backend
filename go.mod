@@ -4,14 +4,12 @@ require (
 	github.com/PuerkitoBio/goquery v1.5.0
 	github.com/ahmetb/go-linq v3.0.0+incompatible
 	github.com/asaskevich/govalidator v0.0.0-20180720115003-f9ffefc3facf // indirect
-	github.com/auth0/go-jwt-middleware v0.0.0-20170425171159-5493cabe49f7 // indirect
 	github.com/aws/aws-sdk-go v1.17.9
 	github.com/bakatz/echo-logrusmiddleware v0.0.0-20190630045949-a113cd951a90
 	github.com/borderstech/artifex v0.0.0-20181102223847-39e20eb3448b
 	github.com/bshuster-repo/logruzio v0.0.0-20170701214031-b0b294934396
 	github.com/cenkalti/backoff v2.1.1+incompatible
 	github.com/deckarep/golang-set v1.7.1 // indirect
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/go-ozzo/ozzo-validation v3.5.0+incompatible
 	github.com/go-sql-driver/mysql v1.4.1 // indirect
 	github.com/gobuffalo/envy v1.6.15 // indirect
@@ -25,6 +23,7 @@ require (
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/labstack/echo/v4 v4.1.6
+	github.com/lestrrat-go/jwx v0.9.0
 	github.com/lib/pq v1.0.0
 	github.com/mattn/go-sqlite3 v1.10.0 // indirect
 	github.com/mingrammer/commonregex v1.0.0 // indirect

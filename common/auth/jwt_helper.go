@@ -1,59 +1,39 @@
 package helpers
 
 import (
-	"encoding/json"
+	"crypto/rsa"
 	"errors"
 	"fmt"
-	"net/http"
+
+	"github.com/lestrrat-go/jwx/jwk"
 )
 
-type jwks struct {
-	Keys []jsonWebKeys `json:"keys"`
-}
-
-type jsonWebKeys struct {
-	Kty string   `json:"kty"`
-	Kid string   `json:"kid"`
-	Use string   `json:"use"`
-	N   string   `json:"n"`
-	E   string   `json:"e"`
-	X5c []string `json:"x5c"`
-}
-
-// GetAuth0PublicKey gets the appropriate public key from a given auth0 domain when supplied a JWT token
-func GetAuth0PublicKey(auth0Domain string) (string, error) {
+// GetAuth0PublicKey gets the appropriate RSA public key used to sign JWTs when supplied with an auth0 domain name. This is needed to verify JWTs that are signed with the RS256 signing method.
+func GetAuth0PublicKey(auth0Domain string) (*rsa.PublicKey, error) {
+	var publicKey *rsa.PublicKey
 	if auth0Domain == "" {
-		return "", errors.New("invalid domain")
+		return publicKey, errors.New("invalid domain")
 	}
-	cert := ""
-	resp, err := http.Get(fmt.Sprintf("https://%s/.well-known/jwks.json", auth0Domain))
+
+	jwks, err := jwk.FetchHTTP(fmt.Sprintf("https://%s/.well-known/jwks.json", auth0Domain))
 	if err != nil {
-		return cert, err
-	}
-	if resp.StatusCode < 200 || resp.StatusCode > 299 {
-		return cert, errors.New("got an unexpected http status code from auth0 when fetching jwks.json")
-	}
-	defer resp.Body.Close()
-
-	var jwks = jwks{}
-	err = json.NewDecoder(resp.Body).Decode(&jwks)
-
-	if err != nil {
-		return cert, err
+		return nil, err
 	}
 
-	for k := range jwks.Keys {
-		// Find the RSA signing key
-		if jwks.Keys[k].Kty == "RSA" && jwks.Keys[k].Use == "sig" {
-			cert = "-----BEGIN CERTIFICATE-----\n" + jwks.Keys[k].X5c[0] + "\n-----END CERTIFICATE-----"
-			break
+	var rawPublicKey interface{}
+	for _, k := range jwks.Keys {
+		if k.KeyType().String() == "RSA" && k.KeyUsage() == "sig" {
+			rawPublicKey, err = k.Materialize()
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 
-	if cert == "" {
+	if rawPublicKey == nil {
 		err := errors.New("unable to find appropriate key")
-		return cert, err
+		return publicKey, err
 	}
 
-	return cert, nil
+	return rawPublicKey.(*rsa.PublicKey), nil
 }

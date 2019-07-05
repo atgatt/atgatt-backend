@@ -118,10 +118,14 @@ func (s *Server) Bootstrap() {
 			return c.Request().Method == http.MethodOptions
 		},
 	})
+
+	// Public endpoints
 	e.GET("/", healthCheckController.Healthcheck)
 	e.HEAD("/", healthCheckController.Healthcheck)
 	e.POST("/v1/products/filter", productsController.FilterProducts)
 	e.POST("/v1/marketing/email", marketingController.CreateMarketingEmail)
+
+	// Endpoints requiring JWT authentication
 	e.POST("/v1/products/:id/review", productsController.CreateReview, jwtMiddleware)
 
 	err = e.Start(s.Port)

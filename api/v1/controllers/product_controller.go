@@ -36,5 +36,6 @@ func (p *ProductController) FilterProducts(context echo.Context) (err error) {
 
 // CreateReview TODO[karthik]: implement me
 func (p *ProductController) CreateReview(context echo.Context) (err error) {
+	println(context.Get("user")) // TODO[karthik]: this is a JWT struct that has the user id and other info embedded
 	return context.NoContent(http.StatusOK)
 }
