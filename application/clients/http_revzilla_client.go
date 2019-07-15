@@ -1,6 +1,7 @@
 package clients
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/PuerkitoBio/goquery"
@@ -20,10 +21,10 @@ func NewHTTPRevzillaClient() *HTTPRevzillaClient {
 	return &HTTPRevzillaClient{pooledClient: cleanhttp.DefaultPooledClient()}
 }
 
-// GetAllJacketOverviewsHTML returns a GoQuery document representing each Revzilla Jacket - GetDescriptionPartsByProduct() can be used to further drill into the details for each of these results
-func (c *HTTPRevzillaClient) GetAllJacketOverviewsHTML() (*goquery.Document, error) {
+// GetAllProductOverviewsHTML returns a GoQuery document representing each Revzilla Jacket - GetDescriptionPartsByProduct() can be used to further drill into the details for each of these results
+func (c *HTTPRevzillaClient) GetAllProductOverviewsHTML(productURLPrefix string) (*goquery.Document, error) {
 
-	request, err := http.NewRequest(http.MethodGet, "https://www.revzilla.com/motorcycle-jackets-vests?page=1&sort=featured&limit=10000&rating=-1&price=&price_min=3&price_max=1700&is_new=false&is_sale=false&is_made_in_usa=false&has_video=false&is_holiday=false&is_blemished=false&view_all=true", nil)
+	request, err := http.NewRequest(http.MethodGet, fmt.Sprintf("https://www.revzilla.com/%s?page=1&sort=featured&limit=10000&rating=-1&price=&price_min=3&price_max=1700&is_new=false&is_sale=false&is_made_in_usa=false&has_video=false&is_holiday=false&is_blemished=false&view_all=true", productURLPrefix), nil)
 	if err != nil {
 		return nil, err
 	}

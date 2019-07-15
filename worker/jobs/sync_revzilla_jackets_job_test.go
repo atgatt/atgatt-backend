@@ -28,7 +28,7 @@ type mockRevzillaClient struct {
 	overviewsHTML string
 }
 
-func (r *mockRevzillaClient) GetAllJacketOverviewsHTML() (*goquery.Document, error) {
+func (r *mockRevzillaClient) GetAllProductOverviewsHTML(productURLPrefix string) (*goquery.Document, error) {
 	doc, err := goquery.NewDocumentFromReader(strings.NewReader(r.overviewsHTML))
 	return doc, err
 }
