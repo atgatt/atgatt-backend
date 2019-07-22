@@ -24,7 +24,7 @@ import (
 const RevzillaBaseURL string = "https://www.revzilla.com"
 
 // MinRevzillaProducts represents the minimum number of products that are expected to be returned before an error is thrown (prevents against importing bad HTML when revzilla changes their webpage)
-const MinRevzillaProducts int = 1000
+const MinRevzillaProducts int = 500
 
 // ForEachProduct iterates over all the products in the database and runs the current action on the given product
 func ForEachProduct(productRepository *repositories.ProductRepository, action func(product *entities.Product, productLogger *logrus.Entry) error) error {

@@ -8,7 +8,7 @@ type CEImpactZone struct {
 }
 
 // GetScore returns the component of an overall safety score associated with this zone
-func (c *CEImpactZone) GetScore() float64 {
+func (c CEImpactZone) GetScore() float64 {
 	// Penalize the product, but give some credit, for not including armor but allowing the user to install their own
 	if c.IsEmpty {
 		return 0.50
@@ -28,4 +28,9 @@ func (c *CEImpactZone) GetScore() float64 {
 	}
 
 	return totalScore
+}
+
+// IsSaferThan returns true if this zone has a higher safety score than the otherZone
+func (c CEImpactZone) IsSaferThan(otherZone *CEImpactZone) bool {
+	return otherZone == nil || (c.GetScore() > otherZone.GetScore())
 }

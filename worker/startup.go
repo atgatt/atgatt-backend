@@ -104,7 +104,12 @@ func (s *Server) Bootstrap() {
 	}
 
 	syncRevzillaHelmetsJob := &jobs.SyncRevzillaHelmetsJob{ProductRepository: productRepository, CJAPIKey: config.CJAPIKey}
-	syncRevzillaJacketsJob := &jobs.SyncRevzillaJacketsJob{ProductRepository: productRepository, S3Uploader: s3Uploader, S3Bucket: config.AWS.S3Bucket, RevzillaClient: clients.NewHTTPRevzillaClient(), EnableMinProductsCheck: true}
+
+	revzillaClient := clients.NewHTTPRevzillaClient()
+	syncRevzillaJacketsJob := &jobs.SyncRevzillaJacketsJob{ProductRepository: productRepository, S3Uploader: s3Uploader, S3Bucket: config.AWS.S3Bucket, RevzillaClient: revzillaClient, EnableMinProductsCheck: true}
+	syncRevzillaPantsJob := &jobs.SyncRevzillaPantsJob{ProductRepository: productRepository, S3Uploader: s3Uploader, S3Bucket: config.AWS.S3Bucket, RevzillaClient: revzillaClient, EnableMinProductsCheck: true}
+	syncRevzillaBootsJob := &jobs.SyncRevzillaBootsJob{ProductRepository: productRepository, S3Uploader: s3Uploader, S3Bucket: config.AWS.S3Bucket, RevzillaClient: revzillaClient, EnableMinProductsCheck: true}
+	syncRevzillaGlovesJob := &jobs.SyncRevzillaGlovesJob{ProductRepository: productRepository, S3Uploader: s3Uploader, S3Bucket: config.AWS.S3Bucket, RevzillaClient: revzillaClient, EnableMinProductsCheck: true}
 
 	numWorkers := runtime.NumCPU()
 	logrus.WithField("numWorkers", numWorkers).Info("Starting job queue")
@@ -116,6 +121,9 @@ func (s *Server) Bootstrap() {
 	s.registerJob(e, jobQueue, "import_helmets", importHelmetsJob)
 	s.registerJob(e, jobQueue, "sync_revzilla_helmets", syncRevzillaHelmetsJob)
 	s.registerJob(e, jobQueue, "sync_revzilla_jackets", syncRevzillaJacketsJob)
+	s.registerJob(e, jobQueue, "sync_revzilla_pants", syncRevzillaPantsJob)
+	s.registerJob(e, jobQueue, "sync_revzilla_boots", syncRevzillaBootsJob)
+	s.registerJob(e, jobQueue, "sync_revzilla_gloves", syncRevzillaGlovesJob)
 
 	// Healthcheck endpoint
 	e.GET("/", func(context echo.Context) error {

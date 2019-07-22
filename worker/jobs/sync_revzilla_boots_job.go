@@ -10,8 +10,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3/s3manager/s3manageriface"
 )
 
-// SyncRevzillaJacketsJob scrapes all of RevZilla's jacket data
-type SyncRevzillaJacketsJob struct {
+// SyncRevzillaBootsJob scrapes all of RevZilla's boots data
+type SyncRevzillaBootsJob struct {
 	ProductRepository      *repositories.ProductRepository
 	RevzillaClient         clients.RevzillaClient
 	S3Uploader             s3manageriface.UploaderAPI
@@ -20,11 +20,11 @@ type SyncRevzillaJacketsJob struct {
 }
 
 // Run executes the job
-func (j *SyncRevzillaJacketsJob) Run() error {
+func (j *SyncRevzillaBootsJob) Run() error {
 	updateCertsFunc := func(productToPersist *entities.Product, revzillaProduct *appEntities.RevzillaProduct) {
-		productToPersist.UpdateJacketCertificationsByDescriptionParts(revzillaProduct.DescriptionParts)
+		productToPersist.UpdateSingleZoneCertificationsByDescriptionParts(productToPersist.BootsCertifications.Overall, revzillaProduct.DescriptionParts)
 		productToPersist.UpdateGenericSubtypeByDescriptionParts(revzillaProduct.DescriptionParts)
 	}
 
-	return helpers.RunRevzillaImport("motorcycle-jackets-vests", "jacket", j.RevzillaClient, j.ProductRepository, j.S3Uploader, j.S3Bucket, j.EnableMinProductsCheck, updateCertsFunc)
+	return helpers.RunRevzillaImport("motorcycle-boots", "boots", j.RevzillaClient, j.ProductRepository, j.S3Uploader, j.S3Bucket, j.EnableMinProductsCheck, updateCertsFunc)
 }

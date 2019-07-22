@@ -421,3 +421,58 @@ func Test_UpdateJacketCertificationsByDescriptionParts_should_apply_CE_level_2_c
 	Expect(updatedAirbag).To(BeFalse())
 	Expect(product.JacketCertifications.FitsAirbag).To(BeFalse())
 }
+
+func Test_UpdatePantsCertificationsByDescriptionParts_should_apply_CE_level_2_certifications(t *testing.T) {
+	RegisterTestingT(t)
+
+	mockSummary := `The 8-track tape may be obsolete, but the Dainese 8-Track Leather Jacket might as well be a subscription streaming service coming out of wireless speakers. 
+	Artemide refined full-grain cowhide leather gives the 8-Track Jacket an old school sheen with modern day robustness. 
+	CE armor at the tailbone and hip along with specific design features allow the jacket to meet CE - Cat II - prEN 17092 certification. 
+	Slide in an optional back protector (sold separately) to upgrade the impact protection. 
+	A removable thermal liner allows you to stretch the 8-Track into cooler temperatures and can even be used as a separate mid-layer. 
+	The Dainese 8-Track Jacket is is named after some tech from the 60s, but its function is as state of the art as it gets for motorcycle gear.`
+
+	sentences, _ := text.GetSentencesFromString(mockSummary)
+	var sb strings.Builder
+	for _, sentence := range sentences {
+		sb.WriteString("<li>")
+		sb.WriteString(sentence)
+		sb.WriteString("</li>")
+	}
+	mockProductDescription := fmt.Sprintf(`
+	<ul>
+		%s
+		<li>
+			Soft natural cowhide leather</li>
+		<li>
+			Removable soft Pro armor protectors certified to standard EN 1621.1 on knee level 2 ce approved</li>
+		<li>
+			Jacket-trousers connection loop</li>
+		<li>
+			Perforated leather</li>
+		<li>
+			Printed cotton liner</li>
+		<li>
+			1 inner pocket</li>
+		<li>
+			3 outer pockets</li>
+		<li>
+			Pocket for G1 or G2 back protector (sold separately)</li>
+	</ul>
+	`, sb.String())
+
+	mockDescriptionParts, err := generateMockDescriptionPartsFromHTML(mockProductDescription)
+	Expect(err).To(BeNil())
+
+	product := &Product{}
+	updatedTailbone, updatedHip, updatedKnee := product.UpdatePantsCertificationsByDescriptionParts(mockDescriptionParts)
+
+	Expect(updatedTailbone).To(BeTrue())
+	Expect(product.PantsCertifications.Tailbone).To(Equal(&CEImpactZone{IsLevel2: true, IsApproved: false, IsEmpty: false}))
+
+	Expect(updatedHip).To(BeTrue())
+	Expect(product.PantsCertifications.Hip).To(Equal(&CEImpactZone{IsLevel2: true, IsApproved: false, IsEmpty: false}))
+
+	Expect(updatedKnee).To(BeTrue())
+	Expect(product.PantsCertifications.Knee).To(Equal(&CEImpactZone{IsLevel2: true, IsApproved: true, IsEmpty: false}))
+}

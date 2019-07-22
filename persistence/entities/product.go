@@ -43,6 +43,17 @@ type Product struct {
 		Chest      *CEImpactZone `json:"chest"`
 		FitsAirbag bool          `json:"fitsAirbag"`
 	} `json:"jacketCertifications"`
+	PantsCertifications struct {
+		Tailbone *CEImpactZone `json:"tailbone"`
+		Hip      *CEImpactZone `json:"hip"`
+		Knee     *CEImpactZone `json:"knee"`
+	} `json:"pantsCertifications"`
+	BootsCertifications struct {
+		Overall *CEImpactZone `json:"overall"`
+	} `json:"bootsCertifications"`
+	GlovesCertifications struct {
+		Overall *CEImpactZone `json:"overall"`
+	} `json:"glovesCertifications"`
 	IsDiscontinued bool `json:"isDiscontinued"`
 }
 
@@ -90,12 +101,8 @@ func (p *Product) UpdateHelmetCertificationsByDescription(productDescription str
 	return hasNewDOTCertification, hasNewECECertification
 }
 
-func isScoreUpgraded(oldZone *CEImpactZone, newZone *CEImpactZone) bool {
-	return oldZone == nil || (newZone.GetScore() > oldZone.GetScore())
-}
-
-// UpdateJacketSubtypeByDescriptionParts updates the subtype when certain text appears in each part of the description
-func (p *Product) UpdateJacketSubtypeByDescriptionParts(productDescriptionParts []string) {
+// UpdateGenericSubtypeByDescriptionParts updates the subtype when certain text appears in each part of the description
+func (p *Product) UpdateGenericSubtypeByDescriptionParts(productDescriptionParts []string) {
 	for _, part := range productDescriptionParts {
 		lowerPart := strings.ToLower(part)
 		if strings.Contains(lowerPart, "gore-tex") || strings.Contains(lowerPart, "goretex") || strings.Contains(lowerPart, "gore tex") {
@@ -114,6 +121,107 @@ func (p *Product) UpdateJacketSubtypeByDescriptionParts(productDescriptionParts 
 	}
 }
 
+// UpdatePantsSubtypeByDescriptionParts updates the subtype when certain text appears in each part of the description
+func (p *Product) UpdatePantsSubtypeByDescriptionParts(productDescriptionParts []string) {
+	for _, part := range productDescriptionParts {
+		lowerPart := strings.ToLower(part)
+		if strings.Contains(lowerPart, "gore-tex") || strings.Contains(lowerPart, "goretex") || strings.Contains(lowerPart, "gore tex") {
+			p.Subtype = "goretex"
+			p.Materials = p.Subtype
+			return
+		} else if strings.Contains(lowerPart, "leather") {
+			p.Subtype = "leather"
+			p.Materials = p.Subtype
+			return
+		} else if strings.Contains(lowerPart, "covec") {
+			p.Subtype = "covec"
+			p.Materials = p.Subtype
+			return
+		} else if strings.Contains(lowerPart, "nylon") {
+			p.Subtype = "nylon"
+			p.Materials = p.Subtype
+			return
+		} else if strings.Contains(lowerPart, "denim") || strings.Contains(lowerPart, "jean") {
+			p.Subtype = "denim"
+			p.Materials = p.Subtype
+			return
+		} else {
+			p.Subtype = "textile"
+			p.Materials = p.Subtype
+			return
+		}
+	}
+}
+
+func estimateCEImpactZoneByDescriptionPart(part string) (*CEImpactZone, bool) {
+	lowerPart := strings.ToLower(part)
+
+	isEmpty := strings.Contains(lowerPart, "sold separately") || strings.Contains(lowerPart, "optional") || strings.Contains(lowerPart, "pocket")
+	isCertified := strings.Contains(part, "CE") || strings.Contains(lowerPart, "level 1") || strings.Contains(lowerPart, "1621") ||
+		strings.Contains(lowerPart, "pro-armor") || strings.Contains(lowerPart, "pro armor") || strings.Contains(lowerPart, "pro shape") || strings.Contains(lowerPart, "pro-shape") || // Pro-armor is Dainese-specific armor that is CE-level 1 certified
+		strings.Contains(lowerPart, "d30") || strings.Contains(lowerPart, "d3o") // d3o is proprietary armor that is level 1/2 certified
+	isApproved := strings.Contains(lowerPart, "ce approved")
+	isLevel2 := strings.Contains(lowerPart, "level 2") || strings.Contains(lowerPart, "level ii") || strings.Contains(lowerPart, "cat. ii") || strings.Contains(lowerPart, "cat ii")
+	if isLevel2 {
+		isCertified = true
+	}
+
+	// If we have conflicting information (we think this is an empty slot but we also found CE cert details) assume the worst
+	if (isCertified || isApproved) && isEmpty {
+		isCertified = false
+		isApproved = false
+		isLevel2 = false
+	}
+
+	return &CEImpactZone{IsApproved: isApproved, IsLevel2: isLevel2, IsEmpty: isEmpty}, isCertified
+}
+
+// UpdateSingleZoneCertificationsByDescriptionParts updates all of the certifications for a single zone when certain text appears in each part of the description
+func (p *Product) UpdateSingleZoneCertificationsByDescriptionParts(zone *CEImpactZone, productDescriptionParts []string) (bool, *CEImpactZone) {
+	updatedZone := false
+	var newCEImpactZone *CEImpactZone
+	for _, part := range productDescriptionParts {
+		currZone, isCertified := estimateCEImpactZoneByDescriptionPart(part)
+		if (isCertified || currZone.IsApproved || currZone.IsEmpty) && currZone.IsSaferThan(zone) {
+			newCEImpactZone = currZone
+			updatedZone = true
+		}
+	}
+
+	return updatedZone, newCEImpactZone
+}
+
+// UpdatePantsCertificationsByDescriptionParts updates all of the pants certifications when certain text appears in each part of the description
+func (p *Product) UpdatePantsCertificationsByDescriptionParts(productDescriptionParts []string) (bool, bool, bool) {
+	updatedTailbone := false
+	updatedHip := false
+	updatedKnee := false
+
+	for _, part := range productDescriptionParts {
+		newCEImpactZone, isCertified := estimateCEImpactZoneByDescriptionPart(part)
+		lowerPart := strings.ToLower(part)
+
+		if isCertified || newCEImpactZone.IsApproved || newCEImpactZone.IsEmpty {
+			if newCEImpactZone.IsSaferThan(p.PantsCertifications.Tailbone) && strings.Contains(lowerPart, "tailbone") {
+				p.PantsCertifications.Tailbone = newCEImpactZone
+				updatedTailbone = true
+			}
+
+			if newCEImpactZone.IsSaferThan(p.PantsCertifications.Hip) && strings.Contains(lowerPart, "hip") {
+				p.PantsCertifications.Hip = newCEImpactZone
+				updatedHip = true
+			}
+
+			if newCEImpactZone.IsSaferThan(p.PantsCertifications.Knee) && strings.Contains(lowerPart, "knee") {
+				p.PantsCertifications.Knee = newCEImpactZone
+				updatedKnee = true
+			}
+		}
+	}
+
+	return updatedTailbone, updatedHip, updatedKnee
+}
+
 // UpdateJacketCertificationsByDescriptionParts updates all of the jacket certifications when certain text appears in each part of the description
 func (p *Product) UpdateJacketCertificationsByDescriptionParts(productDescriptionParts []string) (bool, bool, bool, bool, bool) {
 	updatedAirbag := false
@@ -123,9 +231,8 @@ func (p *Product) UpdateJacketCertificationsByDescriptionParts(productDescriptio
 	updatedChest := false
 
 	for _, part := range productDescriptionParts {
+		newCEImpactZone, isCertified := estimateCEImpactZoneByDescriptionPart(part)
 		lowerPart := strings.ToLower(part)
-
-		isEmpty := strings.Contains(lowerPart, "sold separately") || strings.Contains(lowerPart, "optional") || strings.Contains(lowerPart, "pocket")
 		fitsAirbag := strings.Contains(lowerPart, "d-air") || strings.Contains(lowerPart, "tech-air") || strings.Contains(lowerPart, "tech air") || strings.Contains(lowerPart, "air bag") || strings.Contains(lowerPart, "airbag")
 
 		if !p.JacketCertifications.FitsAirbag && fitsAirbag {
@@ -133,41 +240,23 @@ func (p *Product) UpdateJacketCertificationsByDescriptionParts(productDescriptio
 			updatedAirbag = true
 		}
 
-		isCertified := strings.Contains(part, "CE") || strings.Contains(lowerPart, "level 1") ||
-			strings.Contains(lowerPart, "1621") || strings.Contains(lowerPart, "pro-armor") ||
-			strings.Contains(lowerPart, "pro armor") || strings.Contains(lowerPart, "pro shape") ||
-			strings.Contains(lowerPart, "pro-shape") // Pro-armor is Dainese-specific armor that is CE-level 1 certified
-		isApproved := strings.Contains(lowerPart, "ce approved")
-		isLevel2 := strings.Contains(lowerPart, "level 2") || strings.Contains(lowerPart, "level ii") || strings.Contains(lowerPart, "cat. ii") || strings.Contains(lowerPart, "cat ii")
-		if isLevel2 {
-			isCertified = true
-		}
-
-		// If we have conflicting information (we think this is an empty slot but we also found CE cert details) assume the worst
-		if (isCertified || isApproved) && isEmpty {
-			isCertified = false
-			isApproved = false
-			isLevel2 = false
-		}
-
-		newCEImpactZone := &CEImpactZone{IsApproved: isApproved, IsLevel2: isLevel2, IsEmpty: isEmpty}
-		if isCertified || isApproved || isEmpty {
-			if isScoreUpgraded(p.JacketCertifications.Back, newCEImpactZone) && strings.Contains(lowerPart, "back") {
+		if isCertified || newCEImpactZone.IsApproved || newCEImpactZone.IsEmpty {
+			if newCEImpactZone.IsSaferThan(p.JacketCertifications.Back) && strings.Contains(lowerPart, "back") {
 				p.JacketCertifications.Back = newCEImpactZone
 				updatedBack = true
 			}
 
-			if isScoreUpgraded(p.JacketCertifications.Elbow, newCEImpactZone) && strings.Contains(lowerPart, "elbow") {
+			if newCEImpactZone.IsSaferThan(p.JacketCertifications.Elbow) && strings.Contains(lowerPart, "elbow") {
 				p.JacketCertifications.Elbow = newCEImpactZone
 				updatedElbow = true
 			}
 
-			if isScoreUpgraded(p.JacketCertifications.Shoulder, newCEImpactZone) && strings.Contains(lowerPart, "shoulder") {
+			if newCEImpactZone.IsSaferThan(p.JacketCertifications.Shoulder) && strings.Contains(lowerPart, "shoulder") {
 				p.JacketCertifications.Shoulder = newCEImpactZone
 				updatedShoulder = true
 			}
 
-			if isScoreUpgraded(p.JacketCertifications.Chest, newCEImpactZone) && strings.Contains(lowerPart, "chest") {
+			if newCEImpactZone.IsSaferThan(p.JacketCertifications.Chest) && strings.Contains(lowerPart, "chest") {
 				p.JacketCertifications.Chest = newCEImpactZone
 				updatedChest = true
 			}
@@ -175,6 +264,36 @@ func (p *Product) UpdateJacketCertificationsByDescriptionParts(productDescriptio
 	}
 
 	return updatedBack, updatedElbow, updatedShoulder, updatedChest, updatedAirbag
+}
+
+func (p *Product) getSingleZoneSafetyPercentage(zone *CEImpactZone) int {
+	totalScore := float64(0)
+	if zone != nil {
+		totalScore += zone.GetScore() * float64(0.5)
+	}
+
+	if p.Materials == "leather" || p.Materials == "kevlar" {
+		totalScore += float64(0.5)
+	}
+
+	return int(math.Round(totalScore * 100))
+}
+
+func (p *Product) getPantsSafetyPercentage() int {
+	totalScore := float64(0)
+
+	zones := []*CEImpactZone{p.PantsCertifications.Hip, p.PantsCertifications.Knee, p.PantsCertifications.Tailbone}
+	for _, zone := range zones {
+		if zone != nil {
+			totalScore += zone.GetScore() * float64(0.283333)
+		}
+	}
+
+	if p.Materials == "leather" || p.Materials == "kevlar" {
+		totalScore += float64(0.15)
+	}
+
+	return int(math.Round(totalScore * 100))
 }
 
 func (p *Product) getJacketSafetyPercentage() int {
@@ -253,6 +372,15 @@ func (p *Product) UpdateSafetyPercentage() {
 		break
 	case "jacket":
 		safetyPercentage = p.getJacketSafetyPercentage()
+		break
+	case "pants":
+		safetyPercentage = p.getPantsSafetyPercentage()
+		break
+	case "boots":
+		safetyPercentage = p.getSingleZoneSafetyPercentage(p.BootsCertifications.Overall)
+		break
+	case "gloves":
+		safetyPercentage = p.getSingleZoneSafetyPercentage(p.GlovesCertifications.Overall)
 		break
 	}
 
