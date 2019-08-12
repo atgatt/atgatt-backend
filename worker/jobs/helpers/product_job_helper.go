@@ -224,8 +224,8 @@ func RunRevzillaImport(
 
 			existingProduct, err := productRepository.GetByExternalID(revzillaProduct.ID)
 			if err != nil {
-				productLogger.WithError(err).Error("Failed to get a product from the database by external ID")
-			}
+				productLogger.WithError(err).Error(fmt.Sprintf("Could not find a product with externalID: %v", revzillaProduct.ID))
+			} 
 
 			if existingProduct != nil {
 				existingProduct.RevzillaPriceCents = revzillaProduct.GetPriceCents()

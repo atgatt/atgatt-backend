@@ -35,7 +35,7 @@ func getOneProductFromRows(rows *sqlx.Rows) (*entities.Product, error) {
 	}
 
 	if len(productDocuments) == 0 {
-		return nil, nil
+		return nil, EntityNotFound
 	}
 
 	if len(productDocuments) > 1 {
@@ -49,6 +49,18 @@ func getOneProductFromRows(rows *sqlx.Rows) (*entities.Product, error) {
 func (r *ProductRepository) GetByExternalID(externalID string) (*entities.Product, error) {
 	rows, err := r.DB.NamedQuery("select document from products where document->>'externalID' = :externalID", map[string]interface{}{
 		"externalID": externalID,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return getOneProductFromRows(rows)
+}
+
+// GetByUUID returns a single product where the UUID matches
+func (r *ProductRepository) GetByUUID(uuid string) (*entities.Product, error) {
+	rows, err := r.DB.NamedQuery("select document from products where document->>'uuid' = :uuid", map[string]interface{}{
+		"uuid": uuid,
 	})
 	if err != nil {
 		return nil, err

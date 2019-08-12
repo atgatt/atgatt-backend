@@ -38,6 +38,7 @@ func TestMain(m *testing.M) {
 	defaultSettings.DatabaseConnectionString = TestDatabaseConnectionString
 	defaultSettings.AppEnvironment = "integration-tests"
 	defaultSettings.LogAPIRequests = false
+	defaultSettings.Auth0Domain = "crashtested-staging.auth0.com"
 	server := api.Server{Port: ":5001", Name: "crashtested-api", Version: "integration-tests-version", BuildNumber: "integration-tests-build", CommitHash: "integration-tests-commit", Settings: defaultSettings}
 	go server.Bootstrap()
 

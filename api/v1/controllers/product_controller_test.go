@@ -610,3 +610,12 @@ func Test_FilterProducts_should_be_able_to_order_by_id(t *testing.T) {
 	Expect(err).To(BeNil())
 	Expect(resp.StatusCode).To(Equal(http.StatusOK))
 }
+
+func Test_GetProductDetails_NotFound(t *testing.T) {
+	RegisterTestingT(t)
+
+	responseBody := &entities.Product{}
+	resp, err := httpHelpers.MakeJSONGETRequest(fmt.Sprintf("%s/v1/products/1234", APIBaseURL), responseBody)
+	Expect(err).To(BeNil())
+	Expect(resp.StatusCode).To(Equal(http.StatusNotFound))
+}

@@ -48,6 +48,19 @@ func MakeJSONPOSTRequest(url string, request interface{}, response interface{}) 
 	return resp, nil
 }
 
+// MakeJSONGETRequest makes a request to url and maps the JSON response to the given interface type
+func MakeJSONGETRequest(url string, response interface{}) (*http.Response, error) {
+	resp, postErr := http.Get(url)
+	if postErr != nil {
+		return nil, postErr
+	}
+	defer resp.Body.Close()
+	responseBodyBytes, _ := ioutil.ReadAll(resp.Body)
+
+	json.Unmarshal(responseBodyBytes, response)
+	return resp, nil
+}
+
 // MakeFormPOSTRequest makes a request to the given url with a supplied set of urlencoded form values and returns the response body as a string.
 func MakeFormPOSTRequest(url string, formValues url.Values) (string, error) {
 	resp, postErr := http.PostForm(url, formValues)

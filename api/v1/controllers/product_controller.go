@@ -39,3 +39,14 @@ func (p *ProductController) CreateReview(context echo.Context) (err error) {
 	println(context.Get("user")) // TODO[karthik]: this is a JWT struct that has the user id and other info embedded
 	return context.NoContent(http.StatusOK)
 }
+
+func (p *ProductController) GetProductDetails(context echo.Context) (err error) {
+	uuid := context.QueryParam("uuid")
+	product, err := p.Repository.GetByUUID(uuid)
+
+	if err != nil {
+		return err
+	}
+
+	return context.JSON(http.StatusOK, product)
+}
