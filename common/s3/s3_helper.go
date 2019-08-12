@@ -9,8 +9,8 @@ import (
 	httpHelpers "crashtested-backend/common/http"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager/s3manageriface"
-	"github.com/sirupsen/logrus"
 	"github.com/cenkalti/backoff"
+	"github.com/sirupsen/logrus"
 )
 
 // CopyImageToS3FromURL takes an image at some original location and re-uploads it to S3 in the given bucket
@@ -29,7 +29,7 @@ func CopyImageToS3FromURL(productLogger *logrus.Entry, uploader s3manageriface.U
 		if err != nil {
 			return err
 		}
-	
+
 		request.Header.Set("User-Agent", httpHelpers.ChromeUserAgent)
 		resp, err = http.DefaultClient.Do(request)
 		if err != nil || (resp != nil && resp.StatusCode > 299) {

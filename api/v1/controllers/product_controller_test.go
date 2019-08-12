@@ -50,14 +50,14 @@ func Test_FilterProducts_should_only_return_jackets_data_when_the_limit_is_large
 func Test_FilterProducts_should_only_return_chest_CE_level_2_jackets_when_the_filters_are_set_to_CE_level_2(t *testing.T) {
 	RegisterTestingT(t)
 
-	level2Filter :=  &queries.CEImpactZoneQueryParams{
+	level2Filter := &queries.CEImpactZoneQueryParams{
 		IsLevel2: true,
 	}
 	request := &queries.FilterProductsQuery{Start: 0, Limit: 25, UsdPriceRange: []int{0, 2000000}, Type: "jacket", JacketCertifications: &queries.JacketCertificationsQueryParams{
 		Shoulder: level2Filter,
-		Elbow: level2Filter,
-		Back: level2Filter,
-		Chest: level2Filter,
+		Elbow:    level2Filter,
+		Back:     level2Filter,
+		Chest:    level2Filter,
 	}}
 	request.Order.Field = "created_at_utc"
 

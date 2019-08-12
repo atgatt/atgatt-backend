@@ -6,5 +6,5 @@ type JacketCertificationsQueryParams struct {
 	Elbow      *CEImpactZoneQueryParams `json:"elbow"`
 	Back       *CEImpactZoneQueryParams `json:"back"`
 	Chest      *CEImpactZoneQueryParams `json:"chest"`
-	FitsAirbag bool `json:"fitsAirbag"`
+	FitsAirbag bool                     `json:"fitsAirbag"`
 }
