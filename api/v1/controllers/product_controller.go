@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	apierrors "crashtested-backend/common/errors"
 	"crashtested-backend/persistence/queries"
 	"crashtested-backend/persistence/repositories"
 	"net/http"
@@ -45,9 +44,6 @@ func (p *ProductController) GetProductDetails(context echo.Context) (err error) 
 	uuid := context.QueryParam("uuid")
 	product, err := p.Repository.GetByUUID(uuid)
 
-	if err, ok := err.(*apierrors.NotFoundError); ok {
-		return context.JSON(err.ResponseCode(), err.Error())
-	}
 	if err != nil {
 		return err
 	}

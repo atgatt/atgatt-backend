@@ -1,7 +1,6 @@
 package repositories
 
 import (
-	apierrors "crashtested-backend/common/errors"
 	"crashtested-backend/persistence/entities"
 	"crashtested-backend/persistence/queries"
 	"encoding/json"
@@ -16,6 +15,8 @@ import (
 type ProductRepository struct {
 	DB *sqlx.DB
 }
+
+var EntityNotFound = errors.New("entity not found")
 
 func getOneProductFromRows(rows *sqlx.Rows) (*entities.Product, error) {
 	defer rows.Close()
@@ -36,7 +37,7 @@ func getOneProductFromRows(rows *sqlx.Rows) (*entities.Product, error) {
 	}
 
 	if len(productDocuments) == 0 {
-		return nil, apierrors.NotFound("product not found")
+		return nil, EntityNotFound
 	}
 
 	if len(productDocuments) > 1 {
