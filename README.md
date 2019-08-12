@@ -24,6 +24,12 @@ NOTE: You don't need to do anything to install dependencies. This project relies
 - If you have Air, type `air` (or `air -c .air.windows.conf` if you're on Windows) to run a live reload server. 
 - To trigger a background job manually, send a `POST` request with an empty JSON body to any of the endpoints listed in `cron.yaml`. The job will then be started asynchronously in a goroutine; you can inspect stdout to see the output. Related to this, see `eb ssh` instructions below and use `curl` if you want to trigger a background job on a deployed environment such as `staging` or `prod`.
 
+## Environment variables
+- `APP_ENVIRONMENT`: The environment the app is currently running in (staging, prod, circleci, local-development)
+- `DATABASE_CONNECTION_STRING`: How to connect to the postgres database
+- `LOGZIO_TOKEN`: Token used for logging
+- `AUTH0_DOMAIN`: The domain used for integration with Auth0 (`crashtested-staging.auth0.com` for local/staging)
+
 ## Important folders and files
 - `api` - controllers and request handling logic
 - `worker` - background jobs

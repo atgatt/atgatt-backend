@@ -57,6 +57,18 @@ func (r *ProductRepository) GetByExternalID(externalID string) (*entities.Produc
 	return getOneProductFromRows(rows)
 }
 
+// GetByUUID returns a single product where the UUID matches
+func (r *ProductRepository) GetByUUID(uuid string) (*entities.Product, error) {
+	rows, err := r.DB.NamedQuery("select document from products where document->>'uuid' = :uuid", map[string]interface{}{
+		"uuid": uuid,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return getOneProductFromRows(rows)
+}
+
 // GetByModel returns a single product where the manufacturer and model matches
 func (r *ProductRepository) GetByModel(manufacturer string, model string, productType string) (*entities.Product, error) {
 	rows, err := r.DB.NamedQuery("select document from products where document->>'manufacturer' = :manufacturer and document->>'model' = :model and document->>'type' = :type", map[string]interface{}{

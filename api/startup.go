@@ -123,6 +123,7 @@ func (s *Server) Bootstrap() {
 	e.GET("/", healthCheckController.Healthcheck)
 	e.HEAD("/", healthCheckController.Healthcheck)
 	e.POST("/v1/products/filter", productsController.FilterProducts)
+	e.GET("/v1/products/:uuid", productsController.GetProductDetails)
 	e.POST("/v1/marketing/email", marketingController.CreateMarketingEmail)
 
 	// Endpoints requiring JWT authentication
