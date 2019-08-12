@@ -16,8 +16,6 @@ type ProductRepository struct {
 	DB *sqlx.DB
 }
 
-var EntityNotFound = errors.New("entity not found")
-
 func getOneProductFromRows(rows *sqlx.Rows) (*entities.Product, error) {
 	defer rows.Close()
 
