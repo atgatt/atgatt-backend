@@ -9,3 +9,6 @@ run-api:
 
 test:
 	go test ./...
+
+fmt:
+	go fmt ./...

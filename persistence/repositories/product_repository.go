@@ -295,7 +295,6 @@ func (r *ProductRepository) FilterProducts(query *queries.FilterProductsQuery) (
 			whereCriteria.WriteString("and document->'jacketCertifications'->>'fitsAirbag' = 'true'")
 		}
 	}
-	
 
 	if query.ExcludeDiscontinued {
 		whereCriteria.WriteString("and document->>'isDiscontinued' = 'false' ")
