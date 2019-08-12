@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	apierrors "crashtested-backend/common/errors"
 	"crashtested-backend/persistence/entities"
 	"crashtested-backend/persistence/queries"
 	"encoding/json"
@@ -35,7 +36,7 @@ func getOneProductFromRows(rows *sqlx.Rows) (*entities.Product, error) {
 	}
 
 	if len(productDocuments) == 0 {
-		return nil, nil
+		return nil, apierrors.NotFound("product not found")
 	}
 
 	if len(productDocuments) > 1 {
