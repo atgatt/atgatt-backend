@@ -35,7 +35,7 @@ func getOneProductFromRows(rows *sqlx.Rows) (*entities.Product, error) {
 	}
 
 	if len(productDocuments) == 0 {
-		return nil, EntityNotFound
+		return nil, ErrEntityNotFound
 	}
 
 	if len(productDocuments) > 1 {

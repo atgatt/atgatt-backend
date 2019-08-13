@@ -44,9 +44,9 @@ type Product struct {
 		FitsAirbag bool          `json:"fitsAirbag"`
 	} `json:"jacketCertifications"`
 	PantsCertifications struct {
-		Tailbone *CEImpactZone `json:"tailbone"`
-		Hip      *CEImpactZone `json:"hip"`
 		Knee     *CEImpactZone `json:"knee"`
+		Hip      *CEImpactZone `json:"hip"`
+		Tailbone *CEImpactZone `json:"tailbone"`
 	} `json:"pantsCertifications"`
 	BootsCertifications struct {
 		Overall *CEImpactZone `json:"overall"`

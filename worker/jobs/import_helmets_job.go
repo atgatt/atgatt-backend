@@ -146,7 +146,7 @@ func (j *ImportHelmetsJob) Run() error {
 		}
 
 		existingProduct, err := j.ProductRepository.GetByModel(product.Manufacturer, product.Model, "helmet")
-		if err == repositories.EntityNotFound {
+		if err == repositories.ErrEntityNotFound {
 			productLogger.WithError(err).Error(fmt.Sprintf("Could not find a product with manufacturer: %s, model: %s, type: %s",
 				product.Manufacturer,
 				product.Model,

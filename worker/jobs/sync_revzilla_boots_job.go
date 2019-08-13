@@ -22,7 +22,10 @@ type SyncRevzillaBootsJob struct {
 // Run executes the job
 func (j *SyncRevzillaBootsJob) Run() error {
 	updateCertsFunc := func(productToPersist *entities.Product, revzillaProduct *appEntities.RevzillaProduct) {
-		productToPersist.UpdateSingleZoneCertificationsByDescriptionParts(productToPersist.BootsCertifications.Overall, revzillaProduct.DescriptionParts)
+		updated, newZone := productToPersist.UpdateSingleZoneCertificationsByDescriptionParts(productToPersist.BootsCertifications.Overall, revzillaProduct.DescriptionParts)
+		if updated {
+			productToPersist.BootsCertifications.Overall = newZone
+		}
 		productToPersist.UpdateGenericSubtypeByDescriptionParts(revzillaProduct.DescriptionParts)
 	}
 

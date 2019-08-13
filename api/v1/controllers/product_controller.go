@@ -40,6 +40,7 @@ func (p *ProductController) CreateReview(context echo.Context) (err error) {
 	return context.NoContent(http.StatusOK)
 }
 
+// GetProductDetails returns all of the information about a specific product, formatted as a JSON document
 func (p *ProductController) GetProductDetails(context echo.Context) (err error) {
 	uuid := context.Param("uuid")
 	product, err := p.Repository.GetByUUID(uuid)
