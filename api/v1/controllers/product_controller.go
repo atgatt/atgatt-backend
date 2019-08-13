@@ -41,7 +41,7 @@ func (p *ProductController) CreateReview(context echo.Context) (err error) {
 }
 
 func (p *ProductController) GetProductDetails(context echo.Context) (err error) {
-	uuid := context.QueryParam("uuid")
+	uuid := context.Param("uuid")
 	product, err := p.Repository.GetByUUID(uuid)
 
 	if err != nil {
