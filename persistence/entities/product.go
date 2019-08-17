@@ -289,7 +289,7 @@ func (p *Product) getPantsSafetyPercentage() int {
 		}
 	}
 
-	if p.Materials == "leather" || p.Materials == "kevlar" {
+	if p.Materials == "leather" || p.Materials == "kevlar" || p.Materials == "covec" {
 		totalScore += float64(0.15)
 	}
 
