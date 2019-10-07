@@ -43,3 +43,5 @@ require (
 	gopkg.in/jdkato/prose.v2 v2.0.0-20180825173540-767a23049b9e
 	gopkg.in/neurosnap/sentences.v1 v1.0.6 // indirect
 )
+
+go 1.13
