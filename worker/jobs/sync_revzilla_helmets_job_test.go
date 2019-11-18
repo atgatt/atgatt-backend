@@ -26,6 +26,7 @@ func Test_sync_revzilla_data_should_sync_revzilla_data_for_discontinued_and_acti
 	Expect(activeAliasProduct.SearchPriceCents).To(BeNumerically(">", 0))
 	Expect(activeAliasProduct.RevzillaBuyURL).ToNot(BeEmpty())
 	Expect(activeAliasProduct.IsDiscontinued).To(BeFalse())
+	Expect(activeAliasProduct.Description).ToNot(BeEmpty())
 
 	activeNormalProduct, err := productRepository.GetByModel("Bell", "Star", "helmet")
 	Expect(err).To(BeNil())
@@ -33,6 +34,7 @@ func Test_sync_revzilla_data_should_sync_revzilla_data_for_discontinued_and_acti
 	Expect(activeNormalProduct.SearchPriceCents).To(BeNumerically(">", 0))
 	Expect(activeNormalProduct.RevzillaBuyURL).ToNot(BeEmpty())
 	Expect(activeNormalProduct.IsDiscontinued).To(BeFalse())
+	Expect(activeNormalProduct.Description).ToNot(BeEmpty())
 
 	/* TODO: renable test when discontinued logic improves
 	discontinuedProduct, err := productRepository.GetByModel("Shoei", "X-12", "helmet")
@@ -49,4 +51,5 @@ func Test_sync_revzilla_data_should_sync_revzilla_data_for_discontinued_and_acti
 	Expect(notFoundProduct.SearchPriceCents).To(Equal(0)) // make sure we didn't change the price for a nonexistent product
 	Expect(notFoundProduct.RevzillaBuyURL).To(BeEmpty())
 	Expect(notFoundProduct.IsDiscontinued).To(BeFalse()) // make sure we didn't mark a nonexistent product as discontinued
+	Expect(notFoundProduct.Description).To(BeEmpty())
 }

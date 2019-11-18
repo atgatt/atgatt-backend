@@ -238,7 +238,7 @@ func RunRevzillaImport(
 			} else {
 				productToPersist := &entities.Product{
 					OriginalImageURL:   revzillaProduct.ImageURL,
-					Description:        strings.Join(revzillaProduct.DescriptionParts, "\n"),
+					Description:        strings.Join(revzillaProduct.DescriptionParts, "<br \\>"),
 					Manufacturer:       revzillaProduct.Brand,
 					Model:              revzillaProduct.GetModel(),
 					RevzillaPriceCents: revzillaProduct.GetPriceCents(),
