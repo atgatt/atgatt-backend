@@ -225,7 +225,7 @@ func RunRevzillaImport(
 			existingProduct, err := productRepository.GetByExternalID(revzillaProduct.ID)
 			if err != nil {
 				productLogger.WithError(err).Error(fmt.Sprintf("Could not find a product with externalID: %v", revzillaProduct.ID))
-			} 
+			}
 
 			if existingProduct != nil {
 				existingProduct.RevzillaPriceCents = revzillaProduct.GetPriceCents()
@@ -238,6 +238,7 @@ func RunRevzillaImport(
 			} else {
 				productToPersist := &entities.Product{
 					OriginalImageURL:   revzillaProduct.ImageURL,
+					Description:        strings.Join(revzillaProduct.DescriptionParts, "\n"),
 					Manufacturer:       revzillaProduct.Brand,
 					Model:              revzillaProduct.GetModel(),
 					RevzillaPriceCents: revzillaProduct.GetPriceCents(),
