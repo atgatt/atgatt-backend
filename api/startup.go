@@ -108,7 +108,10 @@ func (s *Server) Bootstrap() {
 	allowedOrderFields["created_at_utc"] = true
 	allowedOrderFields["updated_at_utc"] = true
 	allowedOrderFields["id"] = true
-	productsController := &controllers.ProductController{Repository: &repositories.ProductRepository{DB: db}, AllowedOrderFields: allowedOrderFields}
+
+	productRepository := &repositories.ProductRepository{DB: db}
+	productsController := &controllers.ProductController{Repository: productRepository, AllowedOrderFields: allowedOrderFields}
+	productSetController := &controllers.ProductSetController{Repository: productRepository}
 	marketingController := &controllers.MarketingController{Repository: &repositories.MarketingRepository{DB: db}}
 
 	jwtMiddleware := middleware.JWTWithConfig(middleware.JWTConfig{
@@ -136,6 +139,7 @@ func (s *Server) Bootstrap() {
 	e.HEAD("/", healthCheckController.Healthcheck)
 	e.POST("/v1/products/filter", productsController.FilterProducts)
 	e.GET("/v1/products/:uuid", productsController.GetProductDetails)
+	e.POST("/v1/product-sets", productSetController.CreateProductSet)
 	e.POST("/v1/marketing/email", marketingController.CreateMarketingEmail)
 
 	// Endpoints requiring JWT authentication

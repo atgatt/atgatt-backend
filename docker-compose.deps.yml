@@ -1,0 +1,11 @@
+version: '3'
+services:
+  postgres:
+    image: postgres:11.2-alpine
+    container_name: crashtested-postgres
+    environment:
+      - POSTGRES_DB=crashtested
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    ports:
+      - 5432:5432
