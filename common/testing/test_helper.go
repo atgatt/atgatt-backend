@@ -53,7 +53,7 @@ func WaitForAPI(apiBaseURL string, maxTimeToWait time.Duration) error {
 // WaitForMigrations calls WaitFor to determine when migrations are done running
 func WaitForMigrations(testDbServerConnString, testDbName, testDbConnString, migrationsPath string, seedsSQLStatements []string, maxTimeToWait time.Duration) error {
 	return WaitFor("database", func() error {
-		dbServerConn, err := sql.Open("postgres", testDbServerConnString)
+		dbServerConn, err := sql.Open("pgx", testDbServerConnString)
 		if err != nil {
 			return err
 		}
@@ -74,7 +74,7 @@ func WaitForMigrations(testDbServerConnString, testDbName, testDbConnString, mig
 		}
 		logrus.Info("Running seeds...")
 
-		dbConn, err := sqlx.Open("postgres", testDbConnString)
+		dbConn, err := sqlx.Open("pgx", testDbConnString)
 		if err != nil {
 			return err
 		}

@@ -611,6 +611,18 @@ func Test_FilterProducts_should_be_able_to_order_by_id(t *testing.T) {
 	Expect(resp.StatusCode).To(Equal(http.StatusOK))
 }
 
+func Test_GetProductDetails_should_return_the_product_details_when_the_UUID_is_valid(t *testing.T) {
+	RegisterTestingT(t)
+
+	expectedProduct := seeds.GetProductSeeds()[0]
+
+	responseBody := &entities.Product{}
+	resp, err := httpHelpers.MakeJSONGETRequest(fmt.Sprintf("%s/v1/products/%s", APIBaseURL, expectedProduct.UUID.String()), responseBody)
+	Expect(err).To(BeNil())
+	Expect(resp.StatusCode).To(Equal(http.StatusOK))
+	Expect(responseBody).To(Equal(expectedProduct))
+}
+
 func Test_GetProductDetails_NotFound(t *testing.T) {
 	RegisterTestingT(t)
 

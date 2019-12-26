@@ -20,11 +20,12 @@ require (
 	github.com/google/uuid v1.1.1
 	github.com/goware/emailx v0.0.0-20171023230436-0bae9679d4e3
 	github.com/hashicorp/go-cleanhttp v0.5.0
+	github.com/jackc/pgx/v4 v4.1.2
 	github.com/jmoiron/sqlx v1.2.0
-	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
+	github.com/karrick/godirwalk v1.13.4 // indirect
 	github.com/labstack/echo/v4 v4.1.6
 	github.com/lestrrat-go/jwx v0.9.0
-	github.com/lib/pq v1.0.0
+	github.com/lib/pq v1.3.0 // indirect
 	github.com/mattn/go-sqlite3 v1.10.0 // indirect
 	github.com/mingrammer/commonregex v1.0.0 // indirect
 	github.com/montanaflynn/stats v0.5.0 // indirect
@@ -33,7 +34,8 @@ require (
 	github.com/remeh/sizedwaitgroup v0.0.0-20180822144253-5e7302b12cce
 	github.com/rogpeppe/go-internal v1.2.2 // indirect
 	github.com/rubenv/sql-migrate v0.0.0-20190212093014-1007f53448d7
-	github.com/sirupsen/logrus v1.3.0
+	github.com/sirupsen/logrus v1.4.2
+	github.com/uudashr/gopkgs v2.0.1+incompatible // indirect
 	github.com/xrash/smetrics v0.0.0-20170218160415-a3153f7040e9
 	github.com/ziutek/mymysql v1.5.4 // indirect
 	golang.org/x/exp v0.0.0-20190301171323-01c40f57f5f6 // indirect

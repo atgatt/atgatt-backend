@@ -22,8 +22,10 @@ func getOneProductFromRows(rows *sqlx.Rows) (*entities.Product, error) {
 	productDocuments := []*entities.Product{}
 	for rows.Next() {
 		productJSONBytesPtr := &[]byte{}
+
+		productID := new(int)
 		productDocument := &entities.Product{}
-		err := rows.Scan(productJSONBytesPtr)
+		err := rows.Scan(productID, productJSONBytesPtr)
 		if err != nil {
 			return nil, err
 		}
@@ -31,6 +33,8 @@ func getOneProductFromRows(rows *sqlx.Rows) (*entities.Product, error) {
 		if err != nil {
 			return nil, err
 		}
+
+		productDocument.ID = *productID
 		productDocuments = append(productDocuments, productDocument)
 	}
 
@@ -47,7 +51,7 @@ func getOneProductFromRows(rows *sqlx.Rows) (*entities.Product, error) {
 
 // GetByExternalID returns a single product where the external ID matches
 func (r *ProductRepository) GetByExternalID(externalID string) (*entities.Product, error) {
-	rows, err := r.DB.NamedQuery("select document from products where document->>'externalID' = :externalID", map[string]interface{}{
+	rows, err := r.DB.NamedQuery("select id, document from products where document->>'externalID' = :externalID", map[string]interface{}{
 		"externalID": externalID,
 	})
 	if err != nil {
@@ -59,7 +63,7 @@ func (r *ProductRepository) GetByExternalID(externalID string) (*entities.Produc
 
 // GetByUUID returns a single product where the UUID matches
 func (r *ProductRepository) GetByUUID(uuid string) (*entities.Product, error) {
-	rows, err := r.DB.NamedQuery("select document from products where document->>'uuid' = :uuid", map[string]interface{}{
+	rows, err := r.DB.NamedQuery("select id, document from products where document->>'uuid' = :uuid", map[string]interface{}{
 		"uuid": uuid,
 	})
 	if err != nil {
@@ -71,7 +75,7 @@ func (r *ProductRepository) GetByUUID(uuid string) (*entities.Product, error) {
 
 // GetByModel returns a single product where the manufacturer and model matches
 func (r *ProductRepository) GetByModel(manufacturer string, model string, productType string) (*entities.Product, error) {
-	rows, err := r.DB.NamedQuery("select document from products where document->>'manufacturer' = :manufacturer and document->>'model' = :model and document->>'type' = :type", map[string]interface{}{
+	rows, err := r.DB.NamedQuery("select id, document from products where document->>'manufacturer' = :manufacturer and document->>'model' = :model and document->>'type' = :type", map[string]interface{}{
 		"manufacturer": manufacturer,
 		"model":        model,
 		"type":         productType,

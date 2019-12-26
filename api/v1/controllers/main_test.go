@@ -12,7 +12,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	_ "github.com/lib/pq"
+	_ "github.com/jackc/pgx/v4/stdlib"
 )
 
 const APIBaseURL string = "http://localhost:5001"

@@ -27,3 +27,6 @@ tmp
 
 # EB CLI virtualenv
 venv
+
+# Sandbox
+cmd/sandbox

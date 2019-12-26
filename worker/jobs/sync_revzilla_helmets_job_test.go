@@ -8,7 +8,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 
-	_ "github.com/lib/pq"
+	_ "github.com/jackc/pgx/v4/stdlib"
 	. "github.com/onsi/gomega"
 )
 
@@ -19,7 +19,7 @@ func Test_sync_revzilla_data_should_sync_revzilla_data_for_discontinued_and_acti
 	Expect(err).To(BeNil())
 	Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
-	productRepository := &repositories.ProductRepository{DB: sqlx.MustOpen("postgres", TestDatabaseConnectionString)}
+	productRepository := &repositories.ProductRepository{DB: sqlx.MustOpen("pgx", TestDatabaseConnectionString)}
 	activeAliasProduct, err := productRepository.GetByModel("Shoei", "X Spirit lll", "helmet")
 	Expect(err).To(BeNil())
 	Expect(activeAliasProduct).ToNot(BeNil())

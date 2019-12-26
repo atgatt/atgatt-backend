@@ -18,7 +18,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 
-	_ "github.com/lib/pq"
+	_ "github.com/jackc/pgx/v4/stdlib"
 	. "github.com/onsi/gomega"
 )
 
@@ -44,7 +44,7 @@ func (r *mockRevzillaClient) SetOverviewsHTML(htmlFilePath string) {
 
 func Test_Run_should_create_all_new_jackets_if_none_exist(t *testing.T) {
 	RegisterTestingT(t)
-	productRepository := &repositories.ProductRepository{DB: sqlx.MustConnect("postgres", TestDatabaseConnectionString)}
+	productRepository := &repositories.ProductRepository{DB: sqlx.MustConnect("pgx", TestDatabaseConnectionString)}
 	sess := session.Must(session.NewSession(&aws.Config{
 		Region:      aws.String("us-west-2"),
 		Credentials: credentials.NewEnvCredentials(),

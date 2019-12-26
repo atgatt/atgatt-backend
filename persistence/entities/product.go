@@ -11,6 +11,7 @@ import (
 
 // Product represents a safety product such as a motorcycle helmet, jacket, etc. It contains the price of the product, certifications, etc.
 type Product struct {
+	ID                   int                  `json:"-"`
 	UUID                 uuid.UUID            `json:"uuid"`
 	ExternalID           string               `json:"externalID"`
 	Type                 string               `json:"type"`

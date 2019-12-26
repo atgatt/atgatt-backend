@@ -26,7 +26,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	// Importing the PostgreSQL driver with side effects because we need to call sql.Open() to run queries
-	_ "github.com/lib/pq"
+	_ "github.com/jackc/pgx/v4/stdlib"
 )
 
 // Server contains the bootstrapping code for the worker
@@ -85,7 +85,7 @@ func (s *Server) Bootstrap() {
 
 	s3Uploader := s3manager.NewUploader(sess)
 
-	db, err := sqlx.Open("postgres", config.DatabaseConnectionString)
+	db, err := sqlx.Open("pgx", config.DatabaseConnectionString)
 	if err != nil {
 		logrus.WithError(err).Error("Encountered an error while opening a database connection")
 		os.Exit(-1)

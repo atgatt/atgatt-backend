@@ -3,6 +3,7 @@ package api
 import (
 	"crashtested-backend/api/settings"
 	"crashtested-backend/api/v1/controllers"
+	"crashtested-backend/application/services"
 	helpers "crashtested-backend/common/auth"
 	persistenceHelpers "crashtested-backend/persistence/helpers"
 	"crashtested-backend/persistence/repositories"
@@ -19,7 +20,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	// Importing the PostgreSQL driver with side effects because we need to call sql.Open() to run queries
-	_ "github.com/lib/pq"
+	_ "github.com/jackc/pgx/v4/stdlib"
 )
 
 // Server contains the bootstrapping code for the API
@@ -92,7 +93,7 @@ func (s *Server) Bootstrap() {
 		logrus.WithError(err).Error("Failed to run migrations, but starting the app anyway")
 	}
 
-	db, err := sqlx.Open("postgres", s.Settings.DatabaseConnectionString)
+	db, err := sqlx.Open("pgx", s.Settings.DatabaseConnectionString)
 	if err != nil {
 		logrus.WithError(err).Fatal("Failed to start the API because the database connection could not be established")
 		os.Exit(-1)
@@ -110,8 +111,10 @@ func (s *Server) Bootstrap() {
 	allowedOrderFields["id"] = true
 
 	productRepository := &repositories.ProductRepository{DB: db}
+	productSetRepository := &repositories.ProductSetRepository{DB: db}
+
 	productsController := &controllers.ProductController{Repository: productRepository, AllowedOrderFields: allowedOrderFields}
-	productSetController := &controllers.ProductSetController{Repository: productRepository}
+	productSetController := &controllers.ProductSetController{Service: &services.ProductSetService{ProductRepository: productRepository, ProductSetRepository: productSetRepository}}
 	marketingController := &controllers.MarketingController{Repository: &repositories.MarketingRepository{DB: db}}
 
 	jwtMiddleware := middleware.JWTWithConfig(middleware.JWTConfig{
@@ -140,10 +143,11 @@ func (s *Server) Bootstrap() {
 	e.POST("/v1/products/filter", productsController.FilterProducts)
 	e.GET("/v1/products/:uuid", productsController.GetProductDetails)
 	e.POST("/v1/product-sets", productSetController.CreateProductSet)
+	e.GET("/v1/product-sets/:uuid", productSetController.GetProductSetDetails)
 	e.POST("/v1/marketing/email", marketingController.CreateMarketingEmail)
 
 	// Endpoints requiring JWT authentication
-	e.POST("/v1/products/:id/review", productsController.CreateReview, jwtMiddleware)
+	e.POST("/v1/products/:id/reviews", productsController.CreateReview, jwtMiddleware)
 
 	err = e.Start(s.Port)
 	if err != nil {
