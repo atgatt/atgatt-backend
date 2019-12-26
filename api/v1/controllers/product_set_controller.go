@@ -41,7 +41,7 @@ func (p *ProductSetController) GetProductSetDetails(context echo.Context) (err e
 		return err
 	}
 
-	productSet, err := p.Repository.GetProductSetWithProductsByUUID(productSetID)
+	productSet, err := p.Repository.GetProductSetProductsByUUID(productSetID)
 	if err != nil {
 		return err
 	}

@@ -32,5 +32,5 @@ func Test_CreateProductSet_should_create_a_ProductSet_with_all_products_defined_
 	Expect(err).To(BeNil())
 	Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
-	Expect(getResponseBody.HelmetProduct).To(Not(BeNil()))
+	Expect(getResponseBody.HelmetProduct).To(Equal(mockProduct))
 }

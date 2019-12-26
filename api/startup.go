@@ -114,7 +114,7 @@ func (s *Server) Bootstrap() {
 	productSetRepository := &repositories.ProductSetRepository{DB: db}
 
 	productsController := &controllers.ProductController{Repository: productRepository, AllowedOrderFields: allowedOrderFields}
-	productSetController := &controllers.ProductSetController{Service: &services.ProductSetService{ProductRepository: productRepository, ProductSetRepository: productSetRepository}}
+	productSetController := &controllers.ProductSetController{Service: &services.ProductSetService{ProductRepository: productRepository, ProductSetRepository: productSetRepository}, Repository: productSetRepository}
 	marketingController := &controllers.MarketingController{Repository: &repositories.MarketingRepository{DB: db}}
 
 	jwtMiddleware := middleware.JWTWithConfig(middleware.JWTConfig{

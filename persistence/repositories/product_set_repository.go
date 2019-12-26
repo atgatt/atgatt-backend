@@ -1,7 +1,9 @@
 package repositories
 
 import (
+	"crashtested-backend/persistence/dtos"
 	"crashtested-backend/persistence/entities"
+	"encoding/json"
 	"errors"
 
 	"github.com/google/uuid"
@@ -62,14 +64,29 @@ func getOneProductSetFromRows(rows *sqlx.Rows) (*entities.ProductSet, error) {
 	return productSets[0], nil
 }
 
-// GetProductSetWithProductsByUUID gets all of the given products for a product set
-func (r *ProductSetRepository) GetProductSetWithProductsByUUID(uuid uuid.UUID) (*entities.ProductSet, error) {
+func jsonBytesToProduct(jsonBytes []byte) (*entities.Product, error) {
+	if len(jsonBytes) == 0 {
+		return nil, nil
+	}
+
+	product := &entities.Product{}
+	err := json.Unmarshal(jsonBytes, product)
+	if err != nil {
+		return nil, err
+	}
+
+	return product, nil
+}
+
+// GetProductSetProductsByUUID gets all of the given products for the given product set UUID
+func (r *ProductSetRepository) GetProductSetProductsByUUID(uuidToFind uuid.UUID) (*dtos.ProductSetProductsDTO, error) {
 	rows, err := r.DB.NamedQuery(`select 
-								phelmet.document helmetProduct, 
-								pjacket.document jacketProduct, 
-								ppants.document pantsProduct,
-								pboots.document bootsProduct, 
-								pgloves.document glovesProduct
+								ps.uuid,
+								phelmet.document, 
+								pjacket.document, 
+								ppants.document,
+								pboots.document, 
+								pgloves.document
 							from product_sets ps
 							left join products phelmet on phelmet.id = ps.helmet_product_id 
 							left join products pjacket on pjacket.id = ps.jacket_product_id
@@ -77,14 +94,75 @@ func (r *ProductSetRepository) GetProductSetWithProductsByUUID(uuid uuid.UUID) (
 							left join products pboots on pboots.id = ps.boots_product_id
 							left join products pgloves on pgloves.id = ps.gloves_product_id
 							where ps.uuid = :uuid`, map[string]interface{}{
-		"uuid": uuid,
+		"uuid": uuidToFind,
 	})
 
 	if err != nil {
 		return nil, err
 	}
 
-	return getOneProductSetFromRows(rows)
+	defer rows.Close()
+
+	productSets := []*dtos.ProductSetProductsDTO{}
+	for rows.Next() {
+
+		var uuidFound uuid.UUID
+
+		helmetProductJSONBytes := []byte{}
+		jacketProductJSONBytes := []byte{}
+		pantsProductJSONBytes := []byte{}
+		bootsProductJSONBytes := []byte{}
+		glovesProductJSONBytes := []byte{}
+
+		err := rows.Scan(&uuidFound, &helmetProductJSONBytes, &jacketProductJSONBytes, &pantsProductJSONBytes, &bootsProductJSONBytes, &glovesProductJSONBytes)
+		if err != nil {
+			return nil, err
+		}
+
+		helmetProduct, err := jsonBytesToProduct(helmetProductJSONBytes)
+		if err != nil {
+			return nil, err
+		}
+
+		jacketProduct, err := jsonBytesToProduct(jacketProductJSONBytes)
+		if err != nil {
+			return nil, err
+		}
+
+		pantsProduct, err := jsonBytesToProduct(pantsProductJSONBytes)
+		if err != nil {
+			return nil, err
+		}
+
+		bootsProduct, err := jsonBytesToProduct(bootsProductJSONBytes)
+		if err != nil {
+			return nil, err
+		}
+
+		glovesProduct, err := jsonBytesToProduct(glovesProductJSONBytes)
+		if err != nil {
+			return nil, err
+		}
+
+		productSets = append(productSets, &dtos.ProductSetProductsDTO{
+			UUID:          uuidFound,
+			HelmetProduct: helmetProduct,
+			JacketProduct: jacketProduct,
+			PantsProduct:  pantsProduct,
+			BootsProduct:  bootsProduct,
+			GlovesProduct: glovesProduct,
+		})
+	}
+
+	if len(productSets) == 0 {
+		return nil, ErrEntityNotFound
+	}
+
+	if len(productSets) > 1 {
+		return nil, errors.New("An unexpected number of product sets were returned")
+	}
+
+	return productSets[0], nil
 }
 
 // GetByUUID gets the given productset by its UUID or returns null if one was not found.
