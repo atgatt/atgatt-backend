@@ -131,6 +131,46 @@ func applySeedDataToJacket(i int, product *entities.Product) {
 	}
 }
 
+func applySeedDataToPants(i int, product *entities.Product) {
+	product.RevzillaPriceCents = product.MSRPCents + 10000
+	product.RevzillaBuyURL = fmt.Sprintf("http://www.testdata.com/revzilla/%d", i)
+	if i%2 == 0 {
+		level2Zone := &entities.CEImpactZone{IsLevel2: true, IsApproved: true, IsEmpty: false}
+		product.PantsCertifications.Hip = level2Zone
+		product.PantsCertifications.Knee = level2Zone
+		product.PantsCertifications.Tailbone = level2Zone
+	} else if i%3 == 0 {
+		level1Zone := &entities.CEImpactZone{IsLevel2: false, IsApproved: false, IsEmpty: false}
+		product.PantsCertifications.Hip = level1Zone
+		product.PantsCertifications.Knee = level1Zone
+		product.PantsCertifications.Tailbone = level1Zone
+	}
+}
+
+func applySeedDataToBoots(i int, product *entities.Product) {
+	product.RevzillaPriceCents = product.MSRPCents + 10000
+	product.RevzillaBuyURL = fmt.Sprintf("http://www.testdata.com/revzilla/%d", i)
+	if i%2 == 0 {
+		level2Zone := &entities.CEImpactZone{IsLevel2: true, IsApproved: true, IsEmpty: false}
+		product.BootsCertifications.Overall = level2Zone
+	} else if i%3 == 0 {
+		level1Zone := &entities.CEImpactZone{IsLevel2: false, IsApproved: false, IsEmpty: false}
+		product.BootsCertifications.Overall = level1Zone
+	}
+}
+
+func applySeedDataToGloves(i int, product *entities.Product) {
+	product.RevzillaPriceCents = product.MSRPCents + 10000
+	product.RevzillaBuyURL = fmt.Sprintf("http://www.testdata.com/revzilla/%d", i)
+	if i%2 == 0 {
+		level2Zone := &entities.CEImpactZone{IsLevel2: true, IsApproved: true, IsEmpty: false}
+		product.GlovesCertifications.Overall = level2Zone
+	} else if i%3 == 0 {
+		level1Zone := &entities.CEImpactZone{IsLevel2: false, IsApproved: false, IsEmpty: false}
+		product.GlovesCertifications.Overall = level1Zone
+	}
+}
+
 // GetProductSeeds returns a sample list of product documents; these documents are used by GetProductSeedsSQLStatements() to seed the database with test data.
 func GetProductSeeds() []*entities.Product {
 	modelAliases := []*entities.ProductModelAlias{
@@ -169,6 +209,12 @@ func GetProductSeeds() []*entities.Product {
 		{UUID: uuid.MustParse("5e2398ff-5a08-40bc-9eaa-4b3c3de93475"), ImageKey: mockHelmetImageURL, Manufacturer: "JacketManu1", Model: "Facturer1", MSRPCents: 59999, Type: "jacket", Subtype: "", SafetyPercentage: 1},
 		{UUID: uuid.MustParse("1d5f5500-b64f-4ca4-81fd-a2f4bad6bc72"), ImageKey: mockHelmetImageURL, Manufacturer: "JacketManu2", Model: "Facturer2", MSRPCents: 69999, Type: "jacket", Subtype: "", SafetyPercentage: 2},
 		{UUID: uuid.MustParse("65f61bf4-9098-4c13-b8ab-926943f6fd49"), ImageKey: mockHelmetImageURL, Manufacturer: "JacketManu3", Model: "Facturer3", MSRPCents: 79999, Type: "jacket", Subtype: "", SafetyPercentage: 3},
+		{UUID: uuid.MustParse("645f7e82-a19f-466d-9c34-bcb45018d1d5"), ImageKey: mockHelmetImageURL, Manufacturer: "PantsManu4", Model: "Facturer4", MSRPCents: 89999, Type: "pants", Subtype: "", SafetyPercentage: 4},
+		{UUID: uuid.MustParse("0887a04b-0cbc-4946-8ee6-7fcf95fbfc6d"), ImageKey: mockHelmetImageURL, Manufacturer: "PantsManu5", Model: "Facturer5", MSRPCents: 89999, Type: "pants", Subtype: "", SafetyPercentage: 5},
+		{UUID: uuid.MustParse("4912ed04-043b-45d5-8ccd-a98437573953"), ImageKey: mockHelmetImageURL, Manufacturer: "BootsManu6", Model: "Facturer6", MSRPCents: 99998, Type: "boots", Subtype: "", SafetyPercentage: 6},
+		{UUID: uuid.MustParse("8e798a63-a556-4ee6-b09f-0d68bf605505"), ImageKey: mockHelmetImageURL, Manufacturer: "BootsManu7", Model: "Facturer7", MSRPCents: 99997, Type: "boots", Subtype: "", SafetyPercentage: 7},
+		{UUID: uuid.MustParse("d0842709-3dcc-43df-993f-52fc1c3f7cd6"), ImageKey: mockHelmetImageURL, Manufacturer: "GlovesManu8", Model: "Facturer8", MSRPCents: 109999, Type: "gloves", Subtype: "", SafetyPercentage: 8},
+		{UUID: uuid.MustParse("36de7153-9960-46df-a5eb-66f6e34123e1"), ImageKey: mockHelmetImageURL, Manufacturer: "GlovesManu9", Model: "Facturer9", MSRPCents: 119999, Type: "gloves", Subtype: "", SafetyPercentage: 9},
 		emptyJacket,
 	}
 
@@ -177,6 +223,12 @@ func GetProductSeeds() []*entities.Product {
 			applySeedDataToHelmet(i, seeds[i])
 		} else if seeds[i].Type == "jacket" {
 			applySeedDataToJacket(i, seeds[i])
+		} else if seeds[i].Type == "pants" {
+			applySeedDataToPants(i, seeds[i])
+		} else if seeds[i].Type == "boots" {
+			applySeedDataToBoots(i, seeds[i])
+		} else if seeds[i].Type == "gloves" {
+			applySeedDataToGloves(i, seeds[i])
 		}
 
 		seeds[i].UpdateSearchPrice()

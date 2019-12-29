@@ -38,7 +38,7 @@ func (p *ProductSetController) GetProductSetDetails(context echo.Context) (err e
 	uuidString := context.Param("uuid")
 	productSetID, err := uuid.Parse(uuidString)
 	if err != nil {
-		return err
+		return context.NoContent(http.StatusBadRequest)
 	}
 
 	productSet, err := p.Repository.GetProductSetProductsByUUID(productSetID)

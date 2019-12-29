@@ -46,7 +46,7 @@ func getOneProductSetFromRows(rows *sqlx.Rows) (*entities.ProductSet, error) {
 	productSets := []*entities.ProductSet{}
 	for rows.Next() {
 		productSet := &entities.ProductSet{}
-		err := rows.Scan(productSet)
+		err := rows.StructScan(productSet)
 		if err != nil {
 			return nil, err
 		}
@@ -167,7 +167,19 @@ func (r *ProductSetRepository) GetProductSetProductsByUUID(uuidToFind uuid.UUID)
 
 // GetByUUID gets the given productset by its UUID or returns null if one was not found.
 func (r *ProductSetRepository) GetByUUID(uuid uuid.UUID) (*entities.ProductSet, error) {
-	rows, err := r.DB.NamedQuery("select uuid, \"name\", description, helmet_product_id, jacket_product_id, pants_product_id, boots_product_id, gloves_product_id, created_at_utc, created_by from product_sets where uuid = :uuid", map[string]interface{}{
+	rows, err := r.DB.NamedQuery(`select 
+				id,
+				uuid, 
+				"name", 
+				description, 
+				helmet_product_id helmetProductID, 
+				jacket_product_id jacketProductID, 
+				pants_product_id pantsProductID, 
+				boots_product_id bootsProductID, 
+				gloves_product_id glovesProductID
+			from product_sets 
+			where uuid = :uuid
+		`, map[string]interface{}{
 		"uuid": uuid,
 	})
 

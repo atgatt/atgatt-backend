@@ -128,9 +128,9 @@ func (s *Server) Bootstrap() {
 	// Translate all persistence errors to the correct json response, leave the default behavior for all other internal errors
 	e.HTTPErrorHandler = func(err error, context echo.Context) {
 		if err == repositories.ErrEntityNotFound {
-			err = context.JSON(http.StatusNotFound, nil)
+			err = context.NoContent(http.StatusNotFound)
 			if err != nil {
-				logrus.WithError(err).Error("failed to send response")
+				logrus.WithError(err).Error("Failed to send response")
 			}
 		} else {
 			e.DefaultHTTPErrorHandler(err, context)

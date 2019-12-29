@@ -26,7 +26,7 @@ func Test_FilterProducts_should_return_all_of_the_products_data_when_the_limit_i
 	Expect(err).To(BeNil())
 	Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
-	Expect(*responseBody).To(BeEquivalentTo(seeds.GetProductSeeds()))
+	Expect(*responseBody).To(BeEquivalentTo(seeds.GetProductSeeds()[0:25]))
 }
 
 func Test_FilterProducts_should_only_return_jackets_data_when_the_limit_is_large_enough_and_the_type_is_set_to_jacket(t *testing.T) {
