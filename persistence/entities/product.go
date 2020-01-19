@@ -15,6 +15,7 @@ type Product struct {
 	UUID                 uuid.UUID            `json:"uuid"`
 	ExternalID           string               `json:"externalID"`
 	Type                 string               `json:"type"`
+	Description          string               `json:"description"`
 	Subtype              string               `json:"subtype"`
 	Manufacturer         string               `json:"manufacturer"`
 	Model                string               `json:"model"`

@@ -130,6 +130,7 @@ func (j *SyncRevzillaHelmetsJob) syncDataForProduct(pooledClient *http.Client, p
 			product.UpdateHelmetCertificationsByDescription(bestMatchRevzillaProduct.Description)
 			product.UpdateSearchPrice()
 			product.UpdateSafetyPercentage()
+			product.Description = bestMatchRevzillaProduct.Description
 			productLogger.WithFields(confidenceLogFields).Info("Set new price and buy URL from RevZilla")
 			err := j.ProductRepository.UpdateProduct(product)
 			if err != nil {
