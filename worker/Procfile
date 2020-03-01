@@ -1,1 +1,1 @@
-worker: ./crashtested-worker
+worker: ./atgatt-worker

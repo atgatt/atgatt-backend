@@ -1,8 +1,8 @@
 package repositories
 
 import (
-	"crashtested-backend/persistence/entities"
-	"crashtested-backend/persistence/queries"
+	"atgatt-backend/persistence/entities"
+	"atgatt-backend/persistence/queries"
 	"encoding/json"
 	"errors"
 	"fmt"

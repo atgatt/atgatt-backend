@@ -1,7 +1,7 @@
 package controllers_test
 
 import (
-	"crashtested-backend/api/v1/responses"
+	"atgatt-backend/api/v1/responses"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
@@ -24,7 +24,7 @@ func Test_Healthcheck_should_return_the_name_and_version_of_the_app_when_a_GET_r
 	json.Unmarshal(responseBodyBytes, healthCheckResponse)
 
 	Expect(healthCheckResponse).ToNot(BeNil())
-	Expect(healthCheckResponse.Name).To(Equal("crashtested-api"))
+	Expect(healthCheckResponse.Name).To(Equal("atgatt-api"))
 	Expect(healthCheckResponse.Version).To(Equal("integration-tests-version"))
 	Expect(healthCheckResponse.BuildNumber).To(Equal("integration-tests-build"))
 	Expect(healthCheckResponse.CommitHash).To(Equal("integration-tests-commit"))

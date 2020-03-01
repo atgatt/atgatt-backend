@@ -1,9 +1,9 @@
 package controllers_test
 
 import (
-	"crashtested-backend/api/v1/requests"
-	"crashtested-backend/api/v1/responses"
-	httpHelpers "crashtested-backend/common/http"
+	"atgatt-backend/api/v1/requests"
+	"atgatt-backend/api/v1/responses"
+	httpHelpers "atgatt-backend/common/http"
 	"fmt"
 	"net/http"
 	"testing"

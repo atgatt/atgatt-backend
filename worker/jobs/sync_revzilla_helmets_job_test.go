@@ -1,7 +1,7 @@
 package jobs_test
 
 import (
-	"crashtested-backend/persistence/repositories"
+	"atgatt-backend/persistence/repositories"
 	"net/http"
 	"strings"
 	"testing"

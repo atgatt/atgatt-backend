@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"crashtested-backend/api/v1/responses"
-	"crashtested-backend/persistence/repositories"
+	"atgatt-backend/api/v1/responses"
+	"atgatt-backend/persistence/repositories"
 	"net/http"
 
 	"github.com/labstack/echo/v4"

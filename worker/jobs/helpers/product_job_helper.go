@@ -1,12 +1,12 @@
 package helpers
 
 import (
-	"crashtested-backend/application/clients"
-	appEntities "crashtested-backend/application/entities"
-	s3Helpers "crashtested-backend/common/s3"
-	"crashtested-backend/common/text"
-	"crashtested-backend/persistence/entities"
-	"crashtested-backend/persistence/repositories"
+	"atgatt-backend/application/clients"
+	appEntities "atgatt-backend/application/entities"
+	s3Helpers "atgatt-backend/common/s3"
+	"atgatt-backend/common/text"
+	"atgatt-backend/persistence/entities"
+	"atgatt-backend/persistence/repositories"
 	"errors"
 	"fmt"
 	"strings"

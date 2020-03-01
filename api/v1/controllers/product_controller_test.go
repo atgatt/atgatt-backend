@@ -1,10 +1,10 @@
 package controllers_test
 
 import (
-	httpHelpers "crashtested-backend/common/http"
-	"crashtested-backend/persistence/entities"
-	"crashtested-backend/persistence/queries"
-	"crashtested-backend/seeds"
+	httpHelpers "atgatt-backend/common/http"
+	"atgatt-backend/persistence/entities"
+	"atgatt-backend/persistence/queries"
+	"atgatt-backend/seeds"
 	"fmt"
 	"net/http"
 	"strings"

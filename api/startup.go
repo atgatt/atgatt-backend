@@ -1,12 +1,12 @@
 package api
 
 import (
-	"crashtested-backend/api/settings"
-	"crashtested-backend/api/v1/controllers"
-	"crashtested-backend/application/services"
-	helpers "crashtested-backend/common/auth"
-	persistenceHelpers "crashtested-backend/persistence/helpers"
-	"crashtested-backend/persistence/repositories"
+	"atgatt-backend/api/settings"
+	"atgatt-backend/api/v1/controllers"
+	"atgatt-backend/application/services"
+	helpers "atgatt-backend/common/auth"
+	persistenceHelpers "atgatt-backend/persistence/helpers"
+	"atgatt-backend/persistence/repositories"
 	"fmt"
 	"net/http"
 	"os"
@@ -59,7 +59,7 @@ func (s *Server) Bootstrap() {
 
 	e.Use(logrusmiddleware.HookWithConfig(*config))
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: []string{"https://master.crashtested.co", "https://www.master.crashtested.co", "https://crashtested.co", "https://www.crashtested.co"},
+		AllowOrigins: []string{"https://master.atgatt.co", "https://www.master.atgatt.co", "https://atgatt.co", "https://www.atgatt.co"},
 	}))
 
 	err = validation.ValidateStruct(s.Settings,

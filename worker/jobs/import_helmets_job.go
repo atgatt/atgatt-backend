@@ -1,10 +1,10 @@
 package jobs
 
 import (
-	"crashtested-backend/application/parsers"
-	s3Helpers "crashtested-backend/common/s3"
-	"crashtested-backend/persistence/entities"
-	"crashtested-backend/persistence/repositories"
+	"atgatt-backend/application/parsers"
+	s3Helpers "atgatt-backend/common/s3"
+	"atgatt-backend/persistence/entities"
+	"atgatt-backend/persistence/repositories"
 	"fmt"
 	"math"
 	"strings"

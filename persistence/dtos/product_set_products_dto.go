@@ -1,7 +1,7 @@
 package dtos
 
 import (
-	"crashtested-backend/persistence/entities"
+	"atgatt-backend/persistence/entities"
 
 	"github.com/google/uuid"
 )

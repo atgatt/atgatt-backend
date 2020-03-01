@@ -1,7 +1,7 @@
 package entities
 
 import (
-	text "crashtested-backend/common/text"
+	text "atgatt-backend/common/text"
 	"fmt"
 	"strings"
 	"testing"

@@ -4,15 +4,15 @@ jobs:
     docker:
       - image: circleci/golang:1.13
         environment:
-          DATABASE_CONNECTION_STRING: postgres://postgres:password@localhost:5432/crashtested_integrationtests?sslmode=disable
+          DATABASE_CONNECTION_STRING: postgres://postgres:password@localhost:5432/atgatt_integrationtests?sslmode=disable
           APP_ENVIRONMENT: circleci
-          AUTH0_DOMAIN: crashtested-staging.auth0.com
+          AUTH0_DOMAIN: atgatt-staging.auth0.com
           AWS_S3_BUCKET: dummybucket
       - image: postgres:11.2-alpine
         environment:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: password
-          POSTGRES_DB: crashtested_integrationtests
+          POSTGRES_DB: atgatt_integrationtests
     steps:
       - checkout
       - run: sudo apt-get -y -qq install awscli python-pip
@@ -24,13 +24,13 @@ jobs:
       - run: sed -i "s/{LOCAL-DEV-COMMIT}/${CIRCLE_SHA1}/g" ./cmd/api/main.go
       - run: sed -i "s/{LOCAL-DEV-BUILD}/${CIRCLE_BUILD_NUM}/g" ./cmd/worker/main.go
       - run: sed -i "s/{LOCAL-DEV-COMMIT}/${CIRCLE_SHA1}/g" ./cmd/worker/main.go
-      - run: go build -o crashtested-api ./cmd/api
-      - run: go build -o crashtested-worker ./cmd/worker
+      - run: go build -o atgatt-api ./cmd/api
+      - run: go build -o atgatt-worker ./cmd/worker
       - run: go test -v ./...
       - run: cp ./api/Procfile ./Procfile
-      - run: zip -r api-artifacts.zip crashtested-api Procfile ./persistence/migrations/
+      - run: zip -r api-artifacts.zip atgatt-api Procfile ./persistence/migrations/
       - run: rm ./Procfile && cp ./worker/Procfile ./Procfile
-      - run: zip -r worker-artifacts.zip crashtested-worker cron.yaml Procfile ./persistence/migrations/
+      - run: zip -r worker-artifacts.zip atgatt-worker cron.yaml Procfile ./persistence/migrations/
       - run: mkdir -p workspace/artifacts
       - run: cp api-artifacts.zip workspace/artifacts
       - run: cp worker-artifacts.zip workspace/artifacts

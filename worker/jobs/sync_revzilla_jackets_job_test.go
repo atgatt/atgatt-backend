@@ -1,10 +1,10 @@
 package jobs_test
 
 import (
-	"crashtested-backend/application/clients"
-	"crashtested-backend/persistence/entities"
-	"crashtested-backend/persistence/repositories"
-	"crashtested-backend/worker/jobs"
+	"atgatt-backend/application/clients"
+	"atgatt-backend/persistence/entities"
+	"atgatt-backend/persistence/repositories"
+	"atgatt-backend/worker/jobs"
 	"io/ioutil"
 	"net/http"
 	"strings"

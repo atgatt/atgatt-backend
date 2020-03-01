@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"path"
 
-	httpHelpers "crashtested-backend/common/http"
+	httpHelpers "atgatt-backend/common/http"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager/s3manageriface"
 	"github.com/cenkalti/backoff"

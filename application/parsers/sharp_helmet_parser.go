@@ -1,8 +1,8 @@
 package parsers
 
 import (
-	httpHelpers "crashtested-backend/common/http"
-	"crashtested-backend/persistence/entities"
+	httpHelpers "atgatt-backend/common/http"
+	"atgatt-backend/persistence/entities"
 	"errors"
 	"fmt"
 	"math"

@@ -1,12 +1,12 @@
 package worker
 
 import (
-	"crashtested-backend/application/clients"
-	"crashtested-backend/application/parsers"
-	loggingHelpers "crashtested-backend/common/logging"
-	"crashtested-backend/persistence/repositories"
-	"crashtested-backend/worker/jobs"
-	"crashtested-backend/worker/settings"
+	"atgatt-backend/application/clients"
+	"atgatt-backend/application/parsers"
+	loggingHelpers "atgatt-backend/common/logging"
+	"atgatt-backend/persistence/repositories"
+	"atgatt-backend/worker/jobs"
+	"atgatt-backend/worker/settings"
 	"net/http"
 	"os"
 	"runtime"

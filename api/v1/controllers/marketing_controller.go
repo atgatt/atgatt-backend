@@ -1,9 +1,9 @@
 package controllers
 
 import (
-	"crashtested-backend/api/v1/requests"
-	"crashtested-backend/api/v1/responses"
-	"crashtested-backend/persistence/repositories"
+	"atgatt-backend/api/v1/requests"
+	"atgatt-backend/api/v1/responses"
+	"atgatt-backend/persistence/repositories"
 	"net/http"
 	"strings"
 

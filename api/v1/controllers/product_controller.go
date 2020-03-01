@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"crashtested-backend/persistence/queries"
-	"crashtested-backend/persistence/repositories"
+	"atgatt-backend/persistence/queries"
+	"atgatt-backend/persistence/repositories"
 	"net/http"
 
 	"github.com/labstack/echo/v4"

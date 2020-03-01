@@ -1,7 +1,7 @@
 package seeds
 
 import (
-	"crashtested-backend/persistence/entities"
+	"atgatt-backend/persistence/entities"
 	"encoding/json"
 	"fmt"
 

@@ -1,11 +1,11 @@
 package jobs
 
 import (
-	"crashtested-backend/application/clients"
-	appEntities "crashtested-backend/application/entities"
-	"crashtested-backend/persistence/entities"
-	"crashtested-backend/persistence/repositories"
-	"crashtested-backend/worker/jobs/helpers"
+	"atgatt-backend/application/clients"
+	appEntities "atgatt-backend/application/entities"
+	"atgatt-backend/persistence/entities"
+	"atgatt-backend/persistence/repositories"
+	"atgatt-backend/worker/jobs/helpers"
 
 	"github.com/aws/aws-sdk-go/service/s3/s3manager/s3manageriface"
 )

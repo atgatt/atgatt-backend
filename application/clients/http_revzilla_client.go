@@ -8,7 +8,7 @@ import (
 
 	"github.com/hashicorp/go-cleanhttp"
 
-	httpHelpers "crashtested-backend/common/http"
+	httpHelpers "atgatt-backend/common/http"
 )
 
 // HTTPRevzillaClient is a RevzillaClient that communicates with Revzilla.com over HTTP

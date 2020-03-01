@@ -1,8 +1,8 @@
 package repositories
 
 import (
-	"crashtested-backend/persistence/dtos"
-	"crashtested-backend/persistence/entities"
+	"atgatt-backend/persistence/dtos"
+	"atgatt-backend/persistence/entities"
 	"encoding/json"
 	"errors"
 

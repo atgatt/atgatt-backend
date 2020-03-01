@@ -1,7 +1,7 @@
 package testing
 
 import (
-	"crashtested-backend/persistence/repositories"
+	"atgatt-backend/persistence/repositories"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -10,7 +10,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 
-	persistenceHelpers "crashtested-backend/persistence/helpers"
+	persistenceHelpers "atgatt-backend/persistence/helpers"
 
 	"github.com/sirupsen/logrus"
 )

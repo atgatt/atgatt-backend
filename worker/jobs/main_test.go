@@ -1,11 +1,11 @@
 package jobs_test
 
 import (
-	testHelpers "crashtested-backend/common/testing"
+	testHelpers "atgatt-backend/common/testing"
 
-	"crashtested-backend/seeds"
-	"crashtested-backend/worker"
-	"crashtested-backend/worker/settings"
+	"atgatt-backend/seeds"
+	"atgatt-backend/worker"
+	"atgatt-backend/worker/settings"
 	"fmt"
 	"os"
 	"testing"
@@ -17,7 +17,7 @@ import (
 )
 
 const APIBaseURL string = "http://localhost:5002"
-const IntegrationTestDatabaseName string = "crashtested_integrationtests_worker"
+const IntegrationTestDatabaseName string = "atgatt_integrationtests_worker"
 const TestDatabaseServerConnectionString string = "postgres://postgres:password@localhost:5432/?sslmode=disable"
 const MaxTimeToWait time.Duration = 10 * time.Second
 
@@ -39,7 +39,7 @@ func TestMain(m *testing.M) {
 	defaultSettings.AppEnvironment = "integration-tests"
 	defaultSettings.UseSynchronousJobRunner = true
 
-	server := &worker.Server{Port: ":5002", Name: "crashtested-worker", Version: "integration-tests-version", BuildNumber: "integration-tests-build", CommitHash: "integration-tests-commit", Settings: defaultSettings}
+	server := &worker.Server{Port: ":5002", Name: "atgatt-worker", Version: "integration-tests-version", BuildNumber: "integration-tests-build", CommitHash: "integration-tests-commit", Settings: defaultSettings}
 	go server.Bootstrap()
 
 	apiErr := testHelpers.WaitForAPI(APIBaseURL, MaxTimeToWait)

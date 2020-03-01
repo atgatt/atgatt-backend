@@ -1,10 +1,10 @@
 package controllers
 
 import (
-	"crashtested-backend/api/v1/requests"
-	"crashtested-backend/api/v1/responses"
-	"crashtested-backend/application/services"
-	"crashtested-backend/persistence/repositories"
+	"atgatt-backend/api/v1/requests"
+	"atgatt-backend/api/v1/responses"
+	"atgatt-backend/application/services"
+	"atgatt-backend/persistence/repositories"
 	"net/http"
 
 	"github.com/google/uuid"

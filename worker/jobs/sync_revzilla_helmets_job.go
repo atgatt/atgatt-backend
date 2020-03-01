@@ -1,10 +1,10 @@
 package jobs
 
 import (
-	httpHelpers "crashtested-backend/common/http"
-	"crashtested-backend/persistence/entities"
-	"crashtested-backend/persistence/repositories"
-	"crashtested-backend/worker/jobs/helpers"
+	httpHelpers "atgatt-backend/common/http"
+	"atgatt-backend/persistence/entities"
+	"atgatt-backend/persistence/repositories"
+	"atgatt-backend/worker/jobs/helpers"
 	"encoding/xml"
 	"fmt"
 	"io/ioutil"

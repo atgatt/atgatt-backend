@@ -1,11 +1,11 @@
 package controllers_test
 
 import (
-	"crashtested-backend/api/v1/requests"
-	"crashtested-backend/api/v1/responses"
-	httpHelpers "crashtested-backend/common/http"
-	"crashtested-backend/persistence/entities"
-	"crashtested-backend/seeds"
+	"atgatt-backend/api/v1/requests"
+	"atgatt-backend/api/v1/responses"
+	httpHelpers "atgatt-backend/common/http"
+	"atgatt-backend/persistence/entities"
+	"atgatt-backend/seeds"
 	"fmt"
 	"net/http"
 	"testing"

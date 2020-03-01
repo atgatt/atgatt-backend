@@ -2,9 +2,9 @@ version: '3'
 services:
   postgres:
     image: postgres:11.2-alpine
-    container_name: crashtested-postgres
+    container_name: atgatt-postgres
     environment:
-      - POSTGRES_DB=crashtested
+      - POSTGRES_DB=atgatt
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=password
     ports:

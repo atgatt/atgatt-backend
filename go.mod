@@ -1,4 +1,4 @@
-module crashtested-backend
+module atgatt-backend
 
 require (
 	github.com/PuerkitoBio/goquery v1.5.0

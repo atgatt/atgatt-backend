@@ -1,7 +1,7 @@
 package parsers
 
 import (
-	"crashtested-backend/persistence/entities"
+	"atgatt-backend/persistence/entities"
 	"encoding/json"
 	"errors"
 	"io/ioutil"

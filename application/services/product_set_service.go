@@ -1,8 +1,8 @@
 package services
 
 import (
-	"crashtested-backend/persistence/entities"
-	"crashtested-backend/persistence/repositories"
+	"atgatt-backend/persistence/entities"
+	"atgatt-backend/persistence/repositories"
 
 	"github.com/google/uuid"
 )

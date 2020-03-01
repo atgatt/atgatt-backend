@@ -1,10 +1,10 @@
 package controllers_test
 
 import (
-	"crashtested-backend/api"
-	"crashtested-backend/api/settings"
-	testHelpers "crashtested-backend/common/testing"
-	"crashtested-backend/seeds"
+	"atgatt-backend/api"
+	"atgatt-backend/api/settings"
+	testHelpers "atgatt-backend/common/testing"
+	"atgatt-backend/seeds"
 	"fmt"
 	"os"
 	"testing"
@@ -16,7 +16,7 @@ import (
 )
 
 const APIBaseURL string = "http://localhost:5001"
-const IntegrationTestDatabaseName string = "crashtested_integrationtests"
+const IntegrationTestDatabaseName string = "atgatt_integrationtests"
 const TestDatabaseServerConnectionString string = "postgres://postgres:password@localhost:5432/?sslmode=disable"
 const MaxTimeToWait time.Duration = 10 * time.Second
 
@@ -38,8 +38,8 @@ func TestMain(m *testing.M) {
 	defaultSettings.DatabaseConnectionString = TestDatabaseConnectionString
 	defaultSettings.AppEnvironment = "integration-tests"
 	defaultSettings.LogAPIRequests = false
-	defaultSettings.Auth0Domain = "crashtested-staging.auth0.com"
-	server := api.Server{Port: ":5001", Name: "crashtested-api", Version: "integration-tests-version", BuildNumber: "integration-tests-build", CommitHash: "integration-tests-commit", Settings: defaultSettings}
+	defaultSettings.Auth0Domain = "atgatt-staging.auth0.com"
+	server := api.Server{Port: ":5001", Name: "atgatt-api", Version: "integration-tests-version", BuildNumber: "integration-tests-build", CommitHash: "integration-tests-commit", Settings: defaultSettings}
 	go server.Bootstrap()
 
 	apiErr := testHelpers.WaitForAPI(APIBaseURL, MaxTimeToWait)
