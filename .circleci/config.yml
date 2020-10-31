@@ -16,6 +16,7 @@ jobs:
     steps:
       - checkout
       - run: sudo apt-get -y -qq install awscli python3-pip
+      - run: pip3 install --upgrade awscli
       - run: pip3 install awsebcli --upgrade --user
       - run: echo 'export PATH=$PATH:~/.local/bin' >> $BASH_ENV
       - run: source ~/.bashrc
@@ -50,6 +51,7 @@ jobs:
       - attach_workspace:
           at: workspace
       - run: sudo apt-get -y -qq install awscli python3-pip
+      - run: pip3 install --upgrade awscli
       - run: pip3 install awsebcli --upgrade --user
       - run: echo 'export PATH=$PATH:~/.local/bin' >> $BASH_ENV
       - run: source ~/.bashrc
@@ -68,6 +70,7 @@ jobs:
       - attach_workspace:
           at: workspace
       - run: sudo apt-get -y -qq install awscli python3-pip
+      - run: pip3 install --upgrade awscli
       - run: pip3 install awsebcli --upgrade --user
       - run: echo 'export PATH=$PATH:~/.local/bin' >> $BASH_ENV
       - run: source ~/.bashrc
