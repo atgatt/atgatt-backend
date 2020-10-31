@@ -1,7 +1,7 @@
 # atgatt-backend
 Monorepo for all of the ATGATT backend services (API, background jobs, etc.)
 
-[![atgatt](https://circleci.com/gh/atgatt/atgatt-backend.svg?style=svg&circle-token=9060018279620b67051bdc70c5cc269ee2422fa9)](https://circleci.com/gh/atgatt/atgatt-backend)
+[![atgatt](https://circleci.com/gh/atgatt/atgatt-backend.svg?style=shield&circle-token=9060018279620b67051bdc70c5cc269ee2422fa9)](https://circleci.com/gh/atgatt/atgatt-backend)
 
 ## First-time setup
 1. Clone this repository to your local machine in some directory i.e. `~/dev/atgatt-backend`
