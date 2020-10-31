@@ -16,7 +16,7 @@ jobs:
     steps:
       - checkout
       - run: sudo apt-get -y -qq install awscli python3-pip
-      - run: pip install awsebcli --upgrade --user
+      - run: pip3 install awsebcli --upgrade --user
       - run: echo 'export PATH=$PATH:~/.local/bin' >> $BASH_ENV
       - run: source ~/.bashrc
       - run: chmod +x ./scripts/setup_aws_credentials.sh && ./scripts/setup_aws_credentials.sh
@@ -50,7 +50,7 @@ jobs:
       - attach_workspace:
           at: workspace
       - run: sudo apt-get -y -qq install awscli python3-pip
-      - run: pip install awsebcli --upgrade --user
+      - run: pip3 install awsebcli --upgrade --user
       - run: echo 'export PATH=$PATH:~/.local/bin' >> $BASH_ENV
       - run: source ~/.bashrc
       - run: chmod +x ./scripts/setup_aws_credentials.sh && ./scripts/setup_aws_credentials.sh
@@ -68,7 +68,7 @@ jobs:
       - attach_workspace:
           at: workspace
       - run: sudo apt-get -y -qq install awscli python3-pip
-      - run: pip install awsebcli --upgrade --user
+      - run: pip3 install awsebcli --upgrade --user
       - run: echo 'export PATH=$PATH:~/.local/bin' >> $BASH_ENV
       - run: source ~/.bashrc
       - run: chmod +x ./scripts/setup_aws_credentials.sh && ./scripts/setup_aws_credentials.sh
