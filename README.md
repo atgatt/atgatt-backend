@@ -7,8 +7,8 @@ Monorepo for all of the ATGATT backend services (web API, bg jobs, etc.)
 1. Clone this repository to your local machine in some directory i.e. `~/dev/atgatt-backend`
 1. Install VS Code via https://code.visualstudio.com/ 
 1. In VS Code, install the `Go` extension to get code completion and other nice things
-1. Install Go 1.13.x via https://golang.org/dl/
-1. Install Postgres 11.2 via https://www.postgresql.org/download/
+1. Install Go 1.15.x via https://golang.org/dl/
+1. Ensure Postgres 11.8 is running locally via `docker-compose -f docker-compose.deps.yml up -d` or manually via https://www.postgresql.org/download/
 1. Install sql-migrate by running `go get -v github.com/rubenv/sql-migrate/...`
 1. Optionally, install Air for live reload support via https://github.com/cosmtrek/air#installation
 

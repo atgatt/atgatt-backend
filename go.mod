@@ -22,7 +22,6 @@ require (
 	github.com/hashicorp/go-cleanhttp v0.5.0
 	github.com/jackc/pgx/v4 v4.1.2
 	github.com/jmoiron/sqlx v1.2.0
-	github.com/karrick/godirwalk v1.13.4 // indirect
 	github.com/labstack/echo/v4 v4.1.6
 	github.com/lestrrat-go/jwx v0.9.0
 	github.com/lib/pq v1.3.0 // indirect
@@ -35,7 +34,6 @@ require (
 	github.com/rogpeppe/go-internal v1.2.2 // indirect
 	github.com/rubenv/sql-migrate v0.0.0-20190212093014-1007f53448d7
 	github.com/sirupsen/logrus v1.4.2
-	github.com/uudashr/gopkgs v2.0.1+incompatible // indirect
 	github.com/xrash/smetrics v0.0.0-20170218160415-a3153f7040e9
 	github.com/ziutek/mymysql v1.5.4 // indirect
 	golang.org/x/exp v0.0.0-20190301171323-01c40f57f5f6 // indirect
@@ -46,4 +44,4 @@ require (
 	gopkg.in/neurosnap/sentences.v1 v1.0.6 // indirect
 )
 
-go 1.13
+go 1.15
