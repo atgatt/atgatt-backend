@@ -5,11 +5,10 @@ import (
 	"atgatt-backend/persistence/entities"
 	"atgatt-backend/persistence/repositories"
 	"atgatt-backend/worker/jobs/helpers"
-	"encoding/xml"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"net/url"
 	"strings"
 	"time"
 
@@ -37,55 +36,130 @@ func (j *SyncRevzillaHelmetsJob) Run() error {
 			return modelAlias.ModelAlias
 		}).ToSlice(&modelAliasStrings)
 		modelsToTry = append(modelsToTry, modelAliasStrings...)
+		var highestConfidenceProductMatch *productMatch = nil
 		for _, modelToTry := range modelsToTry {
-			// Adding a delay because CJ has an absurdly low threshold for requests per minute
-			time.Sleep(3 * time.Second)
-			synced, err := j.syncDataForProduct(pooledClient, product, modelToTry, productLogger)
+			currProductMatch, err := j.getBestMatchForProduct(pooledClient, product, modelToTry, productLogger)
 			if err != nil {
 				return err
 			}
 
-			if synced {
-				productLogger.Info("Successfully synced product")
-				return nil
+			if currProductMatch == nil {
+				continue
+			}
+
+			if highestConfidenceProductMatch == nil || (highestConfidenceProductMatch.ConfidenceScore < currProductMatch.ConfidenceScore) {
+				highestConfidenceProductMatch = currProductMatch
 			}
 		}
 
-		productLogger.Info("Could not find a matching product on revzilla, continuing to the next product")
+		if highestConfidenceProductMatch == nil {
+			productLogger.Info("Could not find a matching product on revzilla, continuing to the next product")
+			return nil
+		}
+
+		err := j.updateProduct(product, highestConfidenceProductMatch, productLogger)
+		if err != nil {
+			return err
+		}
+
+		productLogger.Info("Successfully synced product")
 		return nil
 	})
 }
 
-func (j *SyncRevzillaHelmetsJob) syncDataForProduct(pooledClient *http.Client, product *entities.Product, modelToTry string, productLogger *logrus.Entry) (bool, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("https://product-search.api.cj.com/v2/product-search?website-id=8505854&advertiser-ids=3318586&keywords=%%2B\"%s\"+%%2B\"%s\"+%%2Bhelmet&page-number=1&records-per-page=100&low-price=200",
-		url.QueryEscape(product.Manufacturer), url.QueryEscape(modelToTry)), nil)
-	if err != nil {
-		return false, err
+func (j *SyncRevzillaHelmetsJob) updateProduct(product *entities.Product, productMatch *productMatch, productLogger *logrus.Entry) error {
+	confidenceLogFields := logrus.Fields{
+		"matchConfidence":             productMatch.ConfidenceScore,
+		"matchingRevzillaProductName": productMatch.CJProduct.Name,
+		"isDiscontinued":              productMatch.IsDiscontinued,
+		"manufacturer":                product.Manufacturer,
+		"modelToTry":                  product.Model,
 	}
 
-	req.Header.Set("Authorization", "Bearer "+j.CJAPIKey)
+	if productMatch.IsDiscontinued {
+		productLogger.WithFields(confidenceLogFields).Warning("This product is discontinued, updating the discontinued flag and continuing to the next product")
+		product.IsDiscontinued = true
+		err := j.ProductRepository.UpdateProduct(product)
+		if err != nil {
+			return err
+		}
+	} else {
+		product.RevzillaBuyURL = productMatch.CJProduct.LinkCode.ClickURL
+		product.RevzillaPriceCents = int(productMatch.CJProduct.GetPrice() * 100)
+		product.IsDiscontinued = false
+		product.UpdateHelmetCertificationsByDescription(productMatch.CJProduct.Description)
+		product.UpdateSearchPrice()
+		product.UpdateSafetyPercentage()
+		product.Description = productMatch.CJProduct.Description
+		productLogger.WithFields(confidenceLogFields).Info("Set new price and buy URL from RevZilla")
+		err := j.ProductRepository.UpdateProduct(product)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (j *SyncRevzillaHelmetsJob) searchCJProducts(pooledClient *http.Client, manufacturer string, model string) (*entities.CJProductsResponseWrapper, error) {
+	// Adding a delay to each request here because CJ has an absurdly low threshold for requests per minute
+	time.Sleep(3 * time.Second)
+	req, err := http.NewRequest(http.MethodPost, "https://ads.api.cj.com/query", strings.NewReader(fmt.Sprintf(`{
+		shoppingProducts(companyId: "5023498", partnerIds: ["3318586"], keywords: ["%s", "%s", "helmet"], offset: 1, limit: 100, lowPrice: 200) {
+		  resultList {
+			linkCode(pid: "8505854") {
+			  clickUrl
+			},
+			title,
+			price {
+			  amount
+			},
+			imageLink,
+			productType,
+			description
+		  }
+		}
+	  }`, manufacturer, model)))
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", j.CJAPIKey))
 
 	resp, err := pooledClient.Do(req)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return false, fmt.Errorf("CJ API returned a status code of %d but expected 200", resp.StatusCode)
+		return nil, fmt.Errorf("CJ API returned a status code of %d but expected 200", resp.StatusCode)
 	}
 
 	responseBodyBytes, _ := ioutil.ReadAll(resp.Body)
 	cjResp := &entities.CJProductsResponseWrapper{}
-	if err = xml.Unmarshal(responseBodyBytes, cjResp); err != nil {
-		return false, err
+	if err = json.Unmarshal(responseBodyBytes, cjResp); err != nil {
+		return nil, err
+	}
+	return cjResp, nil
+}
+
+type productMatch struct {
+	CJProduct       *entities.CJProduct
+	ConfidenceScore float64
+	IsDiscontinued  bool
+}
+
+func (j *SyncRevzillaHelmetsJob) getBestMatchForProduct(pooledClient *http.Client, product *entities.Product, modelToTry string, productLogger *logrus.Entry) (*productMatch, error) {
+	cjResp, err := j.searchCJProducts(pooledClient, product.Manufacturer, modelToTry)
+	if err != nil {
+		return nil, err
 	}
 
 	var matchingRevzillaProductsSlice []entities.CJProduct
 	confidenceMap := make(map[string]float64)
 	expectedLowerProductName := strings.ToLower(fmt.Sprintf("%s %s", product.Manufacturer, modelToTry))
 
-	golinq.From(cjResp.Products.Data).WhereT(func(product entities.CJProduct) bool {
+	golinq.From(cjResp.Data.ShoppingProducts.ResultList).WhereT(func(product entities.CJProduct) bool {
 		return product.IsHelmet()
 	}).OrderByDescendingT(func(product entities.CJProduct) interface{} {
 		lowerProductName := strings.ToLower(product.Name)
@@ -97,52 +171,30 @@ func (j *SyncRevzillaHelmetsJob) syncDataForProduct(pooledClient *http.Client, p
 		return matchConfidence
 	}).ToSlice(&matchingRevzillaProductsSlice)
 
-	syncedProduct := false
-	if len(matchingRevzillaProductsSlice) > 0 {
-		bestMatchRevzillaProduct := &matchingRevzillaProductsSlice[0]
-		bestMatchConfidence := confidenceMap[strings.ToLower(bestMatchRevzillaProduct.Name)]
-		buyURLContents, err := httpHelpers.GetContentsAtURL(bestMatchRevzillaProduct.BuyURL)
-		if err != nil {
-			return false, err
-		}
+	if len(matchingRevzillaProductsSlice) <= 0 {
+		productLogger.Info("Could not find a price or buy URL from RevZilla because no results were returned")
+		return nil, nil
+	}
 
-		// If we don't have a product summary, it means we couldn't find the product
-		isDiscontinued := !strings.Contains(strings.ToLower(buyURLContents), "product-show-summary")
-		confidenceLogFields := logrus.Fields{
+	bestMatchRevzillaProduct := &matchingRevzillaProductsSlice[0]
+	bestMatchConfidence := confidenceMap[strings.ToLower(bestMatchRevzillaProduct.Name)]
+	buyURLContents, err := httpHelpers.GetContentsAtURL(bestMatchRevzillaProduct.LinkCode.ClickURL)
+	if err != nil {
+		return nil, err
+	}
+
+	// If we don't have a product summary, it means we couldn't find the product
+	isDiscontinued := !strings.Contains(strings.ToLower(buyURLContents), "product-show-summary")
+	if bestMatchConfidence < bestMatchConfidenceThreshold {
+		productLogger.WithFields(logrus.Fields{
 			"matchConfidence":             bestMatchConfidence,
 			"matchingRevzillaProductName": bestMatchRevzillaProduct.Name,
 			"isDiscontinued":              isDiscontinued,
+			"manufacturer":                product.Manufacturer,
 			"modelToTry":                  modelToTry,
-		}
-
-		if isDiscontinued && bestMatchConfidence >= bestMatchConfidenceThreshold {
-			productLogger.WithFields(confidenceLogFields).Warning("This product is discontinued, updating the discontinued flag and continuing to the next product")
-			product.IsDiscontinued = true
-			err := j.ProductRepository.UpdateProduct(product)
-			if err != nil {
-				return false, err
-			}
-			syncedProduct = true
-		} else if bestMatchConfidence >= bestMatchConfidenceThreshold {
-			product.RevzillaBuyURL = bestMatchRevzillaProduct.BuyURL
-			product.RevzillaPriceCents = int(bestMatchRevzillaProduct.Price * 100)
-			product.IsDiscontinued = false
-			product.UpdateHelmetCertificationsByDescription(bestMatchRevzillaProduct.Description)
-			product.UpdateSearchPrice()
-			product.UpdateSafetyPercentage()
-			product.Description = bestMatchRevzillaProduct.Description
-			productLogger.WithFields(confidenceLogFields).Info("Set new price and buy URL from RevZilla")
-			err := j.ProductRepository.UpdateProduct(product)
-			if err != nil {
-				return false, err
-			}
-			syncedProduct = true
-		} else {
-			productLogger.WithFields(confidenceLogFields).Warning("Could not find a price or buy URL from RevZilla because the best match had a low confidence score")
-		}
-	} else {
-		productLogger.Info("Could not find a price or buy URL from RevZilla because no results were returned")
+		}).Warning("Could not find a price or buy URL from RevZilla because the best match had a low confidence score")
+		return nil, nil
 	}
 
-	return syncedProduct, nil
+	return &productMatch{CJProduct: bestMatchRevzillaProduct, ConfidenceScore: bestMatchConfidence, IsDiscontinued: isDiscontinued}, nil
 }
