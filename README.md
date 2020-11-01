@@ -1,7 +1,7 @@
 # atgatt-backend
-Monorepo for all of the ATGATT backend services (API, background jobs, etc.)
+Monorepo for all of the ATGATT backend services (web API, bg jobs, etc.)
 
-[![CircleCI](https://circleci.com/gh/bakatz/atgatt-backend.svg?style=svg&circle-token=0aafe6b739c14e33dd07db99920ee7a82aa4d30b)](https://circleci.com/gh/bakatz/atgatt-backend)
+[![atgatt](https://circleci.com/gh/atgatt/atgatt-backend.svg?style=shield&circle-token=9060018279620b67051bdc70c5cc269ee2422fa9)](https://circleci.com/gh/atgatt/atgatt-backend)
 
 ## First-time setup
 1. Clone this repository to your local machine in some directory i.e. `~/dev/atgatt-backend`
@@ -57,7 +57,7 @@ Note that you must have Python 3.6 installed and use `pip install awsebcli` befo
 
 ### How to deploy
 - Staging: Just merge your feature branch to master. After it gets merged, it will automatically get deployed to staging.
-- Production: Select the commit you want to promote to production via https://circleci.com/gh/bakatz/workflows/atgatt-backend, then click on the `hold` step and click `Approve` to promote to production
+- Production: Select the commit you want to promote to production via https://circleci.com/gh/atgatt/workflows/atgatt-backend, then click on the `hold` step and click `Approve` to promote to production
 - Any failures for either of the above steps will be sent to #build-notifications in Slack
 
 ### Notes
