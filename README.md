@@ -1,5 +1,5 @@
 # atgatt-backend
-# This repository hosts the code that used to power atgatt.co's backend.
+# This repository hosts the code that used to power atgatt.co's backend. Ignore the deployment instructions as this code no longer deploys anywhere.
 
 Monorepo for all of the ATGATT backend services (web API, bg jobs, etc.)
 
@@ -14,7 +14,7 @@ Monorepo for all of the ATGATT backend services (web API, bg jobs, etc.)
 1. Install sql-migrate by running `go get -v github.com/rubenv/sql-migrate/...`
 1. Optionally, install Air for live reload support via https://github.com/cosmtrek/air#installation
 
-NOTE: You don't need to do anything to install dependencies. This project relies on the new Go Modules feature, which means that when you `go build` the API/background worker for the first time, Go will automatically install all deps.
+NOTE: You don't need to do anything to install dependencies. This project relies on the Go Modules feature, which means that when you `go build` the API/background worker for the first time, Go will automatically install all deps.
 
 ## Common tasks
 - Run `go run ./cmd/api` to run the API (listens on http://localhost:5000)
@@ -55,7 +55,7 @@ Useful commands to monitor deployments:
 - `eb status <environment-name>` will display application health information
 - `eb ssh <environment-name>` will allow you to open a SSH session on the EC2 container(s) that the application is running on
 
-Note that you must have Python 3.6 installed and use `pip install awsebcli` before running any of the above deployment-related commands.
+Note that you must have Python 3.x installed and use `pip install awsebcli` before running any of the above deployment-related commands.
 
 ### How to deploy
 - Staging: Just merge your feature branch to master. After it gets merged, it will automatically get deployed to staging.
