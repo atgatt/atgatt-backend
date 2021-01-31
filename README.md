@@ -1,4 +1,6 @@
 # atgatt-backend
+# This repository hosts the code that used to power atgatt.co's backend.
+
 Monorepo for all of the ATGATT backend services (web API, bg jobs, etc.)
 
 [![atgatt](https://circleci.com/gh/atgatt/atgatt-backend.svg?style=shield&circle-token=9060018279620b67051bdc70c5cc269ee2422fa9)](https://circleci.com/gh/atgatt/atgatt-backend)
