@@ -31,8 +31,8 @@ NOTE: You don't need to do anything to install dependencies. This project relies
 - `DATABASE_CONNECTION_STRING`: How to connect to the postgres database
 - `LOGZIO_TOKEN`: Token used for logging
 - `AUTH0_DOMAIN`: The domain used for integration with Auth0 (`atgatt-staging.auth0.com` for local/staging)
-- `AWS_S3_BUCKET`:  The bucket storing the scraped images (needed for running worker tests locally - ask Ben for the value)
-- `CJ_API_KEY`: THe commission junction API key (needed for running worker tests locally - ask Ben for the value)
+- `AWS_S3_BUCKET`:  The bucket storing the scraped images (needed for running worker tests locally)
+- `CJ_API_KEY`: THe commission junction API key (needed for running worker tests locally/affiliate marketing integration)
 
 ## Important folders and files
 - `api` - controllers and request handling logic
