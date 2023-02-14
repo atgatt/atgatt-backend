@@ -4,14 +4,13 @@ require (
 	github.com/PuerkitoBio/goquery v1.5.0
 	github.com/ahmetb/go-linq v3.0.0+incompatible
 	github.com/asaskevich/govalidator v0.0.0-20180720115003-f9ffefc3facf // indirect
-	github.com/aws/aws-sdk-go v1.17.9
+	github.com/aws/aws-sdk-go v1.34.0
 	github.com/bakatz/echo-logrusmiddleware v0.0.0-20190630045949-a113cd951a90
 	github.com/borderstech/artifex v0.0.0-20181102223847-39e20eb3448b
 	github.com/bshuster-repo/logruzio v0.0.0-20170701214031-b0b294934396
 	github.com/cenkalti/backoff v2.1.1+incompatible
 	github.com/deckarep/golang-set v1.7.1 // indirect
 	github.com/go-ozzo/ozzo-validation v3.5.0+incompatible
-	github.com/go-sql-driver/mysql v1.4.1 // indirect
 	github.com/gobuffalo/envy v1.6.15 // indirect
 	github.com/gobuffalo/packd v0.0.0-20190224160250-d04dd98aca5b // indirect
 	github.com/gobuffalo/packr v1.22.0 // indirect
@@ -38,7 +37,6 @@ require (
 	github.com/ziutek/mymysql v1.5.4 // indirect
 	golang.org/x/exp v0.0.0-20190301171323-01c40f57f5f6 // indirect
 	gonum.org/v1/gonum v0.0.0-20190517105223-d76380b39392 // indirect
-	google.golang.org/appengine v1.4.0 // indirect
 	gopkg.in/gorp.v1 v1.7.2 // indirect
 	gopkg.in/jdkato/prose.v2 v2.0.0-20180825173540-767a23049b9e
 	gopkg.in/neurosnap/sentences.v1 v1.0.6 // indirect
