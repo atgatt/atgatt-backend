@@ -1,6 +1,5 @@
 # atgatt-backend
 # This repository hosts the code that used to power atgatt.co's backend. Ignore the deployment instructions as this code no longer deploys anywhere.
-# If you found this code helpful, please consider a sponsorship: https://github.com/sponsors/bakatz
 
 Monorepo for all of the ATGATT backend services (web API, bg jobs, etc.)
 
