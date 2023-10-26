@@ -22,7 +22,7 @@ require (
 	github.com/hashicorp/go-cleanhttp v0.5.0
 	github.com/jackc/pgx/v4 v4.1.2
 	github.com/jmoiron/sqlx v1.2.0
-	github.com/labstack/echo/v4 v4.1.6
+	github.com/labstack/echo/v4 v4.9.0
 	github.com/lestrrat-go/jwx v0.9.0
 	github.com/lib/pq v1.3.0 // indirect
 	github.com/mattn/go-sqlite3 v1.10.0 // indirect
